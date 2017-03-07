@@ -7028,6 +7028,9 @@ void printUsage() {
 int selfie() {
   int* option;
 
+  print ((int*) "This is Vivien Wallner's Selfie");
+  println();
+
   if (numberOfRemainingArguments() == 0)
     printUsage();
   else {
