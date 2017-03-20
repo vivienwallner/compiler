@@ -106,7 +106,7 @@ int  stringLength(int* s);
 void stringReverse(int* s);
 int  stringCompare(int* s, int* t);
 
-int  atoi(int* s);
+int  atoi(int* s, int base);
 int* itoa(int n, int* s, int b, int a, int p);
 
 int fixedPointRatio(int a, int b);
@@ -179,22 +179,30 @@ int* binary_buffer;    // buffer for binary I/O
 // WINDOWS: 32768 = 0x8000 = _O_BINARY (0x8000) | _O_RDONLY (0x0000)
 // since LINUX/MAC do not seem to mind about _O_BINARY set
 // we use the WINDOWS flags as default
-int O_RDONLY = 32768;
+
+//int O_RDONLY = 32768;
+int O_RDONLY = 0b1000000000000000;
+
 
 // flags for opening write-only files
 // MAC: 1537 = 0x0601 = O_CREAT (0x0200) | O_TRUNC (0x0400) | O_WRONLY (0x0001)
-int MAC_O_CREAT_TRUNC_WRONLY = 1537;
+//int MAC_O_CREAT_TRUNC_WRONLY = 1537;
+int MAC_O_CREAT_TRUNC_WRONLY = 0x0601;
 
 // LINUX: 577 = 0x0241 = O_CREAT (0x0040) | O_TRUNC (0x0200) | O_WRONLY (0x0001)
-int LINUX_O_CREAT_TRUNC_WRONLY = 577;
+//int LINUX_O_CREAT_TRUNC_WRONLY = 577;
+int LINUX_O_CREAT_TRUNC_WRONLY = 0x0241;
+
 
 // WINDOWS: 33537 = 0x8301 = _O_BINARY (0x8000) | _O_CREAT (0x0100) | _O_TRUNC (0x0200) | _O_WRONLY (0x0001)
-int WINDOWS_O_BINARY_CREAT_TRUNC_WRONLY = 33537;
+//int WINDOWS_O_BINARY_CREAT_TRUNC_WRONLY = 33537;
+int WINDOWS_O_BINARY_CREAT_TRUNC_WRONLY = 0x8301;
 
 // flags for rw-r--r-- file permissions
 // 420 = 00644 = S_IRUSR (00400) | S_IWUSR (00200) | S_IRGRP (00040) | S_IROTH (00004)
 // these flags seem to be working for LINUX, MAC, and WINDOWS
-int S_IRUSR_IWUSR_IRGRP_IROTH = 420;
+//int S_IRUSR_IWUSR_IRGRP_IROTH = 420;
+int S_IRUSR_IWUSR_IRGRP_IROTH = 00644;
 
 // ------------------------ GLOBAL VARIABLES -----------------------
 
@@ -702,27 +710,27 @@ void printFunction(int function);
 
 // ------------------------ GLOBAL CONSTANTS -----------------------
 
-int OP_SPECIAL = 0;
-int OP_J       = 2;
-int OP_JAL     = 3;
-int OP_BEQ     = 4;
-int OP_BNE     = 5;
-int OP_ADDIU   = 9;
-int OP_LW      = 35;
-int OP_SW      = 43;
+int OP_SPECIAL = 0x0; //hexadezimal representation of 0
+int OP_J       = 0x2; //hexadezimal representation of 2
+int OP_JAL     = 0x3;  //hexadezimal representation of 3
+int OP_BEQ     = 0x4;  //hexadezimal representation of 4
+int OP_BNE     = 0x5;  //hexadezimal representation of 5
+int OP_ADDIU   = 0x9;  //hexadezimal representation of 9
+int OP_LW      = 0x23; //hexadezimal representation of 35
+int OP_SW      = 0x2B; //hexadezimal representation of 43
 
 int* OPCODES; // strings representing MIPS opcodes
 
-int FCT_NOP     = 0;
-int FCT_JR      = 8;
-int FCT_SYSCALL = 12;
-int FCT_MFHI    = 16;
-int FCT_MFLO    = 18;
-int FCT_MULTU   = 25;
-int FCT_DIVU    = 27;
-int FCT_ADDU    = 33;
-int FCT_SUBU    = 35;
-int FCT_SLT     = 42;
+int FCT_NOP     = 0x0;
+int FCT_JR      = 0x8;
+int FCT_SYSCALL = 0xC; //hexadezimal representation of 12
+int FCT_MFHI    = 0x10; //hexadezimal representation of 16
+int FCT_MFLO    = 0x12; //hexadezimal representation of 18
+int FCT_MULTU   = 0x19; //hexadezimal representation of 25
+int FCT_DIVU    = 0x1B; //hexadezimal representation of 27
+int FCT_ADDU    = 0x21; //hexadezimal representation of 33
+int FCT_SUBU    = 0x23; //hexadezimal representation of 35
+int FCT_SLT     = 0x2A; //hexadezimal representation of 42
 
 int* FUNCTIONS; // strings representing MIPS functions
 
@@ -1404,7 +1412,7 @@ int stringCompare(int* s, int* t) {
       return 0;
 }
 
-int atoi(int* s) {
+int atoi(int* s, int base) {
   int i;
   int n;
   int c;
@@ -1424,15 +1432,50 @@ int atoi(int* s) {
     // is offset by the ASCII code of '0' (which is 48)
     c = c - '0';
 
-    if (c < 0)
-      // c was not a decimal digit
+    if(base == 2){
+      if (c < 0)
+      // c was not a binaer digit
       return -1;
-    else if (c > 9)
-      // c was not a decimal digit
+    else if (c > 1)
+      // c was not a binaer digit
+      return -1;
+    
+    }else if(base == 8){
+      if (c < 0)
+      // c was not a oktal digit
+      return -1;
+    else if (c > 7)
+      // c was not a oktal digit
+      return -1;
+    
+    }else if(base == 10){
+      if (c < 0)
+      // c was not a dezimal digit
       return -1;
 
+    else if (c > 9)
+      // c was not a dezimal digit
+      return -1;
+    
+    }else if(base == 16){
+
+      if(c >='A'-'0'){
+        if(c <= 'F'-'0'){
+          c = c - 7;
+        }
+      }
+
+      if (c < 0)
+      // c was not a hexadezimal digit
+      return -1;
+    else if (c > 15)
+      // c was not a hexadezimal digit
+      return -1;
+    }   
+
+
     // assert: s contains a decimal number, that is, with base 10
-    n = n * 10 + c;
+    n = n * base + c;
 
     // go to the next digit
     i = i + 1;
@@ -1982,6 +2025,8 @@ int identifierOrKeyword() {
 
 void getSymbol() {
   int i;
+  int base;
+  int digitlength;
 
   // reset previously scanned symbol
   symbol = SYM_EOF;
@@ -2015,14 +2060,86 @@ void getSymbol() {
         symbol = identifierOrKeyword();
 
       } else if (isCharacterDigit()) {
-        // accommodate integer and null for termination
-        integer = malloc(maxIntegerLength + 1);
-
         i = 0;
 
+        if(character == '0'){//0
+           //print((int*)itoa(character,integer_buffer,10,0,0));print((int*)"-");
+
+          getCharacter();
+          if(character == 'b'){
+          //binaer
+            base = 2;
+          //32 Bit fuer binaerzahlen 
+            digitlength = 32;
+            integer = malloc(digitlength + 1);
+
+            //print((int*)itoa(character,integer_buffer,10,0,0));print((int*)"-");print((int*)" ");
+
+            getCharacter();
+
+          }else if(character == '0'){
+          //oktal
+            base = 8;
+          //16 Bit fuer oktal
+            digitlength = 12;
+            integer = malloc(digitlength + 1);
+          
+            //print((int*)itoa(character,integer_buffer,10,0,0));print((int*)"-");print((int*)" ");
+            
+            getCharacter();
+
+          }else if(character == 'x'){
+          //hexadezimal
+            base = 16;
+          //16 Bit fuer hex
+            digitlength = 8;
+            integer = malloc(digitlength + 1);
+            
+            //print((int*)itoa(character,integer_buffer,10,0,0));print((int*)"-");print((int*)" ");
+            
+            getCharacter();
+
+          }else if(isCharacterDigit() == 0){
+            base = 10;
+            digitlength = maxIntegerLength;
+            integer =malloc(digitlength + 1);
+
+            //print((int*)itoa(character,integer_buffer,10,0,0));print((int*)"-");
+            
+            storeCharacter(integer, i, '0');
+          }
+        }else{
+          base = 10;
+          digitlength = maxIntegerLength;
+          integer = malloc(maxIntegerLength + 1);
+        }
+
+
+      if(base == 16){
+        while (isCharacterLetterOrDigitOrUnderscore()) {
+          //print((int*)itoa(character,integer_buffer,10,0,0));print((int*)"-");
+
+          if (i >= digitlength) {
+            syntaxErrorMessage((int*) "integer out of bound 1");
+            exit(-1);
+          }
+          if(character == CHAR_UNDERSCORE){
+            syntaxErrorMessage((int*) "not an integer");
+            exit(-1);
+          }
+
+          storeCharacter(integer, i, character);
+
+          i = i + 1;
+
+          getCharacter();
+        }
+      }else{
         while (isCharacterDigit()) {
-          if (i >= maxIntegerLength) {
-            syntaxErrorMessage((int*) "integer out of bound");
+          //print((int*)itoa(character,integer_buffer,10,0,0));print((int*)"-");
+
+          if (i >= digitlength) {
+            syntaxErrorMessage((int*) "integer out of bound 2");
 
             exit(-1);
           }
@@ -2033,22 +2150,28 @@ void getSymbol() {
 
           getCharacter();
         }
+      }
 
         storeCharacter(integer, i, 0); // null-terminated string
+        //print((int*)"\n");
 
-        literal = atoi(integer);
+        literal = atoi(integer, base);
+
+        //print((int*) itoa(literal, integer_buffer,10,0,0));
+         //print((int*)"\n");
+         //print((int*)"\n");
 
         if (literal < 0) {
           if (literal == INT_MIN) {
             if (mayBeINTMIN)
               isINTMIN = 1;
             else {
-              syntaxErrorMessage((int*) "integer out of bound");
+              syntaxErrorMessage((int*) "integer out of bound 3");
 
               exit(-1);
             }
           } else {
-            syntaxErrorMessage((int*) "integer out of bound");
+            syntaxErrorMessage((int*) "integer out of bound 4");
 
             exit(-1);
           }
@@ -6942,7 +7065,7 @@ int selfie_run(int engine, int machine, int debugger) {
     exit(-1);
   }
 
-  initMemory(atoi(peekArgument()));
+  initMemory(atoi(peekArgument(), 10));
 
   // pass binary name as first argument by replacing memory size
   setArgument(binaryName);
