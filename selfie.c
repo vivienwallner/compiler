@@ -706,7 +706,7 @@ int OP_SPECIAL = 0x0;//hexadeziml representation of 0
 int OP_J       = 0x2;//hexadeziml representation of 2
 int OP_JAL     = 0x3;//hexadeziml representation of 3
 int OP_BEQ     = 0x4;//hexadeziml representation of 4
-int OP_BNE     = 0x5;//hexadeziml representation of 5
+int OP_BNE     = 0x5;//hexadeziml representation of 5 
 int OP_ADDIU   = 0x9;//hexadeziml representation of 9
 int OP_LW      = 0x23;//hexadeziml representation of 35
 int OP_SW      = 0x2B;//hexadeziml representation of 43
@@ -1404,56 +1404,6 @@ int stringCompare(int* s, int* t) {
       return 0;
 }
 
-int convertCharacterToNumber(int c, int base){
-  // the numerical value of ASCII-encoded decimal digits
-  // is offset by the ASCII code of '0' (which is 48)
-  c = c - '0';
-
-  if(base == 2){
-    if (c < 0)
-      // c was not a binary, octal, dezimal or hexadezimal digit
-      return -1;
-    else if (c > 1)
-      // c was not a binary digit
-      return -1;
-
-  }else if (base == 8){
-    if (c < 0)
-      // c was not a binary, octal, dezimal or hexadezimal digit
-      return -1;
-    else if (c > 7)
-      // c was not an octal digit
-      return -1;
-
-  }else if(base == 10){
-    if (c < 0)
-      // c was not a binary, octal, dezimal or hexadezimal digit
-      return -1;
-    else if (c > 9)
-      // c was not a decimal digit
-      return -1;
-
-  }else if(base == 16){
-    //The value of ASCII-encoded 'A' is 65: c = c - '0' = c - 48 = 65 - 48 = 17.
-    //but we need 10 for A, so 17 - 7 = 10
-    if(c >= 'A'-'0'){
-      if(c <= 'F'-'0'){
-        c = c - 7;
-
-      }
-    }
-      //  print((int*)itoa(c,integer_buffer,10,0,0));print((int*)" - LOOK HERE\n");
-    if (c < 0)
-      // c was not a binary, octal, dezimal or hexadezimal digit
-      return -1;
-    else if (c > 15)
-      // c was not a hexadezimal digit
-      return -1;
-  }
-
-  return c;
-}
-
 int atoi(int* s, int base) {
   int i;
   int n;
@@ -1470,10 +1420,52 @@ int atoi(int* s, int base) {
 
   // loop until s is terminated
   while (c != 0) {
-
+  
     // the numerical value of ASCII-encoded decimal digits
     // is offset by the ASCII code of '0' (which is 48)
-    c  = convertCharacterToNumber(c, base);
+    c = c - '0';
+
+    if(base == 2){      
+      if (c < 0)
+        // c was not a binary, octal, dezimal or hexadezimal digit
+        return -1;    
+      else if (c > 1)
+        // c was not a binary digit
+        return -1;
+        
+    }else if (base == 8){    
+      if (c < 0)
+        // c was not a binary, octal, dezimal or hexadezimal digit
+        return -1;  
+      else if (c > 7)
+        // c was not an octal digit
+        return -1;
+        
+    }else if(base == 10){  
+      if (c < 0)
+        // c was not a binary, octal, dezimal or hexadezimal digit
+        return -1;    
+      else if (c > 9)
+        // c was not a decimal digit
+        return -1;
+        
+    }else if(base == 16){
+      //The value of ASCII-encoded 'A' is 65: c = c - '0' = c - 48 = 65 - 48 = 17. 
+      //but we need 10 for A, so 17 - 7 = 10   
+      if(c >= 'A'-'0'){
+        if(c <= 'F'-'0'){  
+          c = c - 7; 
+            
+        }
+      }
+        //  print((int*)itoa(c,integer_buffer,10,0,0));print((int*)" - LOOK HERE\n");
+      if (c < 0)
+        // c was not a binary, octal, dezimal or hexadezimal digit
+        return -1;    
+      else if (c > 15)
+        // c was not a hexadezimal digit
+        return -1;        
+    }
     // assert: s contains a decimal number, that is, with base 10
     n = n * base + c; //replaced  10 in n = n * 10 + c; with the base
 
@@ -2023,88 +2015,6 @@ int identifierOrKeyword() {
     return SYM_IDENTIFIER;
 }
 
-int readIntegerBasePrefix(){
-  if(character == '0'){//0
-    getCharacter();
-
-    if(character == 'b'){//0b - binary prefix
-      integer = malloc(maxIntegerLength + 1);
-
-      getCharacter();
-      return 2;//binary base
-
-    }else if(character == '0'){//00 - octal prefix
-      integer = malloc(maxIntegerLength + 1);//12- maximal number of the digits in base 8
-
-      getCharacter();
-
-        return 8; //octal base
-
-    }else if(character == 'x'){//0x - hexadezimal prefix
-      integer = malloc(maxIntegerLength + 1);
-
-      getCharacter();
-      return 16; //hexadezimal base
-
-    }else if(isCharacterDigit() == 0){
-      integer = malloc(maxIntegerLength + 1);
-
-      storeCharacter(integer, 0, '0');// 48 ASCII code for '0'
-      return 10;//dezimal base
-    }else{
-      return -1;
-    }
-
-  }else{
-    return 10;
-  }
-}
-
-int readStringOfDeimalDigits(int i){
-
-  int digitsLength;
-
-  while (isCharacterDigit()) {
-
-
-    if (i >= digitsLength) {
-      syntaxErrorMessage((int*) "integer out of bound");
-      exit(-1);
-    }
-
-    storeCharacter(integer, i, character);
-
-    i = i + 1;
-
-    getCharacter();
-  }
-  return i;
-}
-
-int readStringOfHexDigits(int i){
-
-  while (isCharacterLetterOrDigitOrUnderscore()) {
-
-
-    if (i >= maxIntegerLength) {
-      syntaxErrorMessage((int*) "integer out of bound");
-      exit(-1);
-    }
-
-    if(character == CHAR_UNDERSCORE){
-      syntaxErrorMessage((int*) "not an integer");
-      exit(-1);
-    }
-
-    storeCharacter(integer, i, character);
-
-    i = i + 1;
-
-    getCharacter();
-  }
-  return i;
-}
-
 void getSymbol() {
   int i;
   int base;
@@ -2141,29 +2051,78 @@ void getSymbol() {
 
       } else if (isCharacterDigit()) {
         // accommodate integer and null for termination
+        
         i = 0;
-
-        base = readIntegerBasePrefix();
-
-        if(base == 2){
-          i = readStringOfDeimalDigits(i);
-
-        }else if(base == 8){
-          i = readStringOfDeimalDigits(i);
-
-        }else if(base == 10){
-          if(isCharacterDigit()){
-
+        
+        if(character == '0'){//0
+          
+          getCharacter();
+          if(character == 'b'){//0b - binary prefix
+            base = 2;
+            integer = malloc(maxIntegerLength + 1); 
+            getCharacter();
+            
+          }else if(character == 'x'){//0x - hexadezimal prefix
+            base = 16;
             integer = malloc(maxIntegerLength + 1);
-            storeCharacter(integer, i, character);
-
-            i = readStringOfDeimalDigits(i);
+            
+            getCharacter();          
+           
+          }else if(character >= '0'){//0[0-7] - octal prefix
+            if (character <= '7'){
+				base = 8;
+				integer = malloc(maxIntegerLength + 1);        
+				//getCharacter();
+			}
+          }else if(isCharacterDigit() == 0){
+            base = 10;//default dezimal base 
+            integer = malloc(maxIntegerLength + 1);
+                      
+            storeCharacter(integer, i, '0');// 48 ASCII code for '0'
+            
           }
-
-        }else if(base == 16){
-          i = readStringOfHexDigits(i);
+        }else{
+          base = 10;//default dezimal base 
+          integer = malloc(maxIntegerLength + 1);
         }
-
+        
+        if(base == 16){
+          while (isCharacterLetterOrDigitOrUnderscore()) {
+          
+            if (i >= maxIntegerLength) {
+              syntaxErrorMessage((int*) "integer out of bound");
+              exit(-1);
+            }
+            
+			//method isCharacterLetterOrDigitOrUnderscore contains UNDERSCORE (not number!)
+            if(character == CHAR_UNDERSCORE){
+              syntaxErrorMessage((int*) "not an integer");
+              exit(-1);
+            }
+          
+            storeCharacter(integer, i, character);
+        
+            i = i + 1;
+        
+            getCharacter();
+          } 
+          
+      }else{
+        while (isCharacterDigit()) {
+        
+          if (i >= maxIntegerLength) {
+            syntaxErrorMessage((int*) "integer out of bound");
+            exit(-1);
+          }
+        
+          storeCharacter(integer, i, character);
+      
+          i = i + 1;
+      
+          getCharacter();
+        }
+      }
+      
         storeCharacter(integer, i, 0); // null-terminated string
 
         literal = atoi(integer, base);
@@ -7158,8 +7117,8 @@ void printUsage() {
 int selfie() {
   int* option;
 
-  print ((int*) "This is Vivien Wallner's Selfie");
-  println();
+    print((int*)"This is Vivien Wallner's Selfie");
+    println();
 
   if (numberOfRemainingArguments() == 0)
     printUsage();
@@ -7212,5 +7171,4 @@ int main(int argc, int* argv) {
   initLibrary();
 
   return selfie();
-
 }
