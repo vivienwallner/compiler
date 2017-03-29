@@ -672,7 +672,7 @@ void initRegister() {
 // ---------------------------- ENCODER ----------------------------
 // -----------------------------------------------------------------
 
-int encodeRFormat(int opcode, int rs, int rt, int rd, int function);
+int encodeRFormat(int opcode, int rs, int rt, int rd, int shamt, int function);
 int encodeIFormat(int opcode, int rs, int rt, int immediate);
 int encodeJFormat(int opcode, int instr_index);
 
@@ -686,6 +686,7 @@ int getOpcode(int instruction);
 int getRS(int instruction);
 int getRT(int instruction);
 int getRD(int instruction);
+int getShamt(int instruction);
 int getFunction(int instruction);
 int getImmediate(int instruction);
 int getInstrIndex(int instruction);
@@ -706,7 +707,7 @@ int OP_SPECIAL = 0x0;//hexadeziml representation of 0
 int OP_J       = 0x2;//hexadeziml representation of 2
 int OP_JAL     = 0x3;//hexadeziml representation of 3
 int OP_BEQ     = 0x4;//hexadeziml representation of 4
-int OP_BNE     = 0x5;//hexadeziml representation of 5 
+int OP_BNE     = 0x5;//hexadeziml representation of 5
 int OP_ADDIU   = 0x9;//hexadeziml representation of 9
 int OP_LW      = 0x23;//hexadeziml representation of 35
 int OP_SW      = 0x2B;//hexadeziml representation of 43
@@ -723,6 +724,11 @@ int FCT_DIVU    = 0x1B;//hexadeziml representation of 27
 int FCT_ADDU    = 0x21;//hexadeziml representation of 33
 int FCT_SUBU    = 0x23;//hexadeziml representation of 35
 int FCT_SLT     = 0x2A;//hexadeziml representation of 42
+//Assignment3
+int FCT_SLL     = 0x0;
+int FCT_SRL     = 0x2;
+int FCT_SLLV    = 0x4;
+int FCT_SRLV    = 0x6;
 
 int* FUNCTIONS; // strings representing MIPS functions
 
@@ -735,6 +741,7 @@ int rd          = 0;
 int immediate   = 0;
 int function    = 0;
 int instr_index = 0;
+int shamt       = 0;
 
 // ------------------------- INITIALIZATION ------------------------
 
@@ -752,7 +759,7 @@ void initDecoder() {
 
   FUNCTIONS = malloc(43 * SIZEOFINTSTAR);
 
-  *(FUNCTIONS + FCT_NOP)     = (int) "nop";
+  //*(FUNCTIONS + FCT_NOP)     = (int) "nop";
   *(FUNCTIONS + FCT_JR)      = (int) "jr";
   *(FUNCTIONS + FCT_SYSCALL) = (int) "syscall";
   *(FUNCTIONS + FCT_MFHI)    = (int) "mfhi";
@@ -762,6 +769,11 @@ void initDecoder() {
   *(FUNCTIONS + FCT_ADDU)    = (int) "addu";
   *(FUNCTIONS + FCT_SUBU)    = (int) "subu";
   *(FUNCTIONS + FCT_SLT)     = (int) "slt";
+  //Assignment3
+  *(FUNCTIONS + FCT_SLL)     = (int) "sll";
+  *(FUNCTIONS + FCT_SRL)     = (int) "srl";
+  *(FUNCTIONS + FCT_SLLV)    = (int) "sllv";
+  *(FUNCTIONS + FCT_SRLV)    = (int) "srlv";
 }
 
 // -----------------------------------------------------------------
@@ -772,7 +784,7 @@ int  loadBinary(int baddr);
 void storeBinary(int baddr, int instruction);
 
 void emitInstruction(int instruction);
-void emitRFormat(int opcode, int rs, int rt, int rd, int function);
+void emitRFormat(int opcode, int rs, int rt, int rd, int shamt, int function);
 void emitIFormat(int opcode, int rs, int rt, int immediate);
 void emitJFormat(int opcode, int instr_index);
 
@@ -978,6 +990,11 @@ void fct_subu();
 void op_lw();
 void fct_slt();
 void op_sw();
+//Assignment3
+void fct_sll();
+void fct_srl();
+void fct_sllv();
+void fct_srlv();
 
 // -----------------------------------------------------------------
 // -------------------------- INTERPRETER --------------------------
@@ -1420,51 +1437,51 @@ int atoi(int* s, int base) {
 
   // loop until s is terminated
   while (c != 0) {
-  
+
     // the numerical value of ASCII-encoded decimal digits
     // is offset by the ASCII code of '0' (which is 48)
     c = c - '0';
 
-    if(base == 2){      
+    if(base == 2){
       if (c < 0)
         // c was not a binary, octal, dezimal or hexadezimal digit
-        return -1;    
+        return -1;
       else if (c > 1)
         // c was not a binary digit
         return -1;
-        
-    }else if (base == 8){    
+
+    }else if (base == 8){
       if (c < 0)
         // c was not a binary, octal, dezimal or hexadezimal digit
-        return -1;  
+        return -1;
       else if (c > 7)
         // c was not an octal digit
         return -1;
-        
-    }else if(base == 10){  
+
+    }else if(base == 10){
       if (c < 0)
         // c was not a binary, octal, dezimal or hexadezimal digit
-        return -1;    
+        return -1;
       else if (c > 9)
         // c was not a decimal digit
         return -1;
-        
+
     }else if(base == 16){
-      //The value of ASCII-encoded 'A' is 65: c = c - '0' = c - 48 = 65 - 48 = 17. 
-      //but we need 10 for A, so 17 - 7 = 10   
+      //The value of ASCII-encoded 'A' is 65: c = c - '0' = c - 48 = 65 - 48 = 17.
+      //but we need 10 for A, so 17 - 7 = 10
       if(c >= 'A'-'0'){
-        if(c <= 'F'-'0'){  
-          c = c - 7; 
-            
+        if(c <= 'F'-'0'){
+          c = c - 7;
+
         }
       }
         //  print((int*)itoa(c,integer_buffer,10,0,0));print((int*)" - LOOK HERE\n");
       if (c < 0)
         // c was not a binary, octal, dezimal or hexadezimal digit
-        return -1;    
+        return -1;
       else if (c > 15)
         // c was not a hexadezimal digit
-        return -1;        
+        return -1;
     }
     // assert: s contains a decimal number, that is, with base 10
     n = n * base + c; //replaced  10 in n = n * 10 + c; with the base
@@ -2051,78 +2068,78 @@ void getSymbol() {
 
       } else if (isCharacterDigit()) {
         // accommodate integer and null for termination
-        
+
         i = 0;
-        
+
         if(character == '0'){//0
-          
+
           getCharacter();
           if(character == 'b'){//0b - binary prefix
             base = 2;
-            integer = malloc(maxIntegerLength + 1); 
+            integer = malloc(maxIntegerLength + 1);
             getCharacter();
-            
+
           }else if(character == 'x'){//0x - hexadezimal prefix
             base = 16;
             integer = malloc(maxIntegerLength + 1);
-            
-            getCharacter();          
-           
+
+            getCharacter();
+
           }else if(character >= '0'){//0[0-7] - octal prefix
             if (character <= '7'){
 				base = 8;
-				integer = malloc(maxIntegerLength + 1);        
+				integer = malloc(maxIntegerLength + 1);
 				//getCharacter();
 			}
           }else if(isCharacterDigit() == 0){
-            base = 10;//default dezimal base 
+            base = 10;//default dezimal base
             integer = malloc(maxIntegerLength + 1);
-                      
+
             storeCharacter(integer, i, '0');// 48 ASCII code for '0'
-            
+
           }
         }else{
-          base = 10;//default dezimal base 
+          base = 10;//default dezimal base
           integer = malloc(maxIntegerLength + 1);
         }
-        
+
         if(base == 16){
           while (isCharacterLetterOrDigitOrUnderscore()) {
-          
+
             if (i >= maxIntegerLength) {
               syntaxErrorMessage((int*) "integer out of bound");
               exit(-1);
             }
-            
+
 			//method isCharacterLetterOrDigitOrUnderscore contains UNDERSCORE (not number!)
             if(character == CHAR_UNDERSCORE){
               syntaxErrorMessage((int*) "not an integer");
               exit(-1);
             }
-          
+
             storeCharacter(integer, i, character);
-        
+
             i = i + 1;
-        
+
             getCharacter();
-          } 
-          
+          }
+
       }else{
         while (isCharacterDigit()) {
-        
+
           if (i >= maxIntegerLength) {
             syntaxErrorMessage((int*) "integer out of bound");
             exit(-1);
           }
-        
+
           storeCharacter(integer, i, character);
-      
+
           i = i + 1;
-      
+
           getCharacter();
         }
       }
-      
+
         storeCharacter(integer, i, 0); // null-terminated string
 
         literal = atoi(integer, base);
@@ -2832,7 +2849,7 @@ void help_procedure_epilogue(int parameters) {
   emitIFormat(OP_ADDIU, REG_SP, REG_SP, (parameters + 1) * WORDSIZE);
 
   // return
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, FCT_JR);
+  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 int gr_call(int* procedure) {
@@ -3082,16 +3099,16 @@ int gr_term() {
       typeWarning(ltype, rtype);
 
     if (operatorSymbol == SYM_ASTERISK) {
-      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0, FCT_MULTU);
-      emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(), FCT_MFLO);
+      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0, 0, FCT_MULTU);
+      emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(), 0, FCT_MFLO);
 
     } else if (operatorSymbol == SYM_DIV) {
-      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0, FCT_DIVU);
-      emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(), FCT_MFLO);
+      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0, 0, FCT_DIVU);
+      emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(), 0, FCT_MFLO);
 
     } else if (operatorSymbol == SYM_MOD) {
-      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0, FCT_DIVU);
-      emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(), FCT_MFHI);
+      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0, 0, FCT_DIVU);
+      emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(), 0, FCT_MFHI);
     }
 
     tfree(1);
@@ -3142,7 +3159,7 @@ int gr_simpleExpression() {
       ltype = INT_T;
     }
 
-    emitRFormat(OP_SPECIAL, REG_ZR, currentTemporary(), currentTemporary(), FCT_SUBU);
+    emitRFormat(OP_SPECIAL, REG_ZR, currentTemporary(), currentTemporary(), 0, FCT_SUBU);
   }
 
   // + or -?
@@ -3163,13 +3180,13 @@ int gr_simpleExpression() {
       } else if (rtype == INTSTAR_T)
         typeWarning(ltype, rtype);
 
-      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), FCT_ADDU);
+      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), 0, FCT_ADDU);
 
     } else if (operatorSymbol == SYM_MINUS) {
       if (ltype != rtype)
         typeWarning(ltype, rtype);
 
-      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), FCT_SUBU);
+      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), 0, FCT_SUBU);
     }
 
     tfree(1);
@@ -3206,7 +3223,7 @@ int gr_expression() {
 
     if (operatorSymbol == SYM_EQUALITY) {
       // subtract, if result = 0 then 1, else 0
-      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), FCT_SUBU);
+      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), 0, FCT_SUBU);
 
       tfree(1);
 
@@ -3217,7 +3234,7 @@ int gr_expression() {
 
     } else if (operatorSymbol == SYM_NOTEQ) {
       // subtract, if result = 0 then 0, else 1
-      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), FCT_SUBU);
+      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), 0, FCT_SUBU);
 
       tfree(1);
 
@@ -3228,19 +3245,19 @@ int gr_expression() {
 
     } else if (operatorSymbol == SYM_LT) {
       // set to 1 if a < b, else 0
-      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), FCT_SLT);
+      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), 0, FCT_SLT);
 
       tfree(1);
 
     } else if (operatorSymbol == SYM_GT) {
       // set to 1 if b < a, else 0
-      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), FCT_SLT);
+      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_SLT);
 
       tfree(1);
 
     } else if (operatorSymbol == SYM_LEQ) {
       // if b < a set 0, else 1
-      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), FCT_SLT);
+      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_SLT);
 
       tfree(1);
 
@@ -3251,7 +3268,7 @@ int gr_expression() {
 
     } else if (operatorSymbol == SYM_GEQ) {
       // if a < b set 0, else 1
-      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), FCT_SLT);
+      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), 0, FCT_SLT);
 
       tfree(1);
 
@@ -3443,7 +3460,7 @@ void gr_return() {
       typeWarning(returnType, type);
 
     // save value of expression in return register
-    emitRFormat(OP_SPECIAL, REG_ZR, currentTemporary(), REG_V0, FCT_ADDU);
+    emitRFormat(OP_SPECIAL, REG_ZR, currentTemporary(), REG_V0, 0, FCT_ADDU);
 
     tfree(1);
   } else if (returnType != VOID_T)
@@ -3975,10 +3992,14 @@ void gr_cstar() {
 void emitLeftShiftBy(int b) {
   // assert: 0 <= b < 15
 
+  //Assignment3
+  emitRFormat(OP_SPECIAL, 0, currentTemporary(), currentTemporary(), b, FCT_SLL);
+
   // load multiplication factor less than 2^15 to avoid sign extension
-  emitIFormat(OP_ADDIU, REG_ZR, nextTemporary(), twoToThePowerOf(b));
-  emitRFormat(OP_SPECIAL, currentTemporary(), nextTemporary(), 0, FCT_MULTU);
-  emitRFormat(OP_SPECIAL, 0, 0, currentTemporary(), FCT_MFLO);
+  //emitIFormat(OP_ADDIU, REG_ZR, nextTemporary(), twoToThePowerOf(b));
+  //emitRFormat(OP_SPECIAL, currentTemporary(), nextTemporary(), 0, FCT_MULTU);
+  //emitRFormat(OP_SPECIAL, 0, 0, currentTemporary(), FCT_MFLO);
+
 }
 
 void emitMainEntry() {
@@ -3997,7 +4018,7 @@ void emitMainEntry() {
   // since we load positive integers < 2^28 which take
   // no more than 8 instructions each, see load_integer
   while (i < 16) {
-    emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_NOP);
+    emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_NOP);
 
     i = i + 1;
   }
@@ -4234,13 +4255,18 @@ void printRegister(int reg) {
 // |opcode| rs  | rt  | rd  |00000|fction|
 // +------+-----+-----+-----+-----+------+
 //    6      5     5     5     5     6
-int encodeRFormat(int opcode, int rs, int rt, int rd, int function) {
+int encodeRFormat(int opcode, int rs, int rt, int rd, int shamt, int function) {
   // assert: 0 <= opcode < 2^6
   // assert: 0 <= rs < 2^5
   // assert: 0 <= rt < 2^5
   // assert: 0 <= rd < 2^5
   // assert: 0 <= function < 2^6
-  return leftShift(leftShift(leftShift(leftShift(opcode, 5) + rs, 5) + rt, 5) + rd, 11) + function;
+
+
+  return leftShift(leftShift(leftShift(leftShift(leftShift(opcode, 5) + rs, 5) + rt, 5) + rd, 5) + shamt, 6) + function;
+
+
+  //return leftShift(leftShift(leftShift(leftShift(opcode, 5) + rs, 5) + rt, 5) + rd, 11) + function;
 }
 
 // -----------------------------------------------------------------
@@ -4295,6 +4321,10 @@ int getRD(int instruction) {
   return rightShift(leftShift(instruction, 16), 27);
 }
 
+int getShamt(int instruction) {
+      return rightShift(leftShift(instruction, 21), 27);
+}
+
 int getFunction(int instruction) {
   return rightShift(leftShift(instruction, 26), 26);
 }
@@ -4326,6 +4356,7 @@ void decodeRFormat() {
   rs          = getRS(ir);
   rt          = getRT(ir);
   rd          = getRD(ir);
+  shamt       = getShamt(ir);
   immediate   = 0;
   function    = getFunction(ir);
   instr_index = 0;
@@ -4411,20 +4442,21 @@ void emitInstruction(int instruction) {
   }
 }
 
-void emitRFormat(int opcode, int rs, int rt, int rd, int function) {
-  emitInstruction(encodeRFormat(opcode, rs, rt, rd, function));
+//Assignment3 shamt added
+void emitRFormat(int opcode, int rs, int rt, int rd, int shamt, int function) {
+  emitInstruction(encodeRFormat(opcode, rs, rt, rd, shamt, function));
 
   if (opcode == OP_SPECIAL) {
     if (function == FCT_JR)
-      emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_NOP); // delay slot
+      emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_NOP); // delay slot
     else if (function == FCT_MFLO) {
       // In MIPS I-III two instructions after MFLO/MFHI
       // must not modify the LO/HI registers
-      emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_NOP); // pipeline delay
-      emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_NOP); // pipeline delay
+      emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SLL); // pipeline delay
+      emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SLL); // pipeline delay
     } else if (function == FCT_MFHI) {
-      emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_NOP); // pipeline delay
-      emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_NOP); // pipeline delay
+      emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SLL); // pipeline delay
+      emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SLL); // pipeline delay
     }
   }
 }
@@ -4433,15 +4465,15 @@ void emitIFormat(int opcode, int rs, int rt, int immediate) {
   emitInstruction(encodeIFormat(opcode, rs, rt, immediate));
 
   if (opcode == OP_BEQ)
-    emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_NOP); // delay slot
+    emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_NOP); // delay slot
   else if (opcode == OP_BNE)
-    emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_NOP); // delay slot
+    emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_NOP); // delay slot
 }
 
 void emitJFormat(int opcode, int instr_index) {
   emitInstruction(encodeJFormat(opcode, instr_index));
 
-  emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_NOP); // delay slot
+  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_NOP); // delay slot
 }
 
 void fixup_relative(int fromAddress) {
@@ -4704,7 +4736,7 @@ void emitExit() {
 
   // load the correct syscall number and invoke syscall
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_EXIT);
-  emitRFormat(0, 0, 0, 0, FCT_SYSCALL);
+  emitRFormat(0, 0, 0, 0, 0, FCT_SYSCALL);
 
   // never returns here
 }
@@ -4744,10 +4776,10 @@ void emitRead() {
   emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_READ);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_SYSCALL);
+  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
 
   // jump back to caller, return value is in REG_V0
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, FCT_JR);
+  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 void implementRead() {
@@ -4861,9 +4893,9 @@ void emitWrite() {
   emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_WRITE);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_SYSCALL);
+  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, FCT_JR);
+  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 void implementWrite() {
@@ -4977,9 +5009,9 @@ void emitOpen() {
   emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_OPEN);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_SYSCALL);
+  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, FCT_JR);
+  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 int down_loadString(int* table, int vaddr, int* s) {
@@ -5081,9 +5113,9 @@ void emitMalloc() {
   emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_MALLOC);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_SYSCALL);
+  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, FCT_JR);
+  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 void implementMalloc() {
@@ -5128,9 +5160,9 @@ void emitID() {
   createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_ID", 0, PROCEDURE, INT_T, 0, binaryLength);
 
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_ID);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_SYSCALL);
+  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, FCT_JR);
+  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 void implementID() {
@@ -5153,9 +5185,9 @@ void emitCreate() {
   createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_create", 0, PROCEDURE, INT_T, 0, binaryLength);
 
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_CREATE);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_SYSCALL);
+  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, FCT_JR);
+  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 int doCreate(int parentID) {
@@ -5207,12 +5239,12 @@ void emitSwitch() {
   emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_SWITCH);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_SYSCALL);
+  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
 
   // save ID of context from which we are switching here in return register
-  emitRFormat(OP_SPECIAL, REG_ZR, REG_V1, REG_V0, FCT_ADDU);
+  emitRFormat(OP_SPECIAL, REG_ZR, REG_V1, REG_V0, 0, FCT_ADDU);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, FCT_JR);
+  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 int doSwitch(int toID) {
@@ -5293,9 +5325,9 @@ void emitStatus() {
   createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_status", 0, PROCEDURE, INT_T, 0, binaryLength);
 
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_STATUS);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_SYSCALL);
+  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, FCT_JR);
+  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 int doStatus() {
@@ -5338,9 +5370,9 @@ void emitDelete() {
   emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_DELETE);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_SYSCALL);
+  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, FCT_JR);
+  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 void doDelete(int ID) {
@@ -5395,9 +5427,9 @@ void emitMap() {
   emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_MAP);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, FCT_SYSCALL);
+  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, FCT_JR);
+  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 void doMap(int ID, int page, int frame) {
@@ -5615,7 +5647,7 @@ void fct_syscall() {
 
 void fct_nop() {
   if (debug) {
-    printFunction(function);
+    print((int*)"nop");
     println();
   }
 
@@ -5782,6 +5814,206 @@ void op_bne() {
     }
     println();
   }
+}
+
+
+int isNOP(){
+  if(rd == REG_ZR){
+    if(rt == REG_ZR){
+      if(immediate == 0)
+        return 1;
+      else
+        return 0;
+    }else
+      return 0;
+  }else
+    return 0;
+}
+
+//Assignment3
+//Shift word left logical
+//left-shift a word by a fixed number of bits
+void fct_sll(){
+  if(isNOP()){
+    fct_nop();
+  }else{
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rd);
+        print((int*) ",");
+        printRegister(rt);
+        print((int*) ",");
+        printInteger(shamt);
+
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+            print((int*) ",");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+            print((int*) ",");
+            printInteger(shamt);
+        }
+    }
+
+    if(interpret){
+        *(registers+rd) = leftShift(*(registers+rt), shamt);
+
+        pc = pc + WORDSIZE;
+    }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+        }
+        println();
+    }
+  }
+}
+
+//shift word right logical
+//to execute a logical right-shift of a word by a fixed number of bits
+void fct_srl(){
+
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rd);
+        print((int*) ",");
+        printRegister(rt);
+        print((int*) ",");
+        printInteger(shamt);
+
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+            print((int*) ",");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+
+        }
+
+    }
+
+    if(interpret){
+        *(registers+rd) = rightShift(*(registers+rt),shamt);//shamt and should be logical!!!?
+
+        pc = pc + WORDSIZE;
+    }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+        }
+        println();
+    }
+}
+
+//Shift Word Left Logical Variable
+//To left-shift a word by a variable number of bits
+void fct_sllv(){
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rd);
+        print((int*) ",");
+        printRegister(rt);
+        print((int*) ",");
+        printRegister(rs);
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+            print((int*) ",");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+            print((int*) ",");
+            printRegister(rs);
+            print((int*) "=");
+            printInteger(*(registers+rs));
+        }
+
+    }
+
+    if(interpret){
+        *(registers+rd) = leftShift(*(registers + rt), *(registers + rs));
+
+		//sll(*(registers+rt), *(registers+rs));//shamt and should be logical!!!?
+
+        pc = pc + WORDSIZE;
+    }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+        }
+        println();
+    }
+}
+
+//Shift Word Right Logical Variable
+//To execute a logical right-shift of a word by a variable number of bits
+void fct_srlv(){
+
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rd);
+        print((int*) ",");
+        printRegister(rt);
+        print((int*) ",");
+        printRegister(rs);
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+            print((int*) ",");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+            print((int*) ",");
+            printRegister(rs);
+            print((int*) "=");
+            printInteger(*(registers+rs));
+        }
+
+    }
+
+    if(interpret){
+        *(registers+rd) = rightShift(*(registers + rt), *(registers + rs));
+		//srl(*(registers+rt), *(registers+rs));
+
+        pc = pc + WORDSIZE;
+    }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+        }
+        println();
+    }
 }
 
 void op_addiu() {
@@ -6317,9 +6549,9 @@ void execute() {
   }
 
   if (opcode == OP_SPECIAL) {
-    if (function == FCT_NOP)
-      fct_nop();
-    else if (function == FCT_ADDU)
+    //if (function == FCT_NOP)
+      //fct_nop();
+    if (function == FCT_ADDU)
       fct_addu();
     else if (function == FCT_SUBU)
       fct_subu();
@@ -6337,6 +6569,15 @@ void execute() {
       fct_jr();
     else if (function == FCT_SYSCALL)
       fct_syscall();
+	//Assignment3
+	else if (function == FCT_SLL)
+		fct_sll();
+	else if (function == FCT_SLLV)
+		fct_sllv();
+	else if (function == FCT_SRL)
+		fct_srl();
+	else if (function == FCT_SRLV)
+		fct_srlv();
     else
       throwException(EXCEPTION_UNKNOWNINSTRUCTION, 0);
   } else if (opcode == OP_ADDIU)
@@ -7117,9 +7358,10 @@ void printUsage() {
 int selfie() {
   int* option;
 
-    print((int*)"This is Vivien Wallner's Selfie");
-    println();
+  print((int*)"This is Vivien Wallner's Selfie");
+  println();
 
+  
   if (numberOfRemainingArguments() == 0)
     printUsage();
   else {
