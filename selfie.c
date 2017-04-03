@@ -96,7 +96,7 @@ void initLibrary();
 void resetLibrary();
 
 int twoToThePowerOf(int p);
-int leftShift(int n, int b);
+//int leftShift(int n, int b);
 int rightShift(int n, int b);
 
 int  loadCharacter(int* s, int i);
@@ -316,6 +316,8 @@ int SYM_NOTEQ        = 24; // !=
 int SYM_MOD          = 25; // %
 int SYM_CHARACTER    = 26; // character
 int SYM_STRING       = 27; // string
+int SYM_LEFTSHIFT    = 28; //hw4
+int SYM_RIGHTSHIFT   = 29; //hw4
 
 int* SYMBOLS; // strings representing symbols
 
@@ -352,7 +354,7 @@ int  sourceFD   = 0;        // file descriptor of open source file
 // ------------------------- INITIALIZATION ------------------------
 
 void initScanner () {
-  SYMBOLS = malloc(28 * SIZEOFINTSTAR);
+  SYMBOLS = malloc(30 * SIZEOFINTSTAR);
 
   *(SYMBOLS + SYM_IDENTIFIER)   = (int) "identifier";
   *(SYMBOLS + SYM_INTEGER)      = (int) "integer";
@@ -382,6 +384,8 @@ void initScanner () {
   *(SYMBOLS + SYM_MOD)          = (int) "%";
   *(SYMBOLS + SYM_CHARACTER)    = (int) "character";
   *(SYMBOLS + SYM_STRING)       = (int) "string";
+  *(SYMBOLS + SYM_LEFTSHIFT)    = (int) "<<"; //hw4
+  *(SYMBOLS + SYM_RIGHTSHIFT)   = (int) ">>"; //hw4
 
   character = CHAR_EOF;
   symbol    = SYM_EOF;
@@ -497,6 +501,7 @@ int isLiteral();
 int isStarOrDivOrModulo();
 int isPlusOrMinus();
 int isComparison();
+int isShiftSymbol();
 
 int lookForFactor();
 int lookForStatement();
@@ -523,6 +528,7 @@ int  gr_call(int* procedure);
 int  gr_factor();
 int  gr_term();
 int  gr_simpleExpression();
+int  gr_shiftexpression();
 int  gr_expression();
 void gr_while();
 void gr_if();
@@ -1309,19 +1315,19 @@ int twoToThePowerOf(int p) {
   return *(power_of_two_table + p);
 }
 
-int leftShift(int n, int b) {
+//int leftShift(int n, int b) {
   // assert: b >= 0;
 
-  if (b < 31)
+  //if (b < 31)
     // left shift of integers works by multiplication with powers of two
-    return n * twoToThePowerOf(b);
-  else if (b == 31)
+    //return n * twoToThePowerOf(b);
+  //else if (b == 31)
     // twoToThePowerOf(b) only works for b < 31
-    return n * twoToThePowerOf(30) * 2;
-  else
+    //return n * twoToThePowerOf(30) * 2;
+  //else
     // left shift of a 32-bit integer by more than 31 bits is always 0
-    return 0;
-}
+    //return 0;
+//}
 
 int rightShift(int n, int b) {
   // assert: b >= 0
@@ -1329,7 +1335,7 @@ int rightShift(int n, int b) {
   if (n >= 0) {
     if (b < 31)
       // right shift of positive integers works by division with powers of two
-      return n / twoToThePowerOf(b);
+      return n >> b;
     else
       // right shift of a 32-bit integer by more than 31 bits is always 0
       return 0;
@@ -1337,8 +1343,8 @@ int rightShift(int n, int b) {
     // right shift of negative integers requires resetting the sign bit first,
     // then dividing with powers of two, and finally restoring the sign bit
     // but b bits to the right; this works even if n == INT_MIN
-    return ((n + 1) + INT_MAX) / twoToThePowerOf(b) +
-      (INT_MAX / twoToThePowerOf(b) + 1);
+   return ((n + 1) + INT_MAX >> b) + ((INT_MAX >> b) + 1);
+
   else if (b == 31)
     // right shift of a negative 32-bit integer by 31 bits is 1 (the sign bit)
     return 1;
@@ -1356,7 +1362,7 @@ int loadCharacter(int* s, int i) {
 
   // shift to-be-loaded character to the left resetting all bits to the left
   // then shift to-be-loaded character all the way to the right and return
-  return rightShift(leftShift(*(s + a), ((SIZEOFINT - 1) - (i % SIZEOFINT)) * 8), (SIZEOFINT - 1) * 8);
+  return rightShift((*(s + a) << ((SIZEOFINT - 1) - (i % SIZEOFINT)) * 8), (SIZEOFINT - 1) * 8);
 }
 
 int* storeCharacter(int* s, int i, int c) {
@@ -1369,7 +1375,7 @@ int* storeCharacter(int* s, int i, int c) {
 
   // subtract the to-be-overwritten character resetting its bits in s
   // then add c setting its bits at the i-th position in s
-  *(s + a) = (*(s + a) - leftShift(loadCharacter(s, i), (i % SIZEOFINT) * 8)) + leftShift(c, (i % SIZEOFINT) * 8);
+  *(s + a) = (*(s + a) - (loadCharacter(s, i) << (i % SIZEOFINT) * 8)) + (c << (i % SIZEOFINT) * 8);
 
   return s;
 }
@@ -1552,7 +1558,7 @@ int* itoa(int n, int* s, int b, int a, int p) {
         i = 1;
       } else {
         // reset msb, restore below
-        n   = rightShift(leftShift(n, 1), 1);
+        n   = rightShift((n << 1), 1); //hw4
         msb = 1;
       }
     }
@@ -2278,24 +2284,33 @@ void getSymbol() {
 
         symbol = SYM_COMMA;
 
+    //HW4 aenderung in GT und LT
       } else if (character == CHAR_LT) {
         getCharacter();
 
-        if (character == CHAR_EQUAL) {
+        if (character == CHAR_LT) {
           getCharacter();
+          symbol = SYM_LEFTSHIFT;
 
+        } else if(character == CHAR_EQUAL) {
+          getCharacter();
           symbol = SYM_LEQ;
+
         } else
           symbol = SYM_LT;
 
       } else if (character == CHAR_GT) {
         getCharacter();
 
-        if (character == CHAR_EQUAL) {
+        if (character == CHAR_GT) {
           getCharacter();
+          symbol = SYM_RIGHTSHIFT;
 
+        } else if(character == CHAR_EQUAL){
+          getCharacter();
           symbol = SYM_GEQ;
-        } else
+
+        }else
           symbol = SYM_GT;
 
       } else if (character == CHAR_EXCLAMATION) {
@@ -2737,7 +2752,7 @@ void load_integer(int value) {
       emitLeftShiftBy(14);
 
       // and finally add 14 lsbs
-      emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift(leftShift(value, 18), 18));
+      emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift((value << 18), 18));
     } else {
       // load 14 msbs of a 31-bit number first
       emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), rightShift(value, 17));
@@ -2745,12 +2760,12 @@ void load_integer(int value) {
       emitLeftShiftBy(14);
 
       // then add the next 14 msbs
-      emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift(leftShift(value, 15), 18));
+      emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift((value << 15), 18));
 
       emitLeftShiftBy(3);
 
       // and finally add the remaining 3 lsbs
-      emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift(leftShift(value, 29), 29));
+      emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift((value << 29), 29));
     }
   } else {
     // load largest positive 16-bit number with a single bit set: 2^14
@@ -3197,6 +3212,55 @@ int gr_simpleExpression() {
   return ltype;
 }
 
+
+int isShiftSymbol(){
+  if(symbol == SYM_LEFTSHIFT){
+    return 1;
+  }else if(symbol == SYM_RIGHTSHIFT){
+    return 1;
+  }else{
+    return 0;
+  }
+}
+
+int gr_shiftexpression(){ //hw4 
+  //shiftexpression  = simpleExpression { ("<<"|">>") simpleExpression } .
+  int ltype;
+  int operatorSymbol;
+  int rtype;
+
+  // assert: n = allocatedTemporaries
+
+
+  ltype = gr_simpleExpression();
+
+  // assert: allocatedTemporaries == n + 1
+
+  // << or >>
+  while(isShiftSymbol()){
+    operatorSymbol = symbol;
+
+    getSymbol();
+
+    rtype = gr_simpleExpression();
+
+    if (operatorSymbol == SYM_LEFTSHIFT) {
+
+      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_SLLV);
+
+    } else if (operatorSymbol == SYM_RIGHTSHIFT) {
+     
+      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_SRLV);
+    }
+
+    tfree(1);
+  }
+
+  // assert: allocatedTemporaries == n + 1
+
+  return ltype;
+}
+
 int gr_expression() {
   int ltype;
   int operatorSymbol;
@@ -3204,7 +3268,7 @@ int gr_expression() {
 
   // assert: n = allocatedTemporaries
 
-  ltype = gr_simpleExpression();
+  ltype = gr_shiftexpression();
 
   // assert: allocatedTemporaries == n + 1
 
@@ -3214,7 +3278,7 @@ int gr_expression() {
 
     getSymbol();
 
-    rtype = gr_simpleExpression();
+    rtype = gr_shiftexpression();
 
     // assert: allocatedTemporaries == n + 2
 
@@ -4263,10 +4327,9 @@ int encodeRFormat(int opcode, int rs, int rt, int rd, int shamt, int function) {
   // assert: 0 <= function < 2^6
 
 
-  return leftShift(leftShift(leftShift(leftShift(leftShift(opcode, 5) + rs, 5) + rt, 5) + rd, 5) + shamt, 6) + function;
+  //hw4 aenderung
+  return (((((opcode << 5) + rs << 5) + rt << 5) + rd << 5) + shamt << 6) + function;
 
-
-  //return leftShift(leftShift(leftShift(leftShift(opcode, 5) + rs, 5) + rt, 5) + rd, 11) + function;
 }
 
 // -----------------------------------------------------------------
@@ -4285,7 +4348,7 @@ int encodeIFormat(int opcode, int rs, int rt, int immediate) {
     // convert from 32-bit to 16-bit two's complement
     immediate = immediate + twoToThePowerOf(16);
 
-  return leftShift(leftShift(leftShift(opcode, 5) + rs, 5) + rt, 16) + immediate;
+  return (((opcode << 5) + rs << 5) + rt << 16) + immediate;
 }
 
 // --------------------------------------------------------------
@@ -4298,7 +4361,7 @@ int encodeIFormat(int opcode, int rs, int rt, int immediate) {
 int encodeJFormat(int opcode, int instr_index) {
   // assert: 0 <= opcode < 2^6
   // assert: 0 <= instr_index < 2^26
-  return leftShift(opcode, 26) + instr_index;
+  return (opcode << 26) + instr_index;
 }
 
 // -----------------------------------------------------------------
@@ -4310,31 +4373,31 @@ int getOpcode(int instruction) {
 }
 
 int getRS(int instruction) {
-  return rightShift(leftShift(instruction, 6), 27);
+  return rightShift((instruction << 6), 27);
 }
 
 int getRT(int instruction) {
-  return rightShift(leftShift(instruction, 11), 27);
+  return rightShift((instruction << 11), 27);
 }
 
 int getRD(int instruction) {
-  return rightShift(leftShift(instruction, 16), 27);
+  return rightShift((instruction << 16), 27);
 }
 
 int getShamt(int instruction) {
-      return rightShift(leftShift(instruction, 21), 27);
+      return rightShift((instruction << 21), 27);
 }
 
 int getFunction(int instruction) {
-  return rightShift(leftShift(instruction, 26), 26);
+  return rightShift((instruction << 26), 26);
 }
 
 int getImmediate(int instruction) {
-  return rightShift(leftShift(instruction, 16), 16);
+  return rightShift((instruction << 16), 16);
 }
 
 int getInstrIndex(int instruction) {
-  return rightShift(leftShift(instruction, 6), 6);
+  return rightShift((instruction << 6), 6);
 }
 
 int signExtend(int immediate) {
@@ -4444,6 +4507,7 @@ void emitInstruction(int instruction) {
 
 //Assignment3 shamt added
 void emitRFormat(int opcode, int rs, int rt, int rd, int shamt, int function) {
+  
   emitInstruction(encodeRFormat(opcode, rs, rt, rd, shamt, function));
 
   if (opcode == OP_SPECIAL) {
@@ -5855,13 +5919,13 @@ void fct_sll(){
             printRegister(rt);
             print((int*) "=");
             printInteger(*(registers+rt));
-            print((int*) ",");
-            printInteger(shamt);
+			print((int*) ", shamt:");
+			printInteger(shamt);
         }
     }
 
     if(interpret){
-        *(registers+rd) = leftShift(*(registers+rt), shamt);
+        *(registers+rd) = (*(registers+rt) << shamt);
 
         pc = pc + WORDSIZE;
     }
@@ -5890,7 +5954,6 @@ void fct_srl(){
         printRegister(rt);
         print((int*) ",");
         printInteger(shamt);
-
         if (interpret) {
             print((int*) ": ");
             printRegister(rd);
@@ -5951,7 +6014,7 @@ void fct_sllv(){
     }
 
     if(interpret){
-        *(registers+rd) = leftShift(*(registers + rt), *(registers + rs));
+        *(registers+rd) = (*(registers + rt) << *(registers + rs));
 
 		//sll(*(registers+rt), *(registers+rs));//shamt and should be logical!!!?
 
@@ -6479,7 +6542,7 @@ int encodeException(int exception, int parameter) {
     // convert from 32-bit to 16-bit two's complement
     parameter = parameter + twoToThePowerOf(16);
 
-  return leftShift(exception, 16) + parameter;
+  return (exception << 16) + parameter;
 }
 
 int decodeExceptionNumber(int status) {
@@ -6487,7 +6550,7 @@ int decodeExceptionNumber(int status) {
 }
 
 int decodeExceptionParameter(int status) {
-  return signExtend(rightShift(leftShift(status, 16), 16));
+  return signExtend(rightShift((status << 16), 16));
 }
 
 void printStatus(int status) {
@@ -7358,7 +7421,7 @@ void printUsage() {
 int selfie() {
   int* option;
 
-  print((int*)"This is Vivien Wallner's Selfie");
+  print((int*)"This is Vivien Wallner's Selfie!");
   println();
 
   
