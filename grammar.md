@@ -68,14 +68,14 @@ comparisonExpression  = shiftExpression { ( "==" | "!=" | "<" | ">" | "<=" | ">=
 
 shiftExpression   = simpleExpression { ( "<<" | ">>" )  simpleExpression } .
 
-simpleExpression = [ "-" | "~" ] term { ( "+" | "-" ) term } .
+simpleExpression = [ "-" ] term { ( "+" | "-" ) term } .
 
-term             = factor { ( "*" | "/" | "%" ) factor } .
+term             =  factor { ( "*" | "/" | "%" ) factor } .
 
 factor           = [ cast ]
-                    ( [ "*" ] ( identifier | "(" expression ")" ) |
+                    (  [ "*" | "~" ] ( identifier | "(" expression ")" ) |
                       call |
-                      literal |
+                     literal |
                       string ) .
 
 while            = "while" "(" expression ")"

@@ -1397,33 +1397,26 @@ int rightShift(int n, int b) {
 int loadCharacter(int* s, int i) {
   // assert: i >= 0
   int a;
-
+  int b;
   // a is the index of the word where the to-be-loaded i-th character in s is
   a = i / SIZEOFINT;
-
+  b = 0xFF << (i % SIZEOFINT) * 8;
   // shift to-be-loaded character to the left resetting all bits to the left
   // then shift to-be-loaded character all the way to the right and return
-  //return rightShift(leftShift(*(s + a), ((SIZEOFINT - 1) - (i % SIZEOFINT)) * 8), (SIZEOFINT - 1) * 8);
-  //return rightShift((*(s + a) << ((SIZEOFINT - 1) - (i % SIZEOFINT)) * 8), (SIZEOFINT - 1) * 8);
-  return rightShift((*(s + a) & (0xFF << ((i % SIZEOFINT) * 8))), ((i % SIZEOFINT) * 8));
-
-}
+  return rightShift(*(s + a) & b , (i % SIZEOFINT) * 8);
+ }
 
 int* storeCharacter(int* s, int i, int c) {
   // assert: i >= 0, all characters are 7-bit
   int a;
-
+  int b;
   // a is the index of the word where the with c
   // to-be-overwritten i-th character in s is
   a = i / SIZEOFINT;
-
+  b = 0xFF << (i % SIZEOFINT) * 8;
   // subtract the to-be-overwritten character resetting its bits in s
   // then add c setting its bits at the i-th position in s
-  //*(s + a) = (*(s + a) - leftShift(loadCharacter(s, i), (i % SIZEOFINT) * 8)) + leftShift(c, (i % SIZEOFINT) * 8);
-  //*(s + a) = (*(s + a) - (loadCharacter(s, i) << (i % SIZEOFINT) * 8)) + (c << (i % SIZEOFINT) * 8);
-  *(s + a) = *(s + a) & ~(0xFF << ((i % SIZEOFINT) * 8)) | (c << (i % SIZEOFINT) * 8);
-
-  
+  *(s + a) = (*(s + a) & ~(b)) | (c << (i % SIZEOFINT) * 8);
   return s;
 }
 
@@ -2544,6 +2537,9 @@ int isExpression() {
     return 1;
   else if (symbol == SYM_LPARENTHESIS)
     return 1;
+  //Assignment5
+  else if (symbol == SYM_BITWISE_NOT)
+	return 1;
   else if (symbol == SYM_IDENTIFIER)
     return 1;
   else if (symbol == SYM_INTEGER)
@@ -2610,6 +2606,9 @@ int lookForFactor() {
   else if (symbol == SYM_ASTERISK)
     return 0;
   else if (symbol == SYM_IDENTIFIER)
+    return 0;
+  //Assignment5
+  else if (symbol == SYM_BITWISE_NOT)
     return 0;
   else if (symbol == SYM_INTEGER)
     return 0;
@@ -3083,6 +3082,34 @@ int gr_factor() {
 
     type = INT_T;
 
+  //Assignment5
+  }else if (symbol == SYM_BITWISE_NOT) {
+    getSymbol();
+
+    // ["~"] identifier
+    if (symbol == SYM_IDENTIFIER) {
+      type = load_variable(identifier);
+
+      getSymbol();
+
+    // ~ "(" expression ")"
+    } else if (symbol == SYM_LPARENTHESIS) {
+      getSymbol();
+
+      type = gr_expression();
+
+      if (symbol == SYM_RPARENTHESIS)
+        getSymbol();
+      else
+        syntaxErrorSymbol(SYM_RPARENTHESIS);
+    } else
+      syntaxErrorUnexpected();
+
+    // nor
+    emitRFormat(OP_SPECIAL, currentTemporary(), REG_ZR, currentTemporary(), 0, FCT_NOR);
+
+    type = INT_T;
+
   // identifier?
   } else if (symbol == SYM_IDENTIFIER) {
     variableOrProcedureName = identifier;
@@ -3202,21 +3229,14 @@ int gr_term() {
 int gr_simpleExpression() {
   int sign;
   int ltype;
-  int not;
   int operatorSymbol;
   int rtype;
 
   // assert: n = allocatedTemporaries
 
-  //Assignment5
-  if(symbol== SYM_BITWISE_NOT){
-    sign=0;
-	not = 1;
-    getSymbol();
   // optional: -
-  }else if (symbol == SYM_MINUS) {
+  if (symbol == SYM_MINUS) {
     sign = 1;
-	not = 0;
 
     mayBeINTMIN = 1;
     isINTMIN    = 0;
@@ -3234,7 +3254,6 @@ int gr_simpleExpression() {
     }
   } else{
     sign = 0;
-    not = 0;
   }
   ltype = gr_term();
 
@@ -3248,11 +3267,6 @@ int gr_simpleExpression() {
     }
 
     emitRFormat(OP_SPECIAL, REG_ZR, currentTemporary(), currentTemporary(), 0, FCT_SUBU);
-  }
-  
-  //Assignment5
-  if(not){
-    emitRFormat(OP_SPECIAL, currentTemporary(), REG_ZR, currentTemporary(), 0, FCT_NOR);
   }
 
   // + or -?
@@ -4532,6 +4546,7 @@ int getOpcode(int instruction) {
 
 
 //Assignment4 leftshifts changed
+//Assignment5 masking
 int getRS(int instruction) {
   //return rightShift((instruction << 6), 27);
   //return rightShift((instruction & 3E00000), 21) ;
@@ -6301,7 +6316,7 @@ void fct_and(){
 void op_andi(){
 
     if (debug) {
-        printFunction(function);
+        printOpcode(opcode);
         print((int*) " ");
         printRegister(rt);
         print((int*) ",");
@@ -6393,7 +6408,7 @@ void fct_or(){
 void op_ori(){
 
     if (debug) {
-        printFunction(function);
+        printOpcode(opcode);
         print((int*) " ");
         printRegister(rt);
         print((int*) ",");
