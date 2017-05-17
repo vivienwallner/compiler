@@ -10,7 +10,7 @@ C\* is a small Turing-complete subset of C that includes dereferencing (the `*` 
 
 C\* Keywords: `int`, `while`, `if`, `else`, `return`, `void`
 
-C\* Symbols: `=`, `+`, `-`, `*`, `/`, `%`, `==`, `!=`, `<`, `<<`, `<=`, `>`, `>>`, `>=`,  `&`, `|`, `~` , `,`, `(`, `)`, `{`, `}`, `;`, `[`, `]`, integer, identifier, character, string
+C\* Symbols: `=`, `+`, `-`, `*`, `/`, `%`, `==`, `!=`, `<`, `<<`, `<=`, `>`, `>>`, `>=`,  `&`, `|`, `~` , `,`, `(`, `)`, `{`, `}`, `;`, integer, identifier, character, string
 
 with:
 
@@ -42,10 +42,20 @@ letter = "a" | ... | "z" | "A" | ... | "Z" .
 C\* Grammar:
 
 ```
-cstar            = { type identifier ( selector | [ "=" [ cast ] [ "-" ] literal ] ) ";" |
+cstar            = { type identifier  ( selector | [ "=" [ cast ] [ "-" ] literal ] ) ";" |
+                     struct |
+                    structDeclaration |        
                    ( "void" | type ) identifier procedure } .
 
-type             = "int" [ "*" ] .
+type             = ( "int" [ "*" ] ) | "struct" .
+
+struct_type      =  identifier "*" .
+
+structDeclaration = type struct_type identifier ";" .
+
+struct =  type identifier "{"
+            { type identifier  ( selector | [ "=" [ cast ] [ "-" ] literal ] ) ";"  |
+            structDeclaration }  "}" ";" .
 
 cast             = "(" type ")" .
 
@@ -54,12 +64,12 @@ literal          = integer | character .
 procedure        = "(" [ variable { "," variable } ] ")"
                     ( ";" | "{" { variable ";" } { statement } "}" ) .
 
-selector         =  { "[" simpleExpression "]" } .
+selector  =  { "[" simpleExpression "]" } .
 
-variable         = type identifier .
+variable         =  type identifier .
 
 statement        = call ";" | while | if | return ";" |
-                   ( [ "*" ] identifier | identifier selector | "*" "(" expression ")" )
+                   ( [ "*" ] identifier |  identifier selector | "*" "(" expression ")" )
                      "=" expression ";" .
 
 call             = identifier "(" [ expression { "," expression } ] ")" .
@@ -75,7 +85,7 @@ simpleExpression = [ "-" ] term { ( "+" | "-" ) term } .
 term             =  factor { ( "*" | "/" | "%" ) factor } .
 
 factor           = [ cast ]
-                    (  [ "*" | "~" ]  identifier ( selector | "(" expression ")" ) ) |
+                    (  [ "*" | "~" ] ( identifier selector | "(" expression ")" ) |
                       call |
                      literal |
                       string ) .
