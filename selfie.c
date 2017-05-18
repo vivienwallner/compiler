@@ -3278,10 +3278,6 @@ int gr_call(int* procedure) {
 
     // TODO: check if types/number of parameters is correct
 	
-	if(currentConstant){
-		load_integer(currentValue);
-		currentConstant = 0;
-	}
 
     // push first parameter onto stack
     emitIFormat(OP_ADDIU, REG_SP, REG_SP, -WORDSIZE);
@@ -3294,10 +3290,6 @@ int gr_call(int* procedure) {
 
       gr_expression();
 	  
-	  if(currentConstant){
-		  load_integer(currentValue);
-		  currentConstant = 0;
-	  }
 
       // push more parameters onto stack
       emitIFormat(OP_ADDIU, REG_SP, REG_SP, -WORDSIZE);
@@ -3821,8 +3813,9 @@ int  gr_shiftExpression(){
 
   ltype = gr_simpleExpression();
   
+  	
   if(currentConstant){
-	  leftConstant = currentConstant;
+	 leftConstant = currentConstant;
 	  leftValue = currentValue;
 	  load_integer(leftValue);
   }
@@ -4211,11 +4204,7 @@ void gr_while() {
       getSymbol();
 
       gr_expression();
-      //Assignment6
-      if(currentConstant){
-        load_integer(currentValue);
-        currentConstant=0;
-      }
+
 
       // do not know where to branch, fixup later
       brForwardToEnd = binaryLength;
@@ -4280,11 +4269,6 @@ void gr_if() {
 
       gr_expression();
 
-      //Assignment6
-      if(currentConstant){
-        load_integer(currentValue);
-        currentConstant=0;
-      }
 
       // if the "if" case is not true, we branch to "else" (if provided)
       brForwardToElseOrEnd = binaryLength;
@@ -4376,11 +4360,6 @@ void gr_return() {
   if (symbol != SYM_SEMICOLON) {
     type = gr_expression();
 
-    //Assignment6
-    if(currentConstant){
-      load_integer(currentValue);
-      currentConstant=0;
-    }
 
     if (type != returnType)
       typeWarning(returnType, type);
@@ -4446,10 +4425,7 @@ void gr_statement() {
 
         rtype = gr_expression();
 		
-		if(currentConstant){
-			load_integer(currentValue);
-			currentConstant = 0;
-		}
+
 
         if (rtype != INT_T)
           typeWarning(INT_T, rtype);
@@ -4506,10 +4482,6 @@ void gr_statement() {
           typeWarning(INT_T, rtype);
         }
 		
-		if(currentConstant){
-			load_integer(currentValue);
-			currentConstant = 0;
-		}
 
         //load pointer from specified array position
         emitIFormat(OP_LW, previousTemporary(), previousTemporary(), 0);
@@ -4538,10 +4510,6 @@ void gr_statement() {
 
       ltype = gr_expression();
 
-	  if(currentConstant){
-		  load_integer(currentValue);
-		  currentConstant = 0;
-	  }
 	  
       if (ltype != INTSTAR_T)
         typeWarning(INTSTAR_T, ltype);
@@ -4554,11 +4522,7 @@ void gr_statement() {
           getSymbol();
 
           rtype = gr_expression();
-		  
-		  if(currentConstant){
-		  load_integer(currentValue);
-		  currentConstant = 0;
-	      }
+
 		  
           if (rtype != INT_T)
             typeWarning(INT_T, rtype);
@@ -4614,10 +4578,6 @@ void gr_statement() {
 
       rtype = gr_expression();
 	  
-	  if(currentConstant){
-		  load_integer(currentValue);
-		  currentConstant = 0;
-	  }
 	  
       if (ltype != rtype)
         typeWarning(ltype, rtype);
@@ -4676,10 +4636,6 @@ void gr_statement() {
         typeWarning(ltype, rtype);
       }
 	  
-	  if(currentConstant){
-	    load_integer(currentValue);
-		currentConstant = 0;
-	  }
 
       //store new value
       emitIFormat(OP_SW, previousTemporary(), currentTemporary(), 0);
