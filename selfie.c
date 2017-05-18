@@ -96,7 +96,6 @@ void initLibrary();
 void resetLibrary();
 
 int twoToThePowerOf(int p);
-//int leftShift(int n, int b);
 int rightShift(int n, int b);
 
 int  loadCharacter(int* s, int i);
@@ -154,19 +153,16 @@ int CHAR_EXCLAMATION  = '!';
 int CHAR_PERCENTAGE   = '%';
 int CHAR_SINGLEQUOTE  = 39; // ASCII code 39 = '
 int CHAR_DOUBLEQUOTE  = '"';
-//Assignment5
 int CHAR_AND          = '&';
 int CHAR_OR           = '|';
 int CHAR_NOT          = '~';
-//Assignment7
 int CHAR_LBRACKET     = '[';
-int CHAR_RBRACKET  = ']';
-
+int CHAR_RBRACKET     = ']';
 
 int SIZEOFINT     = 4; // must be the same as WORDSIZE
 int SIZEOFINTSTAR = 4; // must be the same as WORDSIZE
 
-//Assignment7
+//int* power_of_two_table;
 int power_of_two_table[31];
 
 int INT_MAX; // maximum numerical value of a signed 32-bit integer
@@ -188,22 +184,30 @@ int* binary_buffer;    // buffer for binary I/O
 // WINDOWS: 32768 = 0x8000 = _O_BINARY (0x8000) | _O_RDONLY (0x0000)
 // since LINUX/MAC do not seem to mind about _O_BINARY set
 // we use the WINDOWS flags as default
-int O_RDONLY = 0b1000000000000000;//binary representation of 32768
+
+//int O_RDONLY = 32768;
+int O_RDONLY = 0b1000000000000000;
+
 
 // flags for opening write-only files
 // MAC: 1537 = 0x0601 = O_CREAT (0x0200) | O_TRUNC (0x0400) | O_WRONLY (0x0001)
-int MAC_O_CREAT_TRUNC_WRONLY = 0x0601;//hexadezimal representation of 1537
+//int MAC_O_CREAT_TRUNC_WRONLY = 1537;
+int MAC_O_CREAT_TRUNC_WRONLY = 0x0601;
 
 // LINUX: 577 = 0x0241 = O_CREAT (0x0040) | O_TRUNC (0x0200) | O_WRONLY (0x0001)
-int LINUX_O_CREAT_TRUNC_WRONLY = 0x0241;//headezimal representation of 577
+//int LINUX_O_CREAT_TRUNC_WRONLY = 577;
+int LINUX_O_CREAT_TRUNC_WRONLY = 0x0241;
+
 
 // WINDOWS: 33537 = 0x8301 = _O_BINARY (0x8000) | _O_CREAT (0x0100) | _O_TRUNC (0x0200) | _O_WRONLY (0x0001)
-int WINDOWS_O_BINARY_CREAT_TRUNC_WRONLY = 0x8301;//hexadezimal representation of 33537
+//int WINDOWS_O_BINARY_CREAT_TRUNC_WRONLY = 33537;
+int WINDOWS_O_BINARY_CREAT_TRUNC_WRONLY = 0x8301;
 
 // flags for rw-r--r-- file permissions
 // 420 = 00644 = S_IRUSR (00400) | S_IWUSR (00200) | S_IRGRP (00040) | S_IROTH (00004)
 // these flags seem to be working for LINUX, MAC, and WINDOWS
-int S_IRUSR_IWUSR_IRGRP_IROTH = 00644;//octal representaation of 428
+//int S_IRUSR_IWUSR_IRGRP_IROTH = 420;
+int S_IRUSR_IWUSR_IRGRP_IROTH = 00644;
 
 // ------------------------ GLOBAL VARIABLES -----------------------
 
@@ -212,54 +216,52 @@ int numberOfWrittenCharacters = 0;
 int* outputName = (int*) 0;
 int  outputFD   = 1;
 
-
 // ------------------------- INITIALIZATION ------------------------
 
 void initLibrary() {
-  int i;
+    int i;
 
-  // powers of two table with 31 entries for 2^0 to 2^30
-  // avoiding overflow for 2^31 and larger numbers with 32-bit signed integers
-  //power_of_two_table = malloc(31 * SIZEOFINT);
+    // powers of two table with 31 entries for 2^0 to 2^30
+    // avoiding overflow for 2^31 and larger numbers with 32-bit signed integers
+  //  power_of_two_table = malloc(31 * SIZEOFINT);
 
-  //Assignment7
-  power_of_two_table[0] = 1; // 2^0 == 1
+    //*power_of_two_table = 1; // 2^0 == 1
+     power_of_two_table[0] = 1; // 2^0 == 1
 
-  i = 1;
+    i = 1;
 
-  while (i < 31) {
-    // compute powers of two incrementally using this recurrence relation
-    //*(power_of_two_table + i) = *(power_of_two_table + (i - 1)) * 2;
-	power_of_two_table[i] = power_of_two_table[i-1] * 2;
+    while (i < 31) {
+        // compute powers of two incrementally using this recurrence relation
+        //*(power_of_two_table + i) = *(power_of_two_table + (i - 1)) * 2;
+        power_of_two_table[i] = power_of_two_table[i-1] * 2;
 
-    i = i + 1;
-  }
+        i = i + 1;
+    }
 
-  
-  // compute INT_MAX and INT_MIN without integer overflows
-  INT_MAX = (twoToThePowerOf(30) - 1) * 2 + 1;
-  INT_MIN = ~INT_MAX; //-INT_MAX - 1;
+    // compute INT_MAX and INT_MIN without integer overflows
+    INT_MAX = (twoToThePowerOf(30) - 1) * 2 + 1;
+    INT_MIN = ~INT_MAX;
 
-  INT16_MAX = twoToThePowerOf(15) - 1;
-  INT16_MIN = -INT16_MAX - 1;
+    INT16_MAX = twoToThePowerOf(15) - 1;
+    INT16_MIN = -INT16_MAX - 1;
 
-  // allocate and touch to make sure memory is mapped for read calls
-  character_buffer  = malloc(1);
-  *character_buffer = 0;
+    // allocate and touch to make sure memory is mapped for read calls
+    character_buffer  = malloc(1);
+    *character_buffer = 0;
 
-  // accommodate at least 32-bit numbers for itoa, no mapping needed
-  integer_buffer = malloc(33);
+    // accommodate at least 32-bit numbers for itoa, no mapping needed
+    integer_buffer = malloc(33);
 
-  // does not need to be mapped
-  filename_buffer = malloc(maxFilenameLength);
+    // does not need to be mapped
+    filename_buffer = malloc(maxFilenameLength);
 
-  // allocate and touch to make sure memory is mapped for read calls
-  binary_buffer  = malloc(SIZEOFINT);
-  *binary_buffer = 0;
+    // allocate and touch to make sure memory is mapped for read calls
+    binary_buffer  = malloc(SIZEOFINT);
+    *binary_buffer = 0;
 }
 
 void resetLibrary() {
-  numberOfWrittenCharacters = 0;
+    numberOfWrittenCharacters = 0;
 }
 
 // *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~
@@ -290,6 +292,9 @@ int findNextCharacter();
 
 int isCharacterLetter();
 int isCharacterDigit();
+int isBinaryDigit();
+int isOctalDigit();
+int isHexadezimalDigit();
 int isCharacterLetterOrDigitOrUnderscore();
 int isCharacterNotDoubleQuoteOrNewLineOrEOF();
 
@@ -329,22 +334,20 @@ int SYM_NOTEQ        = 24; // !=
 int SYM_MOD          = 25; // %
 int SYM_CHARACTER    = 26; // character
 int SYM_STRING       = 27; // string
-//Assignment4
-int SYM_LEFTSHIFT    = 28; // <<
-int SYM_RIGHTSHIFT   = 29; // >>
-//Assignment5
+int SYM_LEFTSHIFT    = 28; //<<
+int SYM_RIGHTSHIFT   = 29; //>>
 int SYM_BITWISE_AND  = 30; //"&"
 int SYM_BITWISE_OR   = 31; //"|"
 int SYM_BITWISE_NOT  = 32; //"~"
-//Assignment7
 int SYM_LBRACKET     = 33; //"["
 int SYM_RBRACKET     = 34; //"]"
-//Assignment8
 int SYM_STRUCT       = 35; //"STRUCT"
+
+
 
 int* SYMBOLS; // strings representing symbols
 
-int maxIdentifierLength = 64; // maximum number of characters in an identifier with base 10
+int maxIdentifierLength = 64; // maximum number of characters in an identifier
 int maxIntegerLength    = 32; // maximum number of characters in an integer
 int maxStringLength     = 128; // maximum number of characters in a string
 
@@ -377,172 +380,69 @@ int  sourceFD   = 0;        // file descriptor of open source file
 // ------------------------- INITIALIZATION ------------------------
 
 void initScanner () {
-  SYMBOLS = malloc(36 * SIZEOFINTSTAR);
+    SYMBOLS = malloc(36 * SIZEOFINTSTAR);
 
-  *(SYMBOLS + SYM_IDENTIFIER)   = (int) "identifier";
-  *(SYMBOLS + SYM_INTEGER)      = (int) "integer";
-  *(SYMBOLS + SYM_VOID)         = (int) "void";
-  *(SYMBOLS + SYM_INT)          = (int) "int";
-  *(SYMBOLS + SYM_SEMICOLON)    = (int) ";";
-  *(SYMBOLS + SYM_IF)           = (int) "if";
-  *(SYMBOLS + SYM_ELSE)         = (int) "else";
-  *(SYMBOLS + SYM_PLUS)         = (int) "+";
-  *(SYMBOLS + SYM_MINUS)        = (int) "-";
-  *(SYMBOLS + SYM_ASTERISK)     = (int) "*";
-  *(SYMBOLS + SYM_DIV)          = (int) "/";
-  *(SYMBOLS + SYM_EQUALITY)     = (int) "==";
-  *(SYMBOLS + SYM_ASSIGN)       = (int) "=";
-  *(SYMBOLS + SYM_LPARENTHESIS) = (int) "(";
-  *(SYMBOLS + SYM_RPARENTHESIS) = (int) ")";
-  *(SYMBOLS + SYM_LBRACE)       = (int) "{";
-  *(SYMBOLS + SYM_RBRACE)       = (int) "}";
-  *(SYMBOLS + SYM_WHILE)        = (int) "while";
-  *(SYMBOLS + SYM_RETURN)       = (int) "return";
-  *(SYMBOLS + SYM_COMMA)        = (int) ",";
-  *(SYMBOLS + SYM_LT)           = (int) "<";
-  *(SYMBOLS + SYM_LEQ)          = (int) "<=";
-  *(SYMBOLS + SYM_GT)           = (int) ">";
-  *(SYMBOLS + SYM_GEQ)          = (int) ">=";
-  *(SYMBOLS + SYM_NOTEQ)        = (int) "!=";
-  *(SYMBOLS + SYM_MOD)          = (int) "%";
-  *(SYMBOLS + SYM_CHARACTER)    = (int) "character";
-  *(SYMBOLS + SYM_STRING)       = (int) "string";
-  //Assignment4
-  *(SYMBOLS + SYM_LEFTSHIFT)    = (int) "<<";
-  *(SYMBOLS + SYM_RIGHTSHIFT)   = (int) ">>";
-  //Assignment5
-  *(SYMBOLS + SYM_BITWISE_AND)  = (int) "&";
-  *(SYMBOLS + SYM_BITWISE_OR)   = (int) "|";
-  *(SYMBOLS + SYM_BITWISE_NOT)  = (int) "~";
-  //Assignment7
-  *(SYMBOLS + SYM_LBRACKET)     = (int) "[";
-  *(SYMBOLS + SYM_RBRACKET)     = (int) "]";
-  //Assignment8
-  *(SYMBOLS + SYM_STRUCT)      = (int) "struct";
+    *(SYMBOLS + SYM_IDENTIFIER)   = (int) "identifier";
+    *(SYMBOLS + SYM_INTEGER)      = (int) "integer";
+    *(SYMBOLS + SYM_VOID)         = (int) "void";
+    *(SYMBOLS + SYM_INT)          = (int) "int";
+    *(SYMBOLS + SYM_SEMICOLON)    = (int) ";";
+    *(SYMBOLS + SYM_IF)           = (int) "if";
+    *(SYMBOLS + SYM_ELSE)         = (int) "else";
+    *(SYMBOLS + SYM_PLUS)         = (int) "+";
+    *(SYMBOLS + SYM_MINUS)        = (int) "-";
+    *(SYMBOLS + SYM_ASTERISK)     = (int) "*";
+    *(SYMBOLS + SYM_DIV)          = (int) "/";
+    *(SYMBOLS + SYM_EQUALITY)     = (int) "==";
+    *(SYMBOLS + SYM_ASSIGN)       = (int) "=";
+    *(SYMBOLS + SYM_LPARENTHESIS) = (int) "(";
+    *(SYMBOLS + SYM_RPARENTHESIS) = (int) ")";
+    *(SYMBOLS + SYM_LBRACE)       = (int) "{";
+    *(SYMBOLS + SYM_RBRACE)       = (int) "}";
+    *(SYMBOLS + SYM_WHILE)        = (int) "while";
+    *(SYMBOLS + SYM_RETURN)       = (int) "return";
+    *(SYMBOLS + SYM_COMMA)        = (int) ",";
+    *(SYMBOLS + SYM_LT)           = (int) "<";
+    *(SYMBOLS + SYM_LEQ)          = (int) "<=";
+    *(SYMBOLS + SYM_GT)           = (int) ">";
+    *(SYMBOLS + SYM_GEQ)          = (int) ">=";
+    *(SYMBOLS + SYM_NOTEQ)        = (int) "!=";
+    *(SYMBOLS + SYM_MOD)          = (int) "%";
+    *(SYMBOLS + SYM_CHARACTER)    = (int) "character";
+    *(SYMBOLS + SYM_STRING)       = (int) "string";
+    *(SYMBOLS + SYM_LEFTSHIFT)    = (int) "<<";
+    *(SYMBOLS + SYM_RIGHTSHIFT)   = (int) ">>";
+    *(SYMBOLS + SYM_BITWISE_AND)  = (int) "&";
+    *(SYMBOLS + SYM_BITWISE_OR)   = (int) "|";
+    *(SYMBOLS + SYM_BITWISE_NOT)  = (int) "~";
+    *(SYMBOLS + SYM_LBRACKET)     = (int) "[";
+    *(SYMBOLS + SYM_RBRACKET)     = (int) "]";
+    *(SYMBOLS + SYM_STRUCT)      = (int) "struct";
 
-  character = CHAR_EOF;
-  symbol    = SYM_EOF;
+    character = CHAR_EOF;
+    symbol    = SYM_EOF;
 }
 
 void resetScanner() {
-  lineNumber = 1;
+    lineNumber = 1;
 
-  numberOfReadCharacters = 0;
+    numberOfReadCharacters = 0;
 
-  getCharacter();
+    getCharacter();
 
-  numberOfIgnoredCharacters = 0;
-  numberOfComments          = 0;
-  numberOfScannedSymbols    = 0;
+    numberOfIgnoredCharacters = 0;
+    numberOfComments          = 0;
+    numberOfScannedSymbols    = 0;
 
-  getSymbol();
+    getSymbol();
 }
 
 // -----------------------------------------------------------------
 // ------------------------- SYMBOL TABLE --------------------------
 // -----------------------------------------------------------------
 
-// symbol table entry:
-// +----+------------+
-// |  0 | next       | pointer to next entry
-// |  1 | string     | identifier string, string literal
-// |  2 | line#      | source line number
-// |  3 | class      | VARIABLE, PROCEDURE, STRING
-// |  4 | type       | INT_T, INTSTAR_T, VOID_T
-// |  5 | value      | VARIABLE: initial value
-// |  6 | address    | VARIABLE: offset, PROCEDURE: address, STRING: offset
-// |  7 | scope      | REG_GP, REG_FP
-//Assignment8
-// |  8 | dimension  | ARRAY: number of dimensions
-// |  9 | totalsize  | ARRAY: total number of elements
-// +----+------------+
-
-//Assignment8
-struct symbol_table_t {  
-  struct symbol_table_t * next;  
-  int* string;  
-  int line;  
-  int class;  
-  struct type_t * type;  
-  int value;  
-  int address;  
-  int scope;  
-  int numberOfDimensions;
-  int totalSize;
-}; 
-
-int* getNextEntry(int* entry)  { return (int*) *entry; }
-int* getString(int* entry)     { return (int*) *(entry + 1); }
-int  getLineNumber(int* entry) { return        *(entry + 2); }
-int  getClass(int* entry)      { return        *(entry + 3); }
-int* getTypeStruct(int* entry) { return (int*) *(entry + 4); }
-int  getValue(int* entry)      { return        *(entry + 5); }
-int  getAddress(int* entry)    { return        *(entry + 6); }
-int  getScope(int* entry)      { return        *(entry + 7); }
-//Assignment7
-int  getDimNumb(int* entry)    { return        *(entry + 8); }
-int  getTotalSize(int* entry)  { return        *(entry + 9); }
-
-
-void setNextEntry(int* entry, int* next)    { *entry       = (int) next; }
-void setString(int* entry, int* identifier) { *(entry + 1) = (int) identifier; }
-void setLineNumber(int* entry, int line)    { *(entry + 2) = line; }
-void setClass(int* entry, int class)        { *(entry + 3) = class; }
-void setTypeStruct(int* entry, int type)    { *(entry + 4) = type; }
-void setValue(int* entry, int value)        { *(entry + 5) = value; }
-void setAddress(int* entry, int address)    { *(entry + 6) = address; }
-void setScope(int* entry, int scope)        { *(entry + 7) = scope; }
-//Assignment7
-void setDimNumb(int* entry, int dim)        { *(entry + 8)  = dim; }
-void setTotalSize(int* entry, int size)     { *(entry + 9 ) = size; }
-
-//Assignment8
-struct type_t {
-  int type;
-  struct symbol_table_t * definition;
-  int* structName;
-  struct dimension_t * dimensions;
-  struct field_t * fields;
-};
-
-int  getType(int* entry)        { return        *entry; }
-int* getDefintion(int* entry)   { return (int*) *(entry + 1); }
-int* getStructName(int* entry)  { return (int*) *(entry + 2); }
-int* getDimensions(int* entry)  { return (int*) *(entry + 3); }
-int* getFields(int* entry)      { return (int*) *(entry + 4); }
-
-void setType(int* entry, int type)           { *entry       = type; }
-void setDefiniton(int* entry, int* def)      { *(entry + 1) = (int) def; }
-void setStructName(int* entry, int* name)    { *(entry + 2) = (int) name; }
-void setDimensions(int* entry, int* dim)     { *(entry + 3) = (int) dim; }
-void setFields(int* entry, int* fields)      { *(entry + 4) = (int) fields; }
-
-struct dimension_t {
-  struct dimension_t * next;
-  int size;
-};
-
-int getSize(int* entry) { return *(entry + 1);}
-void setSize(int* entry, int size) { *(entry + 1) = size; }
-
-struct field_t {
-  struct field_t * next;
-  int* name;
-  struct type_t * type;
-  int offset;
-};
-
-int* getFieldName(int* entry)   { return (int*) *(entry + 1); }
-int* getFieldType(int* entry)   { return (int*) *(entry + 2); }
-int  getFieldOffset(int* entry) { return        *(entry + 3); }
-
-void setFieldName(int* entry, int* name)   { *(entry + 1) = (int) name; } 
-void setFieldType(int* entry, int* type)   { *(entry + 2) = (int) type; }
-void setFieldOffset(int* entry, int offset){ *(entry + 3) =       offset; }
-
 void resetSymbolTables();
 
-//Assignment7
 int* createSymbolTableEntry(int which, int* string, int line, int class, int type, int value, int address);
 
 int* searchSymbolTable(int* entry, int* string, int class);
@@ -551,28 +451,78 @@ int* getScopedSymbolTableEntry(int* string, int class);
 int isUndefinedProcedure(int* entry);
 int reportUndefinedProcedures();
 
-//Assignment8
-int getVariableType(int* entry){ 
-  entry = getTypeStruct(entry); 
-  return getType(entry);
-}
+// symbol table entry:
+// +----+------------+
+// |  0 | next       | pointer to next entry
+// |  1 | string     | identifier string, string literal
+// |  2 | line#      | source line number
+// |  3 | class      | VARIABLE, PROCEDURE, STRING, ARRAY
+// |  4 | type       | INT_T, INTSTAR_T, VOID_T, STRUCT_T
+// |  5 | value      | VARIABLE: initial value
+// |  6 | address    | VARIABLE: offset, PROCEDURE: address, STRING: offset
+// |  7 | scope      | REG_GP, REG_FP
+// |  8 | dimension  | ARRAY: number of dimensions
+// |  9 | sizes      | ARRAY: list of dimension sizes
+// | 10 | totalsize  | ARRAY: total number of elements
+// +----+------------+
 
+struct symbol_table_t {
+  //struct symbol_table_t * next;
+  int* string;
+  int line;
+  int class;
+  //struct type_t * type;
+  int value;
+  int address;
+  int scope;
+//  int dimension_t * dimensions;
+  int sizes;
+  int totalsize;
+};
+
+struct type_t {
+  int type;
+//  struct dimension_t * dimensions;
+//  struct field_t * fields;
+};
+
+struct dimension_t {
+//  struct dimension_t * next;
+  int size;
+};
+
+struct field_t {
+//  struct field_t * next;
+  int* name;
+//  struct type_t * type;
+  int offset;
+};
+
+int* getNextEntry(int* entry)  { return (int*) *entry; }
+int* getString(int* entry)     { return (int*) *(entry + 1); }
+int  getLineNumber(int* entry) { return        *(entry + 2); }
+int  getClass(int* entry)      { return        *(entry + 3); }
+int  getType(int* entry)       { return        *(entry + 4); }
+int  getValue(int* entry)      { return        *(entry + 5); }
+int  getAddress(int* entry)    { return        *(entry + 6); }
+int  getScope(int* entry)      { return        *(entry + 7); }
+int  getDimensions(int* entry) { return        *(entry + 8); }
+int* getSizes(int* entry)      { return (int*) *(entry + 9); }
+int  getTotalSize(int* entry)  { return        *(entry + 10); }
 
 //gets the size for dimension dimNub....dimNumb starts with 1
 int  getDimSize(int* entry, int dimNumb){
   int* ptr;
   int i;
 
-  //Assignment8
-  ptr = getTypeStruct(entry); //get TypeStruct
-  ptr = getDimensions(ptr);  //get struct of first dimension
+  ptr = getSizes(entry);
 
   i = 0;
-  while(i < (getDimNumb(entry) - dimNumb +1)){
+  while(i < (getDimensions(entry) - dimNumb +1)){
     ptr = getNextEntry(ptr);
     i = i + 1;
   }
-  return getSize(ptr);
+  return *(ptr+1);
 }
 
 //get the multiplier for address calculation of dimension dimNumb....dimNumb starts with 1
@@ -581,15 +531,12 @@ int getDimMultiplier(int* entry, int dimNumb){
   int i;
   int* ptr;
   mult = 1;
-  
-  //Assignment8
-  ptr = getTypeStruct(entry); //get TypeStruct
-  ptr = getDimensions(ptr);  //get struct of first dimension
+  ptr = getSizes(entry);
 
   i = 0;
-  while(i < (getDimNumb(entry) - dimNumb)){ 
+  while(i < (getDimensions(entry) - dimNumb)){
     if((int) ptr == 0) return 0; //dimension doesn't exist
-    mult = mult * getSize(ptr);
+    mult = mult * *(ptr + 1);
     ptr = getNextEntry(ptr);
     i = i + 1;
   }
@@ -597,54 +544,31 @@ int getDimMultiplier(int* entry, int dimNumb){
   return mult;
 }
 
-//sets the type of a variable, array or procedure
-void  setVariableType(int* entry, int type){ 
-  entry = getTypeStruct(entry); 
-  setType(entry, type);
-}
+
+void setNextEntry(int* entry, int* next)    { *entry       = (int) next; }
+void setString(int* entry, int* identifier) { *(entry + 1) = (int) identifier; }
+void setLineNumber(int* entry, int line)    { *(entry + 2) = line; }
+void setClass(int* entry, int class)        { *(entry + 3) = class; }
+void setType(int* entry, int type)          { *(entry + 4) = type; }
+void setValue(int* entry, int value)        { *(entry + 5) = value; }
+void setAddress(int* entry, int address)    { *(entry + 6) = address; }
+void setScope(int* entry, int scope)        { *(entry + 7) = scope; }
+void setSizes(int* entry, int* sizes)       { *(entry + 9)  = (int) sizes;}
+void setDimensions(int* entry, int dim)     { *(entry + 8)  = dim; }
+void setTotalSize(int* entry, int size)     { *(entry + 10) = size; }
 
 //adds a new array dimension to a symbol table entry
 void addDimension(int* entry, int size){
   int* new;
 
-  setDimNumb(entry, getDimNumb(entry) + 1);
+  setDimensions(entry, getDimensions(entry) + 1);
   setTotalSize(entry, getTotalSize(entry) * size);
-  
-  entry = getTypeStruct(entry);
-  
+
   new = malloc(SIZEOFINT + SIZEOFINTSTAR);
-  setNextEntry(new, getDimensions(entry));
-  setSize(new, size);
+  *new = (int) getSizes(entry);
+  *(new + 1) = size;
 
-  setDimensions(entry, new);
-}
-
-//Assignment8
-//linked list for struct elements containing
-// 1. word: pointer to next entry
-// 2. word: pointer to element name
-// 3. word: type
-// 4. word: (optional) pointer to struct definition
-void addStructElement(int* entry, int* name, int* type, int* def, int offset){
-  int* new;
-  int* ptr;
- 
-  setTotalSize(entry, getTotalSize(entry) + 1);
-
-  entry = getTypeStruct(entry);
-  ptr = getFields(entry);
-
-  new = malloc(SIZEOFINT + 3*SIZEOFINTSTAR);
-  setNextEntry(new, ptr);
-  setFieldName(new, name);
-
-  ptr = malloc(4 * SIZEOFINTSTAR + SIZEOFINT);
-  setFieldType(new, ptr);
-  setFieldOffset(new, offset);
-  setFields(entry, new);
-
-  setDefiniton(ptr, def);
-  setStructName(ptr, type);
+  setSizes(entry, new);
 }
 
 // ------------------------ GLOBAL CONSTANTS -----------------------
@@ -653,17 +577,13 @@ void addStructElement(int* entry, int* name, int* type, int* def, int offset){
 int VARIABLE  = 1;
 int PROCEDURE = 2;
 int STRING    = 3;
-//Assignment7
 int ARRAY     = 4;
-//Assignment8
-int STRUCT    = 5;
 
 // types
 int INT_T     = 1;
 int INTSTAR_T = 2;
 int VOID_T    = 3;
-//Assignment8
-int STRUCT_T  = 4;
+int STRUCT_T    = 4;
 
 // symbol tables
 int GLOBAL_TABLE  = 1;
@@ -680,27 +600,22 @@ int* library_symbol_table = (int*) 0;
 int numberOfGlobalVariables = 0;
 int numberOfProcedures      = 0;
 int numberOfStrings         = 0;
-//Assignment7
+
 int numberOfArrays          = 0;
-//Assignment8
-int numberOfStructDef       = 0;
-int numberOfStructInst      = 0;
+
 
 // ------------------------- INITIALIZATION ------------------------
 
 void resetSymbolTables() {
-  global_symbol_table  = (int*) 0;
-  local_symbol_table   = (int*) 0;
-  library_symbol_table = (int*) 0;
+    global_symbol_table  = (int*) 0;
+    local_symbol_table   = (int*) 0;
+    library_symbol_table = (int*) 0;
 
-  numberOfGlobalVariables = 0;
-  numberOfProcedures      = 0;
-  numberOfStrings         = 0;
-  //Assignment7
-  numberOfArrays          = 0;
-  //Assignment8
-  numberOfStructDef       = 0;
-  numberOfStructInst      = 0;
+    numberOfGlobalVariables = 0;
+    numberOfProcedures      = 0;
+    numberOfStrings         = 0;
+    numberOfArrays          = 0;
+
 }
 
 // -----------------------------------------------------------------
@@ -714,8 +629,11 @@ int isExpression();
 int isLiteral();
 int isStarOrDivOrModulo();
 int isPlusOrMinus();
+int isBitwiseAndOrOperator();
+int isShiftSymbol();
 int isComparison();
-int isBitwiseAndOr();
+int isBitwiseAndOrOperator();
+int isShiftSymbol();
 
 int lookForFactor();
 int lookForStatement();
@@ -739,10 +657,10 @@ void help_procedure_prologue(int localVariables);
 void help_procedure_epilogue(int parameters);
 
 int  gr_call(int* procedure);
+int  gr_selector(int selectorNum, int* entry);
 int  gr_factor();
 int  gr_term();
 int  gr_simpleExpression();
-//Assignment5
 int  gr_shiftExpression();
 int  gr_comparisonExpression();
 int  gr_expression();
@@ -754,17 +672,15 @@ int  gr_type();
 void gr_variable(int offset);
 int  gr_initialization(int type);
 void gr_procedure(int* procedure, int type);
+void gr_struct();
 void gr_cstar();
-//Assignment7
-int gr_selector(int selectorNum, int* entry);
-//Assignment8
-void gr_struct(int* structName);
 
 // ------------------------ GLOBAL VARIABLES -----------------------
 
-//Assignment6
-int currentValue;
-int currentConstant;
+int attributeIsConstant = 0;
+int attributeValue = 0;
+
+int arrayDeklaration    = 0;
 
 int allocatedTemporaries = 0; // number of allocated temporaries
 
@@ -781,17 +697,15 @@ int numberOfAssignments = 0;
 int numberOfWhile       = 0;
 int numberOfIf          = 0;
 int numberOfReturn      = 0;
-//Assignment7
-int arrayDeklaration    = 0;
 
 // ------------------------- INITIALIZATION ------------------------
 
 void resetParser() {
-  numberOfCalls       = 0;
-  numberOfAssignments = 0;
-  numberOfWhile       = 0;
-  numberOfIf          = 0;
-  numberOfReturn      = 0;
+    numberOfCalls       = 0;
+    numberOfAssignments = 0;
+    numberOfWhile       = 0;
+    numberOfIf          = 0;
+    numberOfReturn      = 0;
 }
 
 // -----------------------------------------------------------------
@@ -858,17 +772,18 @@ int REG_GP = 28;
 int REG_SP = 29;
 int REG_FP = 30;
 int REG_RA = 31;
-//Assignment7
+
 int ABBR   = 0;
 int NAME   = 1;
 
+//int* REGISTERS; // strings representing registers
 int REGISTERS[2][32]; // strings representing registers
 
 // ------------------------- INITIALIZATION ------------------------
 
 void initRegister() {
+    //REGISTERS = malloc(NUMBEROFREGISTERS * SIZEOFINTSTAR);
 
-  //Assignment7
   REGISTERS[ABBR][REG_ZR] = (int)"$zero";
   REGISTERS[ABBR][REG_AT] = (int)"$at";
   REGISTERS[ABBR][REG_V0] = (int)"$v0";
@@ -940,7 +855,7 @@ void initRegister() {
 // ---------------------------- ENCODER ----------------------------
 // -----------------------------------------------------------------
 
-int encodeRFormat(int opcode, int rs, int rt, int rd, int shamt, int function);
+int encodeRFormat(int opcode, int rs, int rt, int rd,int shamt, int function);
 int encodeIFormat(int opcode, int rs, int rt, int immediate);
 int encodeJFormat(int opcode, int instr_index);
 
@@ -954,7 +869,6 @@ int getOpcode(int instruction);
 int getRS(int instruction);
 int getRT(int instruction);
 int getRD(int instruction);
-int getShamt(int instruction);
 int getFunction(int instruction);
 int getImmediate(int instruction);
 int getInstrIndex(int instruction);
@@ -971,39 +885,36 @@ void printFunction(int function);
 
 // ------------------------ GLOBAL CONSTANTS -----------------------
 
-int OP_SPECIAL = 0x0;//hexadeziml representation of 0
-int OP_J       = 0x2;//hexadeziml representation of 2
-int OP_JAL     = 0x3;//hexadeziml representation of 3
-int OP_BEQ     = 0x4;//hexadeziml representation of 4
-int OP_BNE     = 0x5;//hexadeziml representation of 5
-int OP_ADDIU   = 0x9;//hexadeziml representation of 9
-int OP_LW      = 0x23;//hexadeziml representation of 35
-int OP_SW      = 0x2B;//hexadeziml representation of 43
-//Assignment5
-int OP_ANDI    = 0b001100;//12 
-int OP_ORI     = 0b001101;//13
+int OP_SPECIAL = 0x0; //hexadezimal representation of 0
+int OP_J       = 0x2; //hexadezimal representation of 2
+int OP_JAL     = 0x3;  //hexadezimal representation of 3
+int OP_BEQ     = 0x4;  //hexadezimal representation of 4
+int OP_BNE     = 0x5;  //hexadezimal representation of 5
+int OP_ADDIU   = 0x9;  //hexadezimal representation of 9
+int OP_LW      = 0x23; //hexadezimal representation of 35
+int OP_SW      = 0x2B; //hexadezimal representation of 43
+int OP_ANDI    = 0xC;//12
+int OP_ORI     = 0xD;//13
 
 int* OPCODES; // strings representing MIPS opcodes
 
-int FCT_NOP     = 0x0;//hexadezimal representation of 0
-int FCT_JR      = 0x8;//hexadeziml representation of 8
-int FCT_SYSCALL = 0xC;//hexadeziml representation of 12
-int FCT_MFHI    = 0x10;//hexadeziml representation of 16
-int FCT_MFLO    = 0x12;//hexadeziml representation of 18
-int FCT_MULTU   = 0x19;//hexadeziml representation of 25
-int FCT_DIVU    = 0x1B;//hexadeziml representation of 27
-int FCT_ADDU    = 0x21;//hexadeziml representation of 33
-int FCT_SUBU    = 0x23;//hexadeziml representation of 35
-int FCT_SLT     = 0x2A;//hexadeziml representation of 42
-//Assignment3
-int FCT_SLL     = 0x0;
-int FCT_SRL     = 0x2;
-int FCT_SLLV    = 0x4;
-int FCT_SRLV    = 0x6;
-//Assignment5
-int FCT_AND     = 0b100100;//36
-int FCT_OR      = 0b100101;//37
-int FCT_NOR     = 0b100111;//39
+int FCT_NOP     = 0x0;
+int FCT_JR      = 0x8;
+int FCT_SYSCALL = 0xC;  //12
+int FCT_MFHI    = 0x10; //16
+int FCT_MFLO    = 0x12; //18
+int FCT_MULTU   = 0x19; //25
+int FCT_DIVU    = 0x1B; //27
+int FCT_ADDU    = 0x21; //33
+int FCT_SUBU    = 0x23; //35
+int FCT_SLT     = 0x2A; //42
+int FCT_SLL     = 0;
+int FCT_SRL     = 2;
+int FCT_SLLV    = 4;
+int FCT_SRLV    = 6;
+int FCT_AND     = 0x24;//36
+int FCT_OR      = 0x25;//37
+int FCT_NOR     = 0x27;//39
 
 int* FUNCTIONS; // strings representing MIPS functions
 
@@ -1021,41 +932,38 @@ int shamt       = 0;
 // ------------------------- INITIALIZATION ------------------------
 
 void initDecoder() {
-  OPCODES = malloc(44 * SIZEOFINTSTAR);
+    OPCODES = malloc(44 * SIZEOFINTSTAR);
 
-  *(OPCODES + OP_SPECIAL) = (int) "nop";
-  *(OPCODES + OP_J)       = (int) "j";
-  *(OPCODES + OP_JAL)     = (int) "jal";
-  *(OPCODES + OP_BEQ)     = (int) "beq";
-  *(OPCODES + OP_BNE)     = (int) "bne";
-  *(OPCODES + OP_ADDIU)   = (int) "addiu";
-  *(OPCODES + OP_LW)      = (int) "lw";
-  *(OPCODES + OP_SW)      = (int) "sw";
-  //Assignment5
-  *(OPCODES + OP_ANDI)      = (int) "andi";
-  *(OPCODES + OP_ORI)      = (int) "ori";
-  
-  FUNCTIONS = malloc(43 * SIZEOFINTSTAR);
+    *(OPCODES + OP_SPECIAL) = (int) "nop";
+    *(OPCODES + OP_J)       = (int) "j";
+    *(OPCODES + OP_JAL)     = (int) "jal";
+    *(OPCODES + OP_BEQ)     = (int) "beq";
+    *(OPCODES + OP_BNE)     = (int) "bne";
+    *(OPCODES + OP_ADDIU)   = (int) "addiu";
+    *(OPCODES + OP_LW)      = (int) "lw";
+    *(OPCODES + OP_SW)      = (int) "sw";
+    *(OPCODES + OP_ANDI)    = (int) "andi";
+    *(OPCODES + OP_ORI)     = (int) "ori";
 
-  //*(FUNCTIONS + FCT_NOP)     = (int) "nop";
-  *(FUNCTIONS + FCT_JR)      = (int) "jr";
-  *(FUNCTIONS + FCT_SYSCALL) = (int) "syscall";
-  *(FUNCTIONS + FCT_MFHI)    = (int) "mfhi";
-  *(FUNCTIONS + FCT_MFLO)    = (int) "mflo";
-  *(FUNCTIONS + FCT_MULTU)   = (int) "multu";
-  *(FUNCTIONS + FCT_DIVU)    = (int) "divu";
-  *(FUNCTIONS + FCT_ADDU)    = (int) "addu";
-  *(FUNCTIONS + FCT_SUBU)    = (int) "subu";
-  *(FUNCTIONS + FCT_SLT)     = (int) "slt";
-  //Assignment3
-  *(FUNCTIONS + FCT_SLL)     = (int) "sll";
-  *(FUNCTIONS + FCT_SRL)     = (int) "srl";
-  *(FUNCTIONS + FCT_SLLV)    = (int) "sllv";
-  *(FUNCTIONS + FCT_SRLV)    = (int) "srlv";
-  //Assignment5
-  *(FUNCTIONS + FCT_AND)     = (int) "and";
-  *(FUNCTIONS + FCT_OR)     = (int) "or";
-  *(FUNCTIONS + FCT_NOR)     = (int) "nor";
+    FUNCTIONS = malloc(43 * SIZEOFINTSTAR);
+
+    //  *(FUNCTIONS + FCT_NOP)   = (int) "nop";
+    *(FUNCTIONS + FCT_JR)      = (int) "jr";
+    *(FUNCTIONS + FCT_SYSCALL) = (int) "syscall";
+    *(FUNCTIONS + FCT_MFHI)    = (int) "mfhi";
+    *(FUNCTIONS + FCT_MFLO)    = (int) "mflo";
+    *(FUNCTIONS + FCT_MULTU)   = (int) "multu";
+    *(FUNCTIONS + FCT_DIVU)    = (int) "divu";
+    *(FUNCTIONS + FCT_ADDU)    = (int) "addu";
+    *(FUNCTIONS + FCT_SUBU)    = (int) "subu";
+    *(FUNCTIONS + FCT_SLT)     = (int) "slt";
+    *(FUNCTIONS + FCT_SLL)     = (int) "sll";
+    *(FUNCTIONS + FCT_SRL)     = (int) "srl";
+    *(FUNCTIONS + FCT_SLLV)    = (int) "sllv";
+    *(FUNCTIONS + FCT_SRLV)    = (int) "srlv";
+    *(FUNCTIONS + FCT_AND)     = (int) "and";
+    *(FUNCTIONS + FCT_OR)     = (int) "or";
+    *(FUNCTIONS + FCT_NOR)     = (int) "nor";
 }
 
 // -----------------------------------------------------------------
@@ -1088,8 +996,7 @@ void selfie_load();
 
 // ------------------------ GLOBAL CONSTANTS -----------------------
 
-//Assignment6
-int maxBinaryLength = 262144; //131072; // 128KB
+int maxBinaryLength = 262144;//131072 * 2; 128KB *2
 
 // ------------------------ GLOBAL VARIABLES -----------------------
 
@@ -1244,12 +1151,12 @@ int pageFrameMemory = 0; // size of memory for frames in bytes
 // ------------------------- INITIALIZATION ------------------------
 
 void initMemory(int megabytes) {
-  if (megabytes < 0)
-    megabytes = 0;
-  else if (megabytes > 64)
-    megabytes = 64;
+    if (megabytes < 0)
+        megabytes = 0;
+    else if (megabytes > 64)
+        megabytes = 64;
 
-  pageFrameMemory = megabytes * MEGABYTE;
+    pageFrameMemory = megabytes * MEGABYTE;
 }
 
 // -----------------------------------------------------------------
@@ -1273,12 +1180,10 @@ void fct_subu();
 void op_lw();
 void fct_slt();
 void op_sw();
-//Assignment3
 void fct_sll();
 void fct_srl();
 void fct_sllv();
 void fct_srlv();
-//Assignment5
 void fct_and();
 void op_andi();
 void fct_or();
@@ -1378,52 +1283,52 @@ int* storesPerAddress = (int*) 0; // number of executed stores per store operati
 // ------------------------- INITIALIZATION ------------------------
 
 void initInterpreter() {
-  EXCEPTIONS = malloc(8 * SIZEOFINTSTAR);
+    EXCEPTIONS = malloc(8 * SIZEOFINTSTAR);
 
-  *(EXCEPTIONS + EXCEPTION_NOEXCEPTION)        = (int) "no exception";
-  *(EXCEPTIONS + EXCEPTION_UNKNOWNINSTRUCTION) = (int) "unknown instruction";
-  *(EXCEPTIONS + EXCEPTION_UNKNOWNSYSCALL)     = (int) "unknown syscall";
-  *(EXCEPTIONS + EXCEPTION_ADDRESSERROR)       = (int) "address error";
-  *(EXCEPTIONS + EXCEPTION_HEAPOVERFLOW)       = (int) "heap overflow";
-  *(EXCEPTIONS + EXCEPTION_EXIT)               = (int) "exit";
-  *(EXCEPTIONS + EXCEPTION_TIMER)              = (int) "timer interrupt";
-  *(EXCEPTIONS + EXCEPTION_PAGEFAULT)          = (int) "page fault";
+    *(EXCEPTIONS + EXCEPTION_NOEXCEPTION)        = (int) "no exception";
+    *(EXCEPTIONS + EXCEPTION_UNKNOWNINSTRUCTION) = (int) "unknown instruction";
+    *(EXCEPTIONS + EXCEPTION_UNKNOWNSYSCALL)     = (int) "unknown syscall";
+    *(EXCEPTIONS + EXCEPTION_ADDRESSERROR)       = (int) "address error";
+    *(EXCEPTIONS + EXCEPTION_HEAPOVERFLOW)       = (int) "heap overflow";
+    *(EXCEPTIONS + EXCEPTION_EXIT)               = (int) "exit";
+    *(EXCEPTIONS + EXCEPTION_TIMER)              = (int) "timer interrupt";
+    *(EXCEPTIONS + EXCEPTION_PAGEFAULT)          = (int) "page fault";
 }
 
 void resetInterpreter() {
-  registers = (int*) 0;
+    registers = (int*) 0;
 
-  pc = 0;
-  ir = 0;
+    pc = 0;
+    ir = 0;
 
-  reg_hi = 0;
-  reg_lo = 0;
+    reg_hi = 0;
+    reg_lo = 0;
 
-  pt = (int*) 0;
+    pt = (int*) 0;
 
-  brk = maxBinaryLength;
+    brk = maxBinaryLength;
 
-  trap = 0;
+    trap = 0;
 
-  status = 0;
+    status = 0;
 
-  cycles = 0;
+    cycles = 0;
 
-  timer = TIMESLICE;
+    timer = TIMESLICE;
 
-  if (interpret) {
-    calls           = 0;
-    callsPerAddress = zalloc(maxBinaryLength);
+    if (interpret) {
+        calls           = 0;
+        callsPerAddress = zalloc(maxBinaryLength);
 
-    loops           = 0;
-    loopsPerAddress = zalloc(maxBinaryLength);
+        loops           = 0;
+        loopsPerAddress = zalloc(maxBinaryLength);
 
-    loads           = 0;
-    loadsPerAddress = zalloc(maxBinaryLength);
+        loads           = 0;
+        loadsPerAddress = zalloc(maxBinaryLength);
 
-    stores           = 0;
-    storesPerAddress = zalloc(maxBinaryLength);
-  }
+        stores           = 0;
+        storesPerAddress = zalloc(maxBinaryLength);
+    }
 }
 
 // -----------------------------------------------------------------
@@ -1502,12 +1407,12 @@ int* freeContexts = (int*) 0; // singly-linked list of free contexts
 // ------------------------- INITIALIZATION ------------------------
 
 void resetMicrokernel() {
-  bumpID = MIPSTER_ID;
+    bumpID = MIPSTER_ID;
 
-  currentContext = (int*) 0;
+    currentContext = (int*) 0;
 
-  while (usedContexts != (int*) 0)
-    usedContexts = deleteContext(usedContexts, usedContexts);
+    while (usedContexts != (int*) 0)
+        usedContexts = deleteContext(usedContexts, usedContexts);
 }
 
 // -----------------------------------------------------------------
@@ -1577,10 +1482,10 @@ int* selfieName = (int*) 0;
 // ------------------------- INITIALIZATION ------------------------
 
 void initSelfie(int argc, int* argv) {
-  selfie_argc = argc;
-  selfie_argv = argv;
+    selfie_argc = argc;
+    selfie_argv = argv;
 
-  selfieName = getArgument();
+    selfieName = getArgument();
 }
 
 // *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~
@@ -1594,513 +1499,485 @@ void initSelfie(int argc, int* argv) {
 // -----------------------------------------------------------------
 
 int twoToThePowerOf(int p) {
-  // assert: 0 <= p < 31
-  //Assignment7
-  return power_of_two_table[p];
+    // assert: 0 <= p < 31
+    //return *(power_of_two_table + p);
+    return power_of_two_table[p];
+
 }
 
-//Assignment4
-//int leftShift(int n, int b) {
-  // assert: b >= 0;
-
-  //if (b < 31)
-    // left shift of integers works by multiplication with powers of two
-    //return n * twoToThePowerOf(b);
-	//return n << b;
-  //else if (b == 31)
-    // twoToThePowerOf(b) only works for b < 31
-    //return n * twoToThePowerOf(30) * 2;
-	//return n <<  30 * 2;
-  //else
-    // left shift of a 32-bit integer by more than 31 bits is always 0
-    //return 0;
-//}
-
-//Assignment4
 int rightShift(int n, int b) {
-  // assert: b >= 0
+    // assert: b >= 0
 
-  if (n >= 0) {
-    if (b < 31)
-      // right shift of positive integers works by division with powers of two
-      //return n / twoToThePowerOf(b);
-	  return n >> b;
+    if (n >= 0) {
+        if (b < 31)
+            // right shift of positive integers works by division with powers of two
+            return n >> b;
+        else
+            // right shift of a 32-bit integer by more than 31 bits is always 0
+            return 0;
+
+    } else if (b < 31){
+        // right shift of negative integers requires resetting the sign bit first,
+        // then dividing with powers of two, and finally restoring the sign bit
+        // but b bits to the right; this works even if n == INT_MIN
+        return ((n + 1) + INT_MAX >> b) + ((INT_MAX >> b) + 1);
+    }else if (b == 31)
+        // right shift of a negative 32-bit integer by 31 bits is 1 (the sign bit)
+        return 1;
     else
-      // right shift of a 32-bit integer by more than 31 bits is always 0
-      return 0;
-  } else if (b < 31)
-    // right shift of negative integers requires resetting the sign bit first,
-    // then dividing with powers of two, and finally restoring the sign bit
-    // but b bits to the right; this works even if n == INT_MIN
-    //return ((n + 1) + INT_MAX) / twoToThePowerOf(b) + (INT_MAX / twoToThePowerOf(b) + 1);
-	return ((n + 1) + INT_MAX >> b) + ((INT_MAX >> b) + 1);
-  else if (b == 31)
-    // right shift of a negative 32-bit integer by 31 bits is 1 (the sign bit)
-    return 1;
-  else
-    // right shift of a 32-bit integer by more than 31 bits is always 0
-    return 0;
+        // right shift of a 32-bit integer by more than 31 bits is always 0
+        return 0;
+
 }
 
 int loadCharacter(int* s, int i) {
-  // assert: i >= 0
-  int a;
-  int b;
-  // a is the index of the word where the to-be-loaded i-th character in s is
-  a = i / SIZEOFINT;
-  b = 0xFF << (i % SIZEOFINT) * 8;
-  // shift to-be-loaded character to the left resetting all bits to the left
-  // then shift to-be-loaded character all the way to the right and return
-  return rightShift(*(s + a) & b , (i % SIZEOFINT) * 8);
- }
+    // assert: i >= 0
+    int a;
+    int b;
+    // a is the index of the word where the to-be-loaded i-th character in s is
+    a = i / SIZEOFINT;
+    b = 0xFF << (i % SIZEOFINT) * 8;
+    // shift to-be-loaded character to the left resetting all bits to the left
+    // then shift to-be-loaded character all the way to the right and return
+    return rightShift(*(s + a) & b , (i % SIZEOFINT) * 8);
+}
 
 int* storeCharacter(int* s, int i, int c) {
-  // assert: i >= 0, all characters are 7-bit
-  int a;
-  int b;
-  // a is the index of the word where the with c
-  // to-be-overwritten i-th character in s is
-  a = i / SIZEOFINT;
-  b = 0xFF << (i % SIZEOFINT) * 8;
-  // subtract the to-be-overwritten character resetting its bits in s
-  // then add c setting its bits at the i-th position in s
-  *(s + a) = (*(s + a) & ~(b)) | (c << (i % SIZEOFINT) * 8);
-  return s;
+    // assert: i >= 0, all characters are 7-bit
+    int a;
+    int b;
+    // a is the index of the word where the with c
+    // to-be-overwritten i-th character in s is
+    a = i / SIZEOFINT;
+    b = 0xFF << (i % SIZEOFINT) * 8;
+    // subtract the to-be-overwritten character resetting its bits in s
+    // then add c setting its bits at the i-th position in s
+    *(s + a) = (*(s + a) & ~(b)) | (c << (i % SIZEOFINT) * 8);
+    return s;
 }
 
 int stringLength(int* s) {
-  int i;
+    int i;
 
-  i = 0;
+    i = 0;
 
-  while (loadCharacter(s, i) != 0)
-    i = i + 1;
+    while (loadCharacter(s, i) != 0)
+        i = i + 1;
 
-  return i;
+    return i;
 }
 
 void stringReverse(int* s) {
-  int i;
-  int j;
-  int tmp;
+    int i;
+    int j;
+    int tmp;
 
-  i = 0;
-  j = stringLength(s) - 1;
+    i = 0;
+    j = stringLength(s) - 1;
 
-  while (i < j) {
-    tmp = loadCharacter(s, i);
+    while (i < j) {
+        tmp = loadCharacter(s, i);
 
-    storeCharacter(s, i, loadCharacter(s, j));
-    storeCharacter(s, j, tmp);
+        storeCharacter(s, i, loadCharacter(s, j));
+        storeCharacter(s, j, tmp);
 
-    i = i + 1;
-    j = j - 1;
-  }
+        i = i + 1;
+        j = j - 1;
+    }
 }
 
 int stringCompare(int* s, int* t) {
-  int i;
+    int i;
 
-  i = 0;
+    i = 0;
 
-  while (1)
-    if (loadCharacter(s, i) == 0)
-      if (loadCharacter(t, i) == 0)
-        return 1;
-      else
-        return 0;
-    else if (loadCharacter(s, i) == loadCharacter(t, i))
-      i = i + 1;
-    else
-      return 0;
+    while (1)
+        if (loadCharacter(s, i) == 0)
+            if (loadCharacter(t, i) == 0)
+                return 1;
+            else
+                return 0;
+            else if (loadCharacter(s, i) == loadCharacter(t, i))
+                i = i + 1;
+            else
+                return 0;
 }
 
 int atoi(int* s, int base) {
-  int i;
-  int n;
-  int c;
+    int i;
+    int n;
+    int c;
 
-  // the conversion of the ASCII string in s to its numerical value n
-  // begins with the leftmost digit in s
-  i = 0;
+    // the conversion of the ASCII string in s to its numerical value n
+    // begins with the leftmost digit in s
+    i = 0;
 
-  // and the numerical value 0 for n
-  n = 0;
-
-  c = loadCharacter(s, i);
-
-  // loop until s is terminated
-  while (c != 0) {
-
-    // the numerical value of ASCII-encoded decimal digits
-    // is offset by the ASCII code of '0' (which is 48)
-    c = c - '0';
-
-    if(base == 2){
-      if (c < 0)
-        // c was not a binary, octal, dezimal or hexadezimal digit
-        return -1;
-      else if (c > 1)
-        // c was not a binary digit
-        return -1;
-
-    }else if (base == 8){
-      if (c < 0)
-        // c was not a binary, octal, dezimal or hexadezimal digit
-        return -1;
-      else if (c > 7)
-        // c was not an octal digit
-        return -1;
-
-    }else if(base == 10){
-      if (c < 0)
-        // c was not a binary, octal, dezimal or hexadezimal digit
-        return -1;
-      else if (c > 9)
-        // c was not a decimal digit
-        return -1;
-
-    }else if(base == 16){
-      //The value of ASCII-encoded 'A' is 65: c = c - '0' = c - 48 = 65 - 48 = 17.
-      //but we need 10 for A, so 17 - 7 = 10
-      if(c >= 'A'-'0'){
-        if(c <= 'F'-'0'){
-          c = c - 7;
-
-        }
-      }
-        //  print((int*)itoa(c,integer_buffer,10,0,0));print((int*)" - LOOK HERE\n");
-      if (c < 0)
-        // c was not a binary, octal, dezimal or hexadezimal digit
-        return -1;
-      else if (c > 15)
-        // c was not a hexadezimal digit
-        return -1;
-    }
-    // assert: s contains a decimal number, that is, with base 10
-    n = n * base + c; //replaced  10 in n = n * 10 + c; with the base
-
-    // go to the next digit
-    i = i + 1;
+    // and the numerical value 0 for n
+    n = 0;
 
     c = loadCharacter(s, i);
 
-    if (n < 0) {
-      // the only negative number for n allowed here is INT_MIN
-      if (n != INT_MIN)
-        // but n is not INT_MIN which may happen because of an earlier
-        // integer overflow if the number in s is larger than INT_MAX
-        return -1;
-      else if (c != 0)
-        // n is INT_MIN but s is not terminated yet
-        return -1;
-    }
-  }
+    // loop until s is terminated
+    while (c != 0) {
+        // the numerical value of ASCII-encoded decimal digits
+        // is offset by the ASCII code of '0' (which is 48)
+        c = c - '0';
 
-  return n;
-}
+        if(base == 2){
+            if (c < 0) //c was not a binary digit
+                return -1;
+            else if (c > 1)  // c was not a binary digit
+                return -1;
 
-int* itoa(int n, int* s, int b, int a, int p) {
-  // assert: b in {2,4,8,10,16}
+        }else if(base == 8){
+            if (c < 0) // c was not a oktal digit
+                return -1;
+            else if (c > 7)  // c was not a oktal digit
+                return -1;
 
-  int i;
-  int sign;
-  int msb;
+        }else if(base == 10){
+            if (c < 0)// c was not a dezimal digit
+                return -1;
 
-  // the conversion of the integer n to an ASCII string in s
-  // with base b, alignment a, and fixed point p
-  // begins with the leftmost digit in s
-  i = 0;
+            else if (c > 9)// c was not a dezimal digit
+                return -1;
 
-  // for now assuming n is positive
-  sign = 0;
+        }else if(base == 16){
+            if(c >='A'-'0'){
+                if(c <= 'F'-'0'){
+                    c = c - 7;
+                }
+            }
 
-  // and msb not set
-  msb = 0;
+            if (c < 0)// c was not a hexadezimal digit
+                return -1;
+            else if (c > 15)// c was not a hexadezimal digit
+                return -1;
+        }
 
-  if (n == 0) {
-    storeCharacter(s, 0, '0');
-
-    i = 1;
-  } else if (n < 0) {
-    // convert n to a positive number but remember the sign
-    sign = 1;
-
-    if (b == 10) {
-      if (n == INT_MIN) {
-        // rightmost decimal digit of 32-bit INT_MIN
-        storeCharacter(s, 0, '8');
-
-        // avoids overflow
-        n = -(n / 10);
-        i = 1;
-      } else
-        n = -n;
-    } else {
-      if (n == INT_MIN) {
-        // rightmost non-decimal digit of INT_MIN
-        storeCharacter(s, 0, '0');
-
-        // avoids setting n to 0
-        n = (rightShift(INT_MIN, 1) / b) * 2;
-        i = 1;
-      } else {
-        // reset msb, restore below
-		//Assignment4
-        n   = rightShift((n << 1), 1);
-        msb = 1;
-      }
-    }
-
-    // assert: n > 0
-  }
-
-  while (n != 0) {
-    if (p > 0)
-      if (i == p) {
-        storeCharacter(s, i, '.'); // set point of fixed point number
+        // assert: s contains a decimal number, that is, with base 10
+        n = n * base + c;
 
         // go to the next digit
         i = i + 1;
 
+        c = loadCharacter(s, i);
+
+        if (n < 0) {
+            // the only negative number for n allowed here is INT_MIN
+            if (n != INT_MIN)
+                // but n is not INT_MIN which may happen because of an earlier
+                // integer overflow if the number in s is larger than INT_MAX
+                return -1;
+            else if (c != 0)
+                // n is INT_MIN but s is not terminated yet
+                return -1;
+        }
+    }
+
+    return n;
+}
+
+int* itoa(int n, int* s, int b, int a, int p) {
+    // assert: b in {2,4,8,10,16}
+
+    int i;
+    int sign;
+    int msb;
+
+    // the conversion of the integer n to an ASCII string in s
+    // with base b, alignment a, and fixed point p
+    // begins with the leftmost digit in s
+    i = 0;
+
+    // for now assuming n is positive
+    sign = 0;
+
+    // and msb not set
+    msb = 0;
+
+    if (n == 0) {
+        storeCharacter(s, 0, '0');
+
+        i = 1;
+    } else if (n < 0) {
+        // convert n to a positive number but remember the sign
+        sign = 1;
+
+        if (b == 10) {
+            if (n == INT_MIN) {
+                // rightmost decimal digit of 32-bit INT_MIN
+                storeCharacter(s, 0, '8');
+
+                // avoids overflow
+                n = -(n / 10);
+                i = 1;
+            } else
+                n = -n;
+        } else {
+            if (n == INT_MIN) {
+                // rightmost non-decimal digit of INT_MIN
+                storeCharacter(s, 0, '0');
+
+                // avoids setting n to 0
+                n = (rightShift(INT_MIN, 1) / b) * 2;
+                i = 1;
+            } else {
+                // reset msb, restore below
+                n   = rightShift((n << 1), 1);
+                msb = 1;
+            }
+        }
+
+        // assert: n > 0
+    }
+
+    while (n != 0) {
+        if (p > 0)
+            if (i == p) {
+                storeCharacter(s, i, '.'); // set point of fixed point number
+
+                // go to the next digit
+                i = i + 1;
+
+                // we are done with the fixed point
+                p = 0;
+            }
+
+        if (n % b > 9)
+            // the ASCII code of hexadecimal digits larger than 9
+            // is offset by the ASCII code of 'A' (which is 65)
+            storeCharacter(s, i, n % b - 10 + 'A');
+        else
+            // the ASCII code of digits less than or equal to 9
+            // is offset by the ASCII code of '0' (which is 48)
+            storeCharacter(s, i, n % b + '0');
+
+        // convert n by dividing n with base b
+        n = n / b;
+
+        i = i + 1;
+
+        if (msb) {
+            // restore msb from above
+            n   = n + (rightShift(INT_MIN, 1) / b) * 2;
+            msb = 0;
+        }
+    }
+
+    if (p > 0) {
+        while (i < p) {
+            storeCharacter(s, i, '0'); // no point yet, fill with 0s
+
+            i = i + 1;
+        }
+
+        storeCharacter(s, i, '.'); // set point
+        storeCharacter(s, i + 1, '0'); // leading 0
+
+        // go to the second next digit
+        i = i + 2;
+
         // we are done with the fixed point
         p = 0;
-      }
-
-    if (n % b > 9)
-      // the ASCII code of hexadecimal digits larger than 9
-      // is offset by the ASCII code of 'A' (which is 65)
-      storeCharacter(s, i, n % b - 10 + 'A');
-    else
-      // the ASCII code of digits less than or equal to 9
-      // is offset by the ASCII code of '0' (which is 48)
-      storeCharacter(s, i, n % b + '0');
-
-    // convert n by dividing n with base b
-    n = n / b;
-
-    i = i + 1;
-
-    if (msb) {
-      // restore msb from above
-      n   = n + (rightShift(INT_MIN, 1) / b) * 2;
-      msb = 0;
-    }
-  }
-
-  if (p > 0) {
-    while (i < p) {
-      storeCharacter(s, i, '0'); // no point yet, fill with 0s
-
-      i = i + 1;
     }
 
-    storeCharacter(s, i, '.'); // set point
-    storeCharacter(s, i + 1, '0'); // leading 0
+    if (b == 10) {
+        if (sign) {
+            storeCharacter(s, i, '-'); // negative decimal numbers start with -
 
-    // go to the second next digit
-    i = i + 2;
+            i = i + 1;
+        }
 
-    // we are done with the fixed point
-    p = 0;
-  }
+        while (i < a) {
+            storeCharacter(s, i, ' '); // align with spaces
 
-  if (b == 10) {
-    if (sign) {
-      storeCharacter(s, i, '-'); // negative decimal numbers start with -
+            i = i + 1;
+        }
+    } else {
+        while (i < a) {
+            storeCharacter(s, i, '0'); // align with 0s
 
-      i = i + 1;
+            i = i + 1;
+        }
+
+        if (b == 8) {
+            storeCharacter(s, i, '0');   // octal numbers start with 00
+            storeCharacter(s, i + 1, '0');
+
+            i = i + 2;
+        } else if (b == 16) {
+            storeCharacter(s, i, 'x');   // hexadecimal numbers start with 0x
+            storeCharacter(s, i + 1, '0');
+
+            i = i + 2;
+        }
     }
 
-    while (i < a) {
-      storeCharacter(s, i, ' '); // align with spaces
+    storeCharacter(s, i, 0); // null-terminated string
 
-      i = i + 1;
-    }
-  } else {
-    while (i < a) {
-      storeCharacter(s, i, '0'); // align with 0s
+    // our numeral system is positional hindu-arabic, that is,
+    // the weight of digits increases right to left, which means
+    // that we need to reverse the string we computed above
+    stringReverse(s);
 
-      i = i + 1;
-    }
-
-    if (b == 8) {
-      storeCharacter(s, i, '0');   // octal numbers start with 00
-      storeCharacter(s, i + 1, '0');
-
-      i = i + 2;
-    } else if (b == 16) {
-      storeCharacter(s, i, 'x');   // hexadecimal numbers start with 0x
-      storeCharacter(s, i + 1, '0');
-
-      i = i + 2;
-    }
-  }
-
-  storeCharacter(s, i, 0); // null-terminated string
-
-  // our numeral system is positional hindu-arabic, that is,
-  // the weight of digits increases right to left, which means
-  // that we need to reverse the string we computed above
-  stringReverse(s);
-
-  return s;
+    return s;
 }
 
 int fixedPointRatio(int a, int b) {
-  // compute fixed point ratio with 2 fractional digits
+    // compute fixed point ratio with 2 fractional digits
 
-  // multiply a/b with 100 but avoid overflow
+    // multiply a/b with 100 but avoid overflow
 
-  if (a <= INT_MAX / 100) {
-    if (b != 0)
-      return a * 100 / b;
-  } else if (a <= INT_MAX / 10) {
-    if (b / 10 != 0)
-      return a * 10 / (b / 10);
-  } else {
-    if (b / 100 != 0)
-      return a / (b / 100);
-  }
+    if (a <= INT_MAX / 100) {
+        if (b != 0)
+            return a * 100 / b;
+    } else if (a <= INT_MAX / 10) {
+        if (b / 10 != 0)
+            return a * 10 / (b / 10);
+    } else {
+        if (b / 100 != 0)
+            return a / (b / 100);
+    }
 
-  return 0;
-}
-
-int fixedPointPercentage(int r) {
-  if (r != 0)
-    // 1000000 = 10000 (for 100.00%) * 100 (for 2 fractional digits of r)
-    return 1000000 / r;
-  else
     return 0;
 }
 
+int fixedPointPercentage(int r) {
+    if (r != 0)
+        // 1000000 = 10000 (for 100.00%) * 100 (for 2 fractional digits of r)
+        return 1000000 / r;
+    else
+        return 0;
+}
+
 void putCharacter(int c) {
-  *character_buffer = c;
+    *character_buffer = c;
 
-  // assert: character_buffer is mapped
+    // assert: character_buffer is mapped
 
-  // try to write 1 character from character_buffer
-  // into file with outputFD file descriptor
-  if (write(outputFD, character_buffer, 1) == 1) {
-    if (outputFD != 1)
-      // count number of characters written to a file,
-      // not the console which has file descriptor 1
-      numberOfWrittenCharacters = numberOfWrittenCharacters + 1;
-  } else {
-    // write failed
-    if (outputFD != 1) {
-      // failed write was not to the console which has file descriptor 1
-      // to report the error we may thus still write to the console via print
-      outputFD = 1;
+    // try to write 1 character from character_buffer
+    // into file with outputFD file descriptor
+    if (write(outputFD, character_buffer, 1) == 1) {
+        if (outputFD != 1)
+            // count number of characters written to a file,
+            // not the console which has file descriptor 1
+            numberOfWrittenCharacters = numberOfWrittenCharacters + 1;
+    } else {
+        // write failed
+        if (outputFD != 1) {
+            // failed write was not to the console which has file descriptor 1
+            // to report the error we may thus still write to the console via print
+            outputFD = 1;
 
-      print(selfieName);
-      print((int*) ": could not write character to output file ");
-      print(outputName);
-      println();
+            print(selfieName);
+            print((int*) ": could not write character to output file ");
+            print(outputName);
+            println();
+        }
+
+        exit(-1);
     }
-
-    exit(-1);
-  }
 }
 
 void print(int* s) {
-  int i;
+    int i;
 
-  i = 0;
+    i = 0;
 
-  while (loadCharacter(s, i) != 0) {
-    putCharacter(loadCharacter(s, i));
+    while (loadCharacter(s, i) != 0) {
+        putCharacter(loadCharacter(s, i));
 
-    i = i + 1;
-  }
+        i = i + 1;
+    }
 }
 
 void println() {
-  putCharacter(CHAR_LF);
+    putCharacter(CHAR_LF);
 }
 
 void printCharacter(int c) {
-  putCharacter(CHAR_SINGLEQUOTE);
+    putCharacter(CHAR_SINGLEQUOTE);
 
-  if (c == CHAR_EOF)
-    print((int*) "end of file");
-  else if (c == CHAR_TAB)
-    print((int*) "tabulator");
-  else if (c == CHAR_LF)
-    print((int*) "line feed");
-  else if (c == CHAR_CR)
-    print((int*) "carriage return");
-  else
-    putCharacter(c);
+    if (c == CHAR_EOF)
+        print((int*) "end of file1");
+    else if (c == CHAR_TAB)
+        print((int*) "tabulator");
+    else if (c == CHAR_LF)
+        print((int*) "line feed");
+    else if (c == CHAR_CR)
+        print((int*) "carriage return");
+    else
+        putCharacter(c);
 
-  putCharacter(CHAR_SINGLEQUOTE);
+    putCharacter(CHAR_SINGLEQUOTE);
 }
 
 void printString(int* s) {
-  putCharacter(CHAR_DOUBLEQUOTE);
+    putCharacter(CHAR_DOUBLEQUOTE);
 
-  print(s);
+    print(s);
 
-  putCharacter(CHAR_DOUBLEQUOTE);
+    putCharacter(CHAR_DOUBLEQUOTE);
 }
 
 void printInteger(int n) {
-  print(itoa(n, integer_buffer, 10, 0, 0));
+    print(itoa(n, integer_buffer, 10, 0, 0));
 }
 
 void printFixedPointPercentage(int a, int b) {
-  print(itoa(fixedPointPercentage(fixedPointRatio(a, b)), integer_buffer, 10, 0, 2));
+    print(itoa(fixedPointPercentage(fixedPointRatio(a, b)), integer_buffer, 10, 0, 2));
 }
 
 void printFixedPointRatio(int a, int b) {
-  print(itoa(fixedPointRatio(a, b), integer_buffer, 10, 0, 2));
+    print(itoa(fixedPointRatio(a, b), integer_buffer, 10, 0, 2));
 }
 
 void printHexadecimal(int n, int a) {
-  print(itoa(n, integer_buffer, 16, a, 0));
+    print(itoa(n, integer_buffer, 16, a, 0));
 }
 
 void printOctal(int n, int a) {
-  print(itoa(n, integer_buffer, 8, a, 0));
+    print(itoa(n, integer_buffer, 8, a, 0));
 }
 
 void printBinary(int n, int a) {
-  print(itoa(n, integer_buffer, 2, a, 0));
+    print(itoa(n, integer_buffer, 2, a, 0));
 }
 
 int roundUp(int n, int m) {
-  if (n % m == 0)
-    return n;
-  else if (n >= 0)
-    return n + m - n % m;
-  else
-    return n - n % m;
+    if (n % m == 0)
+        return n;
+    else if (n >= 0)
+        return n + m - n % m;
+    else
+        return n - n % m;
 }
 
 int* zalloc(int size) {
-  // this procedure is only executed at boot level zero
-  // zalloc allocates size bytes rounded up to word size
-  // and then zeroes that memory, similar to calloc, but
-  // called zalloc to avoid redeclaring calloc
-  int* memory;
-  int  i;
+    // this procedure is only executed at boot level zero
+    // zalloc allocates size bytes rounded up to word size
+    // and then zeroes that memory, similar to calloc, but
+    // called zalloc to avoid redeclaring calloc
+    int* memory;
+    int  i;
 
-  size = roundUp(size, WORDSIZE);
+    size = roundUp(size, WORDSIZE);
 
-  memory = malloc(size);
+    memory = malloc(size);
 
-  size = size / WORDSIZE;
+    size = size / WORDSIZE;
 
-  i = 0;
+    i = 0;
 
-  while (i < size) {
-    // erase memory by setting it to 0
-    *(memory + i) = 0;
+    while (i < size) {
+        // erase memory by setting it to 0
+        *(memory + i) = 0;
 
-    i = i + 1;
-  }
+        i = i + 1;
+    }
 
-  return memory;
+    return memory;
 }
 
 // *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~
@@ -2114,553 +1991,603 @@ int* zalloc(int size) {
 // -----------------------------------------------------------------
 
 void printSymbol(int symbol) {
-  putCharacter(CHAR_DOUBLEQUOTE);
+    putCharacter(CHAR_DOUBLEQUOTE);
 
-  if (symbol == SYM_EOF)
-    print((int*) "end of file");
-  else
-    print((int*) *(SYMBOLS + symbol));
+    if (symbol == SYM_EOF)
+        print((int*) "end of file2");
+    else
+        print((int*) *(SYMBOLS + symbol));
 
-  putCharacter(CHAR_DOUBLEQUOTE);
+    putCharacter(CHAR_DOUBLEQUOTE);
 }
 
 void printLineNumber(int* message, int line) {
-  print(selfieName);
-  print((int*) ": ");
-  print(message);
-  print((int*) " in ");
-  print(sourceName);
-  print((int*) " in line ");
-  printInteger(line);
-  print((int*) ": ");
+    print(selfieName);
+    print((int*) ": ");
+    print(message);
+    print((int*) " in ");
+    print(sourceName);
+    print((int*) " in line ");
+    printInteger(line);
+    print((int*) ": ");
 }
 
 void syntaxErrorMessage(int* message) {
-  printLineNumber((int*) "error", lineNumber);
+    printLineNumber((int*) "error", lineNumber);
 
-  print(message);
+    print(message);
 
-  println();
+    println();
 }
 
 void syntaxErrorCharacter(int expected) {
-  printLineNumber((int*) "error", lineNumber);
+    printLineNumber((int*) "error", lineNumber);
 
-  printCharacter(expected);
-  print((int*) " expected but ");
+    printCharacter(expected);
+    print((int*) " expected but ");
 
-  printCharacter(character);
-  print((int*) " found");
+    printCharacter(character);
+    print((int*) " found");
 
-  println();
+    println();
 }
 
 void getCharacter() {
-  int numberOfReadBytes;
-
-  // assert: character_buffer is mapped
-
-  // try to read 1 character into character_buffer
-  // from file with sourceFD file descriptor
-  numberOfReadBytes = read(sourceFD, character_buffer, 1);
-
-  if (numberOfReadBytes == 1) {
-    // store the read character in the global variable called character
-    character = *character_buffer;
-
-    numberOfReadCharacters = numberOfReadCharacters + 1;
-  } else if (numberOfReadBytes == 0)
-    // reached end of file
-    character = CHAR_EOF;
-  else {
-    print(selfieName);
-    print((int*) ": could not read character from input file ");
-    print(sourceName);
-    println();
-
-    exit(-1);
-  }
-}
-
-int isCharacterNewLine() {
-  if (character == CHAR_LF)
-    return 1;
-  else if (character == CHAR_CR)
-    return 1;
-  else
-    return 0;
-}
-
-int isCharacterWhitespace() {
-  if (character == CHAR_SPACE)
-    return 1;
-  else if (character == CHAR_TAB)
-    return 1;
-  else
-    return isCharacterNewLine();
-}
-
-int findNextCharacter() {
-  int inComment;
-
-  // assuming we are not in a comment
-  inComment = 0;
-
-  // read and discard all whitespace and comments until a character is found
-  // that is not whitespace and does not occur in a comment, or the file ends
-  while (1) {
-    if (inComment) {
-      getCharacter();
-
-      if (isCharacterNewLine())
-        // comments end with new line
-        inComment = 0;
-      else if (character == CHAR_EOF)
-        return character;
-      else
-        // count the characters in comments as ignored characters
-        // line feed and carriage return are counted below
-        numberOfIgnoredCharacters = numberOfIgnoredCharacters + 1;
-
-    } else if (isCharacterWhitespace()) {
-      // keep track of line numbers for error reporting and code annotation
-      if (isCharacterNewLine())
-        lineNumber = lineNumber + 1;
-
-      // count line feed and carriage return as ignored characters
-      numberOfIgnoredCharacters = numberOfIgnoredCharacters + 1;
-
-      getCharacter();
-
-    } else if (character == CHAR_SLASH) {
-      getCharacter();
-
-      if (character == CHAR_SLASH) {
-        // "//" begins a comment
-        inComment = 1;
-
-        // count both slashes as ignored characters as well
-        numberOfIgnoredCharacters = numberOfIgnoredCharacters + 2;
-
-        // count the number of comments
-        numberOfComments = numberOfComments + 1;
-      } else {
-        // while looking for "//" we actually found '/'
-        symbol = SYM_DIV;
-
-        return character;
-      }
-
-    } else
-      // character found that is not whitespace and not occurring in a comment
-      return character;
-  }
-}
-
-int isCharacterLetter() {
-  // ASCII codes for lower- and uppercase letters are in contiguous intervals
-  if (character >= 'a')
-    if (character <= 'z')
-      return 1;
-    else
-      return 0;
-  else if (character >= 'A')
-    if (character <= 'Z')
-      return 1;
-    else
-      return 0;
-  else
-    return 0;
-}
-
-int isCharacterDigit() {
-  // ASCII codes for digits are in a contiguous interval
-  if (character >= '0')
-    if (character <= '9')
-      return 1;
-    else
-      return 0;
-  else
-    return 0;
-}
-
-int isCharacterLetterOrDigitOrUnderscore() {
-  if (isCharacterLetter())
-    return 1;
-  else if (isCharacterDigit())
-    return 1;
-  else if (character == CHAR_UNDERSCORE)
-    return 1;
-  else
-    return 0;
-}
-
-int isCharacterNotDoubleQuoteOrNewLineOrEOF() {
-  if (character == CHAR_DOUBLEQUOTE)
-    return 0;
-  else if (isCharacterNewLine())
-    return 0;
-  else if (character == CHAR_EOF)
-    return 0;
-  else
-    return 1;
-}
-
-int identifierStringMatch(int keyword) {
-  return stringCompare(identifier, (int*) *(SYMBOLS + keyword));
-}
-
-int identifierOrKeyword() {
-  if (identifierStringMatch(SYM_WHILE))
-    return SYM_WHILE;
-  if (identifierStringMatch(SYM_IF))
-    return SYM_IF;
-  if (identifierStringMatch(SYM_INT))
-    return SYM_INT;
-  if (identifierStringMatch(SYM_ELSE))
-    return SYM_ELSE;
-  if (identifierStringMatch(SYM_RETURN))
-    return SYM_RETURN;
-  if (identifierStringMatch(SYM_VOID))
-    return SYM_VOID;
-  //Assignment8
-  if (identifierStringMatch(SYM_STRUCT))
-    return SYM_STRUCT;
-  else
-    return SYM_IDENTIFIER;
-}
-
-void getSymbol() {
-  int i;
-  int base;
-  // reset previously scanned symbol
-  symbol = SYM_EOF;
-
-  if (findNextCharacter() != CHAR_EOF) {
-    if (symbol != SYM_DIV) {
-      // '/' may have already been recognized
-      // while looking for whitespace and "//"
-      if (isCharacterLetter()) {
-        // accommodate identifier and null for termination
-        identifier = malloc(maxIdentifierLength + 1);
-
-        i = 0;
-
-        while (isCharacterLetterOrDigitOrUnderscore()) {
-          if (i >= maxIdentifierLength) {
-            syntaxErrorMessage((int*) "identifier too long");
-
-            exit(-1);
-          }
-
-          storeCharacter(identifier, i, character);
-
-          i = i + 1;
-
-          getCharacter();
-        }
-
-        storeCharacter(identifier, i, 0); // null-terminated string
-
-        symbol = identifierOrKeyword();
-
-      } else if (isCharacterDigit()) {
-        // accommodate integer and null for termination
-
-        i = 0;
-
-        if(character == '0'){//0
-
-          getCharacter();
-          if(character == 'b'){//0b - binary prefix
-            base = 2;
-            integer = malloc(maxIntegerLength + 1);
-            getCharacter();
-
-          }else if(character == 'x'){//0x - hexadezimal prefix
-            base = 16;
-            integer = malloc(maxIntegerLength + 1);
-
-            getCharacter();
-
-          }else if(character >= '0'){//0[0-7] - octal prefix
-            if (character <= '7'){
-				base = 8;
-				integer = malloc(maxIntegerLength + 1);
-				//getCharacter();
-			}
-          }else if(isCharacterDigit() == 0){
-            base = 10;//default dezimal base
-            integer = malloc(maxIntegerLength + 1);
-
-            storeCharacter(integer, i, '0');// 48 ASCII code for '0'
-
-          }
-        }else{
-          base = 10;//default dezimal base
-          integer = malloc(maxIntegerLength + 1);
-        }
-
-        if(base == 16){
-          while (isCharacterLetterOrDigitOrUnderscore()) {
-
-            if (i >= maxIntegerLength) {
-              syntaxErrorMessage((int*) "integer out of bound");
-              exit(-1);
-            }
-
-			//method isCharacterLetterOrDigitOrUnderscore contains UNDERSCORE (not number!)
-            if(character == CHAR_UNDERSCORE){
-              syntaxErrorMessage((int*) "not an integer");
-              exit(-1);
-            }
-
-            storeCharacter(integer, i, character);
-
-            i = i + 1;
-
-            getCharacter();
-          }
-
-      }else{
-        while (isCharacterDigit()) {
-
-          if (i >= maxIntegerLength) {
-            syntaxErrorMessage((int*) "integer out of bound");
-            exit(-1);
-          }
-
-          storeCharacter(integer, i, character);
-
-          i = i + 1;
-
-          getCharacter();
-        }
-      }
-
-        storeCharacter(integer, i, 0); // null-terminated string
-
-        literal = atoi(integer, base);
-
-        if (literal < 0) {
-          if (literal == INT_MIN) {
-            if (mayBeINTMIN)
-              isINTMIN = 1;
-            else {
-              syntaxErrorMessage((int*) "integer out of bound");
-
-              exit(-1);
-            }
-          } else {
-            syntaxErrorMessage((int*) "integer out of bound");
-
-            exit(-1);
-          }
-        }
-
-        symbol = SYM_INTEGER;
-
-      } else if (character == CHAR_SINGLEQUOTE) {
-        getCharacter();
-
-        literal = 0;
-
-        if (character == CHAR_EOF) {
-          syntaxErrorMessage((int*) "reached end of file looking for a character literal");
-
-          exit(-1);
-        } else
-          literal = character;
-
-        getCharacter();
-
-        if (character == CHAR_SINGLEQUOTE)
-          getCharacter();
-        else if (character == CHAR_EOF) {
-          syntaxErrorCharacter(CHAR_SINGLEQUOTE);
-
-          exit(-1);
-        } else
-          syntaxErrorCharacter(CHAR_SINGLEQUOTE);
-
-        symbol = SYM_CHARACTER;
-
-      } else if (character == CHAR_DOUBLEQUOTE) {
-        getCharacter();
-
-        // accommodate string and null for termination
-        // allocate zeroed memory since strings are emitted
-        // in whole words but may end non-word-aligned
-        string = zalloc(maxStringLength + 1);
-
-        i = 0;
-
-        while (isCharacterNotDoubleQuoteOrNewLineOrEOF()) {
-          if (i >= maxStringLength) {
-            syntaxErrorMessage((int*) "string too long");
-
-            exit(-1);
-          }
-
-          storeCharacter(string, i, character);
-
-          i = i + 1;
-
-          getCharacter();
-        }
-
-        if (character == CHAR_DOUBLEQUOTE)
-          getCharacter();
-        else {
-          syntaxErrorCharacter(CHAR_DOUBLEQUOTE);
-
-          exit(-1);
-        }
-
-        storeCharacter(string, i, 0); // null-terminated string
-
-        symbol = SYM_STRING;
-
-      } else if (character == CHAR_SEMICOLON) {
-        getCharacter();
-
-        symbol = SYM_SEMICOLON;
-
-      } else if (character == CHAR_PLUS) {
-        getCharacter();
-
-        symbol = SYM_PLUS;
-
-      } else if (character == CHAR_DASH) {
-        getCharacter();
-
-        symbol = SYM_MINUS;
-
-      } else if (character == CHAR_ASTERISK) {
-        getCharacter();
-
-        symbol = SYM_ASTERISK;
-
-      } else if (character == CHAR_EQUAL) {
-        getCharacter();
-
-        if (character == CHAR_EQUAL) {
-          getCharacter();
-
-          symbol = SYM_EQUALITY;
-        } else
-          symbol = SYM_ASSIGN;
-
-      } else if (character == CHAR_LPARENTHESIS) {
-        getCharacter();
-
-        symbol = SYM_LPARENTHESIS;
-
-      } else if (character == CHAR_RPARENTHESIS) {
-        getCharacter();
-
-        symbol = SYM_RPARENTHESIS;
-
-      } else if (character == CHAR_LBRACE) {
-        getCharacter();
-
-        symbol = SYM_LBRACE;
-
-      } else if (character == CHAR_RBRACE) {
-        getCharacter();
-
-        symbol = SYM_RBRACE;
-		
-	  //Assignment7
-	  } else if (character == CHAR_LBRACKET){
-        getCharacter();
-
-        symbol = SYM_LBRACKET;
-
-      }else if (character == CHAR_RBRACKET){
-        getCharacter();
-
-        symbol = SYM_RBRACKET;
-
-      } else if (character == CHAR_COMMA) {
-        getCharacter();
-
-        symbol = SYM_COMMA;
-
-      } else if (character == CHAR_LT) {
-        getCharacter();
-
-		//Assignment4
-		if(character == CHAR_LT){
-          getCharacter();
-
-          symbol = SYM_LEFTSHIFT;
-		
-        }else if (character == CHAR_EQUAL) {
-          getCharacter();
-
-          symbol = SYM_LEQ;
-        } else
-          symbol = SYM_LT;
-
-      } else if (character == CHAR_GT) {
-        getCharacter();
-
-		//Assignment4
-		if(character == CHAR_GT){
-          getCharacter();
-
-          symbol = SYM_RIGHTSHIFT;
-		
-        }else if (character == CHAR_EQUAL) {
-          getCharacter();
-
-          symbol = SYM_GEQ;
-        } else
-          symbol = SYM_GT;
-
-      } else if (character == CHAR_EXCLAMATION) {
-        getCharacter();
-
-        if (character == CHAR_EQUAL)
-          getCharacter();
-        else
-          syntaxErrorCharacter(CHAR_EQUAL);
-
-        symbol = SYM_NOTEQ;
-
-      } else if (character == CHAR_PERCENTAGE) {
-        getCharacter();
-
-        symbol = SYM_MOD;
-	//Assignment5
-	  } else if (character == CHAR_AND){
-		getCharacter();
-		
-		symbol = SYM_BITWISE_AND;
-	  } else if (character == CHAR_NOT){
-		getCharacter();
-		
-		symbol = SYM_BITWISE_NOT;
-	  } else if (character == CHAR_OR){
-		getCharacter();
-		
-		symbol = SYM_BITWISE_OR;
-
-		
-      } else {
-        printLineNumber((int*) "error", lineNumber);
-        print((int*) "found unknown character ");
-        printCharacter(character);
-
+    int numberOfReadBytes;
+
+    // assert: character_buffer is mapped
+
+    // try to read 1 character into character_buffer
+    // from file with sourceFD file descriptor
+    numberOfReadBytes = read(sourceFD, character_buffer, 1);
+
+    if (numberOfReadBytes == 1) {
+        // store the read character in the global variable called character
+        character = *character_buffer;
+
+        numberOfReadCharacters = numberOfReadCharacters + 1;
+    } else if (numberOfReadBytes == 0)
+        // reached end of file
+        character = CHAR_EOF;
+    else {
+        print(selfieName);
+        print((int*) ": could not read character from input file ");
+        print(sourceName);
         println();
 
         exit(-1);
-      }
     }
+}
 
-    numberOfScannedSymbols = numberOfScannedSymbols + 1;
-  }
+int isCharacterNewLine() {
+    if (character == CHAR_LF)
+        return 1;
+    else if (character == CHAR_CR)
+        return 1;
+    else
+        return 0;
+}
+
+int isCharacterWhitespace() {
+    if (character == CHAR_SPACE)
+        return 1;
+    else if (character == CHAR_TAB)
+        return 1;
+    else
+        return isCharacterNewLine();
+}
+
+int findNextCharacter() {
+    int inComment;
+
+    // assuming we are not in a comment
+    inComment = 0;
+
+    // read and discard all whitespace and comments until a character is found
+    // that is not whitespace and does not occur in a comment, or the file ends
+    while (1) {
+        if (inComment) {
+            getCharacter();
+
+            if (isCharacterNewLine())
+                // comments end with new line
+                inComment = 0;
+            else if (character == CHAR_EOF)
+                return character;
+            else
+                // count the characters in comments as ignored characters
+                // line feed and carriage return are counted below
+                numberOfIgnoredCharacters = numberOfIgnoredCharacters + 1;
+
+        } else if (isCharacterWhitespace()) {
+            // keep track of line numbers for error reporting and code annotation
+            if (isCharacterNewLine())
+                lineNumber = lineNumber + 1;
+
+            // count line feed and carriage return as ignored characters
+            numberOfIgnoredCharacters = numberOfIgnoredCharacters + 1;
+
+            getCharacter();
+
+        } else if (character == CHAR_SLASH) {
+            getCharacter();
+
+            if (character == CHAR_SLASH) {
+                // "//" begins a comment
+                inComment = 1;
+
+                // count both slashes as ignored characters as well
+                numberOfIgnoredCharacters = numberOfIgnoredCharacters + 2;
+
+                // count the number of comments
+                numberOfComments = numberOfComments + 1;
+            } else {
+                // while looking for "//" we actually found '/'
+                symbol = SYM_DIV;
+
+                return character;
+            }
+
+        } else
+            // character found that is not whitespace and not occurring in a comment
+            return character;
+    }
+}
+
+int isCharacterLetter() {
+    // ASCII codes for lower- and uppercase letters are in contiguous intervals
+    if (character >= 'a')
+        if (character <= 'z')
+            return 1;
+        else
+            return 0;
+        else if (character >= 'A')
+            if (character <= 'Z')
+                return 1;
+            else
+                return 0;
+            else
+                return 0;
+}
+
+int isCharacterDigit() {
+    // ASCII codes for digits are in a contiguous interval
+    if (character >= '0')
+        if (character <= '9')
+            return 1;
+        else
+            return 0;
+        else
+            return 0;
+}
+
+int isBinaryDigit(){
+    // ASCII codes for digits are in a contiguous interval
+    if (character >= '0')
+        if (character <= '1')
+            return 1;
+        else
+            return 0;
+        else
+            return 0;
+}
+
+int isOctalDigit(){
+    // ASCII codes for digits are in a contiguous interval
+    if (character >= '0')
+        if (character <= '7')
+            return 1;
+        else
+            return 0;
+        else
+            return 0;
+}
+
+int isHexadezimalDigit(){
+    // ASCII codes for digits are in a contiguous interval,
+    // but '9' and 'A' have the interval of 7 characters between them
+    if (character >= '0'){
+        if (character <= 'F'){
+
+            if(character > '9'){
+                if(character < 'A')
+                    return 0;
+                else
+                    return 1;
+
+            }else{
+                return 1;
+            }
+        }else{
+            return 0;
+        }
+    }else{
+        return 0;
+    }
+}
+
+int isCharacterLetterOrDigitOrUnderscore() {
+    if (isCharacterLetter())
+        return 1;
+    else if (isCharacterDigit())
+        return 1;
+    else if (character == CHAR_UNDERSCORE)
+        return 1;
+    else
+        return 0;
+}
+
+int isCharacterNotDoubleQuoteOrNewLineOrEOF() {
+    if (character == CHAR_DOUBLEQUOTE)
+        return 0;
+    else if (isCharacterNewLine())
+        return 0;
+    else if (character == CHAR_EOF)
+        return 0;
+    else
+        return 1;
+}
+
+int identifierStringMatch(int keyword) {
+    return stringCompare(identifier, (int*) *(SYMBOLS + keyword));
+}
+
+int identifierOrKeyword() {
+    if (identifierStringMatch(SYM_WHILE))
+        return SYM_WHILE;
+    if (identifierStringMatch(SYM_IF))
+        return SYM_IF;
+    if (identifierStringMatch(SYM_INT))
+        return SYM_INT;
+    if (identifierStringMatch(SYM_ELSE))
+        return SYM_ELSE;
+    if (identifierStringMatch(SYM_RETURN))
+        return SYM_RETURN;
+    if (identifierStringMatch(SYM_VOID))
+        return SYM_VOID;
+    if (identifierStringMatch(SYM_STRUCT))
+        return SYM_STRUCT;
+    else
+        return SYM_IDENTIFIER;
+}
+
+void getSymbol() {
+    int i;
+    int base;
+
+    // reset previously scanned symbol
+    symbol = SYM_EOF;
+
+    if (findNextCharacter() != CHAR_EOF) {
+        if (symbol != SYM_DIV) {
+            // '/' may have already been recognized
+            // while looking for whitespace and "//"
+            if (isCharacterLetter()) {
+                // accommodate identifier and null for termination
+                identifier = malloc(maxIdentifierLength + 1);
+
+                i = 0;
+
+                while (isCharacterLetterOrDigitOrUnderscore()) {
+                    if (i >= maxIdentifierLength) {
+                        syntaxErrorMessage((int*) "identifier too long");
+
+                        exit(-1);
+                    }
+
+                    storeCharacter(identifier, i, character);
+
+                    i = i + 1;
+
+                    getCharacter();
+                }
+
+                storeCharacter(identifier, i, 0); // null-terminated string
+
+                symbol = identifierOrKeyword();
+
+            } else if (isCharacterDigit()) {
+
+                integer = malloc(maxIntegerLength + 1);
+
+                i = 0;
+
+                base = 10;//default base
+
+                if(character == '0'){
+                    getCharacter();
+
+                    if(character == 'b'){
+                        base = 2;
+                        getCharacter();
+
+                        while (isBinaryDigit()) {
+
+                            if (i >= maxIntegerLength) {
+                                syntaxErrorMessage((int*) "integer out of bound ");
+                                exit(-1);
+                            }
+
+                            storeCharacter(integer, i, character);
+
+                            i = i + 1;
+
+                            getCharacter();
+                        }
+
+                    }else if(isOctalDigit()){
+                        base = 8;
+                        storeCharacter(integer, i, character);
+                        getCharacter();
+                        i = i + 1;
+
+                        while (isOctalDigit()) {
+
+                            if (i >= maxIntegerLength) {
+                                syntaxErrorMessage((int*) "integer out of bound ");
+                                exit(-1);
+                            }
+
+                            storeCharacter(integer, i, character);
+
+                            i = i + 1;
+
+                            getCharacter();
+                        }
+
+                    }else if(character == 'x'){
+                        base = 16;
+                        getCharacter();
+
+                        while (isHexadezimalDigit()) {
+
+                            if (i >= maxIntegerLength) {
+                                syntaxErrorMessage((int*) "integer out of bound ");
+                                exit(-1);
+                            }
+
+                            storeCharacter(integer, i, character);
+
+                            i = i + 1;
+
+                            getCharacter();
+                        }
+
+                    }else if(isCharacterDigit() == 0){
+                        base = 10;
+                        storeCharacter(integer, i, '0');
+                    }
+                } else {
+                    base = 10;
+                    while (isCharacterDigit()) {
+
+                        if (i >= maxIntegerLength) {
+                            syntaxErrorMessage((int*) "integer out of bound ");
+                            exit(-1);
+                        }
+
+                        storeCharacter(integer, i, character);
+
+                        i = i + 1;
+
+                        getCharacter();
+                    }
+                }
+
+                storeCharacter(integer, i, 0); // null-terminated string
+
+                literal = atoi(integer, base);
+
+                if (literal < 0) {
+                    if (literal == INT_MIN) {
+                        if (mayBeINTMIN)
+                            isINTMIN = 1;
+                        else {
+                            syntaxErrorMessage((int*) "integer out of bound 3");
+
+                            exit(-1);
+                        }
+                    } else {
+                        syntaxErrorMessage((int*) "integer out of bound 4");
+
+                        exit(-1);
+                    }
+                }
+
+                symbol = SYM_INTEGER;
+
+            } else if (character == CHAR_SINGLEQUOTE) {
+                getCharacter();
+
+                literal = 0;
+
+                if (character == CHAR_EOF) {
+                    syntaxErrorMessage((int*) "reached end of file looking for a character literal");
+
+                    exit(-1);
+                } else
+                    literal = character;
+
+                getCharacter();
+
+                if (character == CHAR_SINGLEQUOTE)
+                    getCharacter();
+                else if (character == CHAR_EOF) {
+                    syntaxErrorCharacter(CHAR_SINGLEQUOTE);
+
+                    exit(-1);
+                } else
+                    syntaxErrorCharacter(CHAR_SINGLEQUOTE);
+
+                symbol = SYM_CHARACTER;
+
+            } else if (character == CHAR_DOUBLEQUOTE) {
+                getCharacter();
+
+                // accommodate string and null for termination
+                // allocate zeroed memory since strings are emitted
+                // in whole words but may end non-word-aligned
+                string = zalloc(maxStringLength + 1);
+
+                i = 0;
+
+                while (isCharacterNotDoubleQuoteOrNewLineOrEOF()) {
+                    if (i >= maxStringLength) {
+                        syntaxErrorMessage((int*) "string too long");
+
+                        exit(-1);
+                    }
+
+                    storeCharacter(string, i, character);
+
+                    i = i + 1;
+
+                    getCharacter();
+                }
+
+                if (character == CHAR_DOUBLEQUOTE)
+                    getCharacter();
+                else {
+                    syntaxErrorCharacter(CHAR_DOUBLEQUOTE);
+
+                    exit(-1);
+                }
+
+                storeCharacter(string, i, 0); // null-terminated string
+
+                symbol = SYM_STRING;
+
+            } else if (character == CHAR_SEMICOLON) {
+                getCharacter();
+
+                symbol = SYM_SEMICOLON;
+
+            } else if (character == CHAR_PLUS) {
+                getCharacter();
+
+                symbol = SYM_PLUS;
+
+            } else if (character == CHAR_DASH) {
+                getCharacter();
+
+                symbol = SYM_MINUS;
+
+            } else if (character == CHAR_ASTERISK) {
+                getCharacter();
+
+                symbol = SYM_ASTERISK;
+
+            } else if (character == CHAR_EQUAL) {
+                getCharacter();
+
+                if (character == CHAR_EQUAL) {
+                    getCharacter();
+
+                    symbol = SYM_EQUALITY;
+                } else
+                    symbol = SYM_ASSIGN;
+
+            } else if (character == CHAR_LPARENTHESIS) {
+                getCharacter();
+
+                symbol = SYM_LPARENTHESIS;
+
+            } else if (character == CHAR_RPARENTHESIS) {
+                getCharacter();
+
+                symbol = SYM_RPARENTHESIS;
+
+            } else if (character == CHAR_LBRACE) {
+                getCharacter();
+
+                symbol = SYM_LBRACE;
+
+            } else if (character == CHAR_RBRACE) {
+                getCharacter();
+
+                symbol = SYM_RBRACE;
+            } else if (character == CHAR_LBRACKET) {
+                getCharacter();
+
+                symbol = SYM_LBRACKET;
+
+            } else if (character == CHAR_RBRACKET) {
+                getCharacter();
+
+                symbol = SYM_RBRACKET;
+            } else if (character == CHAR_COMMA) {
+                getCharacter();
+
+                symbol = SYM_COMMA;
+
+            }else if(character == CHAR_AND){
+                getCharacter();
+
+                symbol = SYM_BITWISE_AND;
+            }else if(character == CHAR_OR){
+                getCharacter();
+
+                symbol = SYM_BITWISE_OR;
+            }else if(character == CHAR_NOT){
+                getCharacter();
+
+                symbol = SYM_BITWISE_NOT;
+            } else if (character == CHAR_LT) {
+                getCharacter();
+
+                if(character == CHAR_LT){
+                    getCharacter();
+
+                    symbol = SYM_LEFTSHIFT;
+                }else if (character == CHAR_EQUAL) {
+                    getCharacter();
+
+                    symbol = SYM_LEQ;
+                }else
+                    symbol = SYM_LT;
+
+            } else if (character == CHAR_GT) {
+                getCharacter();
+
+                if(character == CHAR_GT){
+                    getCharacter();
+
+                    symbol = SYM_RIGHTSHIFT;
+                }else if (character == CHAR_EQUAL) {
+                    getCharacter();
+
+                    symbol = SYM_GEQ;
+                }else
+                    symbol = SYM_GT;
+
+            } else if (character == CHAR_EXCLAMATION) {
+                getCharacter();
+
+                if (character == CHAR_EQUAL)
+                    getCharacter();
+                else
+                    syntaxErrorCharacter(CHAR_EQUAL);
+
+                symbol = SYM_NOTEQ;
+
+            } else if (character == CHAR_PERCENTAGE) {
+                getCharacter();
+
+                symbol = SYM_MOD;
+
+            } else {
+                printLineNumber((int*) "error", lineNumber);
+                print((int*) "found unknown character ");
+                printCharacter(character);
+
+                println();
+
+                exit(-1);
+            }
+        }
+
+        numberOfScannedSymbols = numberOfScannedSymbols + 1;
+    }
 }
 
 // -----------------------------------------------------------------
@@ -2668,151 +2595,123 @@ void getSymbol() {
 // -----------------------------------------------------------------
 
 int* createSymbolTableEntry(int whichTable, int* string, int line, int class, int type, int value, int address) {
-  int* newEntry;
-  //Assignment8
-  int* typeStruct;
+    int* newEntry;
 
-  //Assignment7
-  newEntry = malloc(3 * SIZEOFINTSTAR + 7 * SIZEOFINT);
-  
-  //Assignment8
-  typeStruct = malloc(4 * SIZEOFINTSTAR + SIZEOFINT);
-  setType(typeStruct, type);
-  setDefiniton(typeStruct, (int*) 0);
-  setStructName(typeStruct, (int*) 0);
-  setDimensions(typeStruct, (int*) 0);
-  setFields(typeStruct, (int*) 0);
- 
-  setString(newEntry, string);
-  setLineNumber(newEntry, line);
-  setClass(newEntry, class);
-  //Assignment8
-  setTypeStruct(newEntry, typeStruct);
-  setValue(newEntry, value);
-  setAddress(newEntry, address);
-  
-  //Assignment8
-  if(class == ARRAY){
+    newEntry = malloc(3 * SIZEOFINTSTAR + 8 * SIZEOFINT);
+
+    setString(newEntry, string);
+    setLineNumber(newEntry, line);
+    setClass(newEntry, class);
+    setType(newEntry, type);
+    setValue(newEntry, value);
+    setAddress(newEntry, address);
     setTotalSize(newEntry, 1);
-  }else if(class == STRUCT){
-    setTotalSize(newEntry, 0);
-  }
-  
-  setDimNumb(newEntry, 0);
+    setDimensions(newEntry, 0);
+    setSizes(newEntry, (int*) 0);
 
-  // create entry at head of symbol table
-  if (whichTable == GLOBAL_TABLE) {
-    setScope(newEntry, REG_GP);
-    setNextEntry(newEntry, global_symbol_table);
-    global_symbol_table = newEntry;
+    // create entry at head of symbol table
+    if (whichTable == GLOBAL_TABLE) {
+        setScope(newEntry, REG_GP);
+        setNextEntry(newEntry, global_symbol_table);
+        global_symbol_table = newEntry;
 
-    if (class == VARIABLE){
-	  //Assignment8
-      if(type == STRUCT_T)
-        numberOfStructInst = numberOfStructInst + 1;
-      else
-        numberOfGlobalVariables = numberOfGlobalVariables + 1;
-    } else if (class == PROCEDURE)
-      numberOfProcedures = numberOfProcedures + 1;
-    else if (class == STRING)
-      numberOfStrings = numberOfStrings + 1;
-    //Assignment7
-	else if(class == ARRAY)
-      numberOfArrays = numberOfArrays +1;
-    //Assignment8
-    else if(class == STRUCT)
-      numberOfStructDef = numberOfStructDef +1;
-  } else if (whichTable == LOCAL_TABLE) {
-    setScope(newEntry, REG_FP);
-    setNextEntry(newEntry, local_symbol_table);
-    local_symbol_table = newEntry;
-  } else {
-    // library procedures
-    setScope(newEntry, REG_GP);
-    setNextEntry(newEntry, library_symbol_table);
-    library_symbol_table = newEntry;
-  }
-  
-  //Assignment7
-  return newEntry;
+        if (class == VARIABLE)
+            numberOfGlobalVariables = numberOfGlobalVariables + 1;
+        else if (class == PROCEDURE)
+            numberOfProcedures = numberOfProcedures + 1;
+        else if (class == STRING)
+            numberOfStrings = numberOfStrings + 1;
+        else if(class == ARRAY)
+            numberOfArrays = numberOfArrays + 1;
+    } else if (whichTable == LOCAL_TABLE) {
+        setScope(newEntry, REG_FP);
+        setNextEntry(newEntry, local_symbol_table);
+        local_symbol_table = newEntry;
+    } else {
+        // library procedures
+        setScope(newEntry, REG_GP);
+        setNextEntry(newEntry, library_symbol_table);
+        library_symbol_table = newEntry;
+    }
+    return newEntry;
 }
 
 int* searchSymbolTable(int* entry, int* string, int class) {
-  while (entry != (int*) 0) {
-    if (stringCompare(string, getString(entry)))
-      if (class == getClass(entry))
-        return entry;
+    while (entry != (int*) 0) {
+        if (stringCompare(string, getString(entry)))
+            if (class == getClass(entry))
+                return entry;
 
-    // keep looking
-    entry = getNextEntry(entry);
-  }
+        // keep looking
+        entry = getNextEntry(entry);
+    }
 
-  return (int*) 0;
+    return (int*) 0;
 }
 
 int* getScopedSymbolTableEntry(int* string, int class) {
-  int* entry;
+    int* entry;
 
-  if (class == VARIABLE)
-    // local variables override global variables
-    entry = searchSymbolTable(local_symbol_table, string, VARIABLE);
-  else if (class == PROCEDURE)
-    // library procedures override declared or defined procedures
-    entry = searchSymbolTable(library_symbol_table, string, PROCEDURE);
-  else
-    entry = (int*) 0;
+    if (class == VARIABLE)
+        // local variables override global variables
+        entry = searchSymbolTable(local_symbol_table, string, VARIABLE);
+    else if (class == PROCEDURE)
+        // library procedures override declared or defined procedures
+        entry = searchSymbolTable(library_symbol_table, string, PROCEDURE);
+    else
+        entry = (int*) 0;
 
-  if (entry == (int*) 0)
-    return searchSymbolTable(global_symbol_table, string, class);
-  else
-    return entry;
+    if (entry == (int*) 0)
+        return searchSymbolTable(global_symbol_table, string, class);
+    else
+        return entry;
 }
 
 int isUndefinedProcedure(int* entry) {
-  int* libraryEntry;
+    int* libraryEntry;
 
-  if (getClass(entry) == PROCEDURE) {
-    // library procedures override declared or defined procedures
-    libraryEntry = searchSymbolTable(library_symbol_table, getString(entry), PROCEDURE);
+    if (getClass(entry) == PROCEDURE) {
+        // library procedures override declared or defined procedures
+        libraryEntry = searchSymbolTable(library_symbol_table, getString(entry), PROCEDURE);
 
-    if (libraryEntry != (int*) 0)
-      // procedure is library procedure
-      return 0;
-    else if (getAddress(entry) == 0)
-      // procedure declared but not defined
-      return 1;
-    else if (getOpcode(loadBinary(getAddress(entry))) == OP_JAL)
-      // procedure called but not defined
-      return 1;
-  }
+        if (libraryEntry != (int*) 0)
+            // procedure is library procedure
+            return 0;
+        else if (getAddress(entry) == 0)
+            // procedure declared but not defined
+            return 1;
+        else if (getOpcode(loadBinary(getAddress(entry))) == OP_JAL)
+            // procedure called but not defined
+            return 1;
+    }
 
-  return 0;
+    return 0;
 }
 
 int reportUndefinedProcedures() {
-  int undefined;
-  int* entry;
+    int undefined;
+    int* entry;
 
-  undefined = 0;
+    undefined = 0;
 
-  entry = global_symbol_table;
+    entry = global_symbol_table;
 
-  while (entry != (int*) 0) {
-    if (isUndefinedProcedure(entry)) {
-      undefined = 1;
+    while (entry != (int*) 0) {
+        if (isUndefinedProcedure(entry)) {
+            undefined = 1;
 
-      printLineNumber((int*) "error", getLineNumber(entry));
-      print((int*) "procedure ");
-      print(getString(entry));
-      print((int*) " undefined");
-      println();
+            printLineNumber((int*) "error", getLineNumber(entry));
+            print((int*) "procedure ");
+            print(getString(entry));
+            print((int*) " undefined");
+            println();
+        }
+
+        // keep looking
+        entry = getNextEntry(entry);
     }
 
-    // keep looking
-    entry = getNextEntry(entry);
-  }
-
-  return undefined;
+    return undefined;
 }
 
 // -----------------------------------------------------------------
@@ -2820,1071 +2719,1102 @@ int reportUndefinedProcedures() {
 // -----------------------------------------------------------------
 
 int isNotRbraceOrEOF() {
-  if (symbol == SYM_RBRACE)
-    return 0;
-  else if (symbol == SYM_EOF)
-    return 0;
-  else
-    return 1;
+    if (symbol == SYM_RBRACE)
+        return 0;
+    else if (symbol == SYM_EOF)
+        return 0;
+    else
+        return 1;
 }
 
 int isExpression() {
-  if (symbol == SYM_MINUS)
-    return 1;
-  else if (symbol == SYM_LPARENTHESIS)
-    return 1;
-  //Assignment5
-  else if (symbol == SYM_BITWISE_NOT)
-	return 1;
-  else if (symbol == SYM_IDENTIFIER)
-    return 1;
-  else if (symbol == SYM_INTEGER)
-    return 1;
-  else if (symbol == SYM_ASTERISK)
-    return 1;
-  else if (symbol == SYM_STRING)
-    return 1;
-  else if (symbol == SYM_CHARACTER)
-    return 1;
-  else
-    return 0;
+    if (symbol == SYM_MINUS)
+        return 1;
+    else if (symbol == SYM_LPARENTHESIS)
+        return 1;
+    else if (symbol == SYM_BITWISE_NOT)
+        return 1;
+    else if (symbol == SYM_IDENTIFIER)
+        return 1;
+    else if (symbol == SYM_INTEGER)
+        return 1;
+    else if (symbol == SYM_ASTERISK)
+        return 1;
+    else if (symbol == SYM_STRING)
+        return 1;
+    else if (symbol == SYM_CHARACTER)
+        return 1;
+    else
+        return 0;
 }
 
 int isLiteral() {
-  if (symbol == SYM_INTEGER)
-    return 1;
-  else if (symbol == SYM_CHARACTER)
-    return 1;
-  else
-    return 0;
+    if (symbol == SYM_INTEGER)
+        return 1;
+    else if (symbol == SYM_CHARACTER)
+        return 1;
+    else
+        return 0;
 }
 
 int isStarOrDivOrModulo() {
-  if (symbol == SYM_ASTERISK)
-    return 1;
-  else if (symbol == SYM_DIV)
-    return 1;
-  else if (symbol == SYM_MOD)
-    return 1;
-  else
-    return 0;
+    if (symbol == SYM_ASTERISK)
+        return 1;
+    else if (symbol == SYM_DIV)
+        return 1;
+    else if (symbol == SYM_MOD)
+        return 1;
+    else
+        return 0;
 }
 
 int isPlusOrMinus() {
-  if (symbol == SYM_MINUS)
-    return 1;
-  else if (symbol == SYM_PLUS)
-    return 1;
-  else
-    return 0;
+    if (symbol == SYM_MINUS)
+        return 1;
+    else if (symbol == SYM_PLUS)
+        return 1;
+    else
+        return 0;
+}
+
+int isBitwiseAndOrOperator(){
+    if(symbol == SYM_BITWISE_AND){
+        return 1;
+    }else if(symbol == SYM_BITWISE_OR){
+        return 1;
+    }else{
+        return 0;
+    }
+}
+
+int isShiftSymbol(){
+    if(symbol == SYM_LEFTSHIFT){
+        return 1;
+    }else if(symbol == SYM_RIGHTSHIFT){
+        return 1;
+    }else{
+        return 0;
+    }
 }
 
 int isComparison() {
-  if (symbol == SYM_EQUALITY)
-    return 1;
-  else if (symbol == SYM_NOTEQ)
-    return 1;
-  else if (symbol == SYM_LT)
-    return 1;
-  else if (symbol == SYM_GT)
-    return 1;
-  else if (symbol == SYM_LEQ)
-    return 1;
-  else if (symbol == SYM_GEQ)
-    return 1;
-  else
-    return 0;
+    if (symbol == SYM_EQUALITY)
+        return 1;
+    else if (symbol == SYM_NOTEQ)
+        return 1;
+    else if (symbol == SYM_LT)
+        return 1;
+    else if (symbol == SYM_GT)
+        return 1;
+    else if (symbol == SYM_LEQ)
+        return 1;
+    else if (symbol == SYM_GEQ)
+        return 1;
+    else
+        return 0;
 }
 
 int lookForFactor() {
-  if (symbol == SYM_LPARENTHESIS)
-    return 0;
-  else if (symbol == SYM_ASTERISK)
-    return 0;
-  else if (symbol == SYM_IDENTIFIER)
-    return 0;
-  //Assignment5
-  else if (symbol == SYM_BITWISE_NOT)
-    return 0;
-  else if (symbol == SYM_INTEGER)
-    return 0;
-  else if (symbol == SYM_CHARACTER)
-    return 0;
-  else if (symbol == SYM_STRING)
-    return 0;
-  else if (symbol == SYM_EOF)
-    return 0;
-  else
-    return 1;
+    if (symbol == SYM_LPARENTHESIS)
+        return 0;
+    else if (symbol == SYM_ASTERISK)
+        return 0;
+    else if (symbol == SYM_BITWISE_NOT)
+        return 0;
+    else if (symbol == SYM_IDENTIFIER)
+        return 0;
+    else if (symbol == SYM_INTEGER)
+        return 0;
+    else if (symbol == SYM_CHARACTER)
+        return 0;
+    else if (symbol == SYM_STRING)
+        return 0;
+    else if (symbol == SYM_EOF)
+        return 0;
+    else
+        return 1;
 }
 
 int lookForStatement() {
-  if (symbol == SYM_ASTERISK)
-    return 0;
-  else if (symbol == SYM_IDENTIFIER)
-    return 0;
-  else if (symbol == SYM_WHILE)
-    return 0;
-  else if (symbol == SYM_IF)
-    return 0;
-  else if (symbol == SYM_RETURN)
-    return 0;
-  else if (symbol == SYM_EOF)
-    return 0;
-  else
-    return 1;
+    if (symbol == SYM_ASTERISK)
+        return 0;
+    else if (symbol == SYM_IDENTIFIER)
+        return 0;
+    else if (symbol == SYM_WHILE)
+        return 0;
+    else if (symbol == SYM_IF)
+        return 0;
+    else if (symbol == SYM_RETURN)
+        return 0;
+    else if (symbol == SYM_EOF)
+        return 0;
+    else
+        return 1;
 }
 
 int lookForType() {
-  if (symbol == SYM_INT)
-      return 0;
-  else if (symbol == SYM_VOID)
-      return 0;
-  //Assignment8
-  else if (symbol == SYM_STRUCT)
-      return 0;
-  else if (symbol == SYM_EOF)
-      return 0;
-  else
-      return 1;
+    if (symbol == SYM_INT)
+        return 0;
+    else if (symbol == SYM_VOID)
+        return 0;
+    else if (symbol == SYM_STRUCT)
+        return 0;
+    else if (symbol == SYM_EOF)
+        return 0;
+    else
+        return 1;
 }
 
 void talloc() {
-  // we use registers REG_T0-REG_T7 for temporaries
-  if (allocatedTemporaries < REG_T7 - REG_A3)
-    allocatedTemporaries = allocatedTemporaries + 1;
-  else {
-    syntaxErrorMessage((int*) "out of registers");
+    // we use registers REG_T0-REG_T7 for temporaries
+    if (allocatedTemporaries < REG_T7 - REG_A3)
+        allocatedTemporaries = allocatedTemporaries + 1;
+    else {
+        syntaxErrorMessage((int*) "out of registers");
 
-    exit(-1);
-  }
+        exit(-1);
+    }
 }
 
 int currentTemporary() {
-  if (allocatedTemporaries > 0)
-    return allocatedTemporaries + REG_A3;
-  else {
-    syntaxErrorMessage((int*) "illegal register access 1");
+    if (allocatedTemporaries > 0)
+        return allocatedTemporaries + REG_A3;
+    else {
+        syntaxErrorMessage((int*) "illegal register access");
 
-    exit(-1);
-  }
+        exit(-1);
+    }
 }
 
 int previousTemporary() {
-  if (allocatedTemporaries > 1)
-    return currentTemporary() - 1;
-  else {
-    syntaxErrorMessage((int*) "illegal register access 2");
+    if (allocatedTemporaries > 1)
+        return currentTemporary() - 1;
+    else {
+        syntaxErrorMessage((int*) "illegal register access");
 
-    exit(-1);
-  }
+        exit(-1);
+    }
 }
 
 int nextTemporary() {
-  if (allocatedTemporaries < REG_T7 - REG_A3)
-    return currentTemporary() + 1;
-  else {
-    syntaxErrorMessage((int*) "out of registers");
+    if (allocatedTemporaries < REG_T7 - REG_A3)
+        return currentTemporary() + 1;
+    else {
+        syntaxErrorMessage((int*) "out of registers");
 
-    exit(-1);
-  }
+        exit(-1);
+    }
 }
 
 void tfree(int numberOfTemporaries) {
-  allocatedTemporaries = allocatedTemporaries - numberOfTemporaries;
+    allocatedTemporaries = allocatedTemporaries - numberOfTemporaries;
 
-  if (allocatedTemporaries < 0) {
-    syntaxErrorMessage((int*) "illegal register deallocation");
+    if (allocatedTemporaries < 0) {
+        syntaxErrorMessage((int*) "illegal register deallocation");
 
-    exit(-1);
-  }
+        exit(-1);
+    }
 }
 
 void save_temporaries() {
-  while (allocatedTemporaries > 0) {
-    // push temporary onto stack
-    emitIFormat(OP_ADDIU, REG_SP, REG_SP, -WORDSIZE);
-    emitIFormat(OP_SW, REG_SP, currentTemporary(), 0);
+    while (allocatedTemporaries > 0) {
+        // push temporary onto stack
+        emitIFormat(OP_ADDIU, REG_SP, REG_SP, -WORDSIZE);
+        emitIFormat(OP_SW, REG_SP, currentTemporary(), 0);
 
-    tfree(1);
-  }
+        tfree(1);
+    }
 }
 
 void restore_temporaries(int numberOfTemporaries) {
-  while (allocatedTemporaries < numberOfTemporaries) {
-    talloc();
+    while (allocatedTemporaries < numberOfTemporaries) {
+        talloc();
 
-    // restore temporary from stack
-    emitIFormat(OP_LW, REG_SP, currentTemporary(), 0);
-    emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
-  }
+        // restore temporary from stack
+        emitIFormat(OP_LW, REG_SP, currentTemporary(), 0);
+        emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
+    }
 }
 
 void syntaxErrorSymbol(int expected) {
-  printLineNumber((int*) "error", lineNumber);
+    printLineNumber((int*) "error", lineNumber);
 
-  printSymbol(expected);
-  print((int*) " expected but ");
+    printSymbol(expected);
+    print((int*) " expected but ");
 
-  printSymbol(symbol);
-  print((int*) " found");
+    printSymbol(symbol);
+    print((int*) " found");
 
-  println();
+    println();
 }
 
 void syntaxErrorUnexpected() {
-  printLineNumber((int*) "error", lineNumber);
+    printLineNumber((int*) "error", lineNumber);
 
-  print((int*) "unexpected symbol ");
-  printSymbol(symbol);
-  print((int*) " found");
+    print((int*) "unexpected symbol ");
+    printSymbol(symbol);
+    print((int*) " found");
 
-  println();
+    println();
 }
 
 void printType(int type) {
-  if (type == INT_T)
-    print((int*) "int");
-  else if (type == INTSTAR_T)
-    print((int*) "int*");
-  else if (type == VOID_T)
-    print((int*) "void");
-  else
-    print((int*) "unknown");
+    if (type == INT_T)
+        print((int*) "int");
+    else if (type == INTSTAR_T)
+        print((int*) "int*");
+    else if (type == VOID_T)
+        print((int*) "void");
+    else if(type == STRUCT_T)
+        print((int*) "struct");
+    else
+        print((int*) "unknown");
 }
 
 void typeWarning(int expected, int found) {
-  printLineNumber((int*) "warning", lineNumber);
+    printLineNumber((int*) "warning", lineNumber);
 
-  print((int*) "type mismatch, ");
+    print((int*) "type mismatch, ");
 
-  printType(expected);
+    printType(expected);
 
-  print((int*) " expected but ");
+    print((int*) " expected but ");
 
-  printType(found);
+    printType(found);
 
-  print((int*) " found");
+    print((int*) " found");
 
-  println();
+    println();
 }
 
 int* getVariable(int* variable) {
-  int* entry;
+    int* entry;
 
-  entry = getScopedSymbolTableEntry(variable, VARIABLE);
+    entry = getScopedSymbolTableEntry(variable, VARIABLE);
 
-  if (entry == (int*) 0) {
-    printLineNumber((int*) "error", lineNumber);
-    print(variable);
-    print((int*) " undeclared");
-    println();
-
-    exit(-1);
-  }
-
-  return entry;
-}
-
-int load_variable(int* variable) {
-  int* entry;
-
-  entry = getVariable(variable);
-
-  talloc();
-
-  emitIFormat(OP_LW, getScope(entry), currentTemporary(), getAddress(entry));
-
-  return getVariableType(entry);
-}
-
-void load_integer(int value) {
-  // assert: value >= 0 or value == INT_MIN
-  //hw6
-  int signChanged;
-
-  talloc();
-
-  //hw6 start
-  if(value<0){
-    if(value!=INT_MIN){
-      value=-value;
-      signChanged=1;
-    }else
-      signChanged=0;
-  }else
-    signChanged=0;
-  //hw6 end
-
-  if (value >= 0) {
-    if (value < twoToThePowerOf(15))
-      // ADDIU can only load numbers < 2^15 without sign extension
-      emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), value);
-    else if (value < twoToThePowerOf(28)) {
-      // load 14 msbs of a 28-bit number first
-      emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), rightShift(value, 14));
-
-      // shift left by 14 bits
-      emitLeftShiftBy(14);
-
-      // and finally add 14 lsbs
-      emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift((value << 18), 18));
-    } else {
-      // load 14 msbs of a 31-bit number first
-      emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), rightShift(value, 17));
-
-      emitLeftShiftBy(14);
-
-      // then add the next 14 msbs
-      emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift((value << 15), 18));
-
-      emitLeftShiftBy(3);
-
-      // and finally add the remaining 3 lsbs
-      emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift((value << 29), 29));
-    }
-  } else if (value == INT_MIN) {
-    // load largest positive 16-bit number with a single bit set: 2^14
-    emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), twoToThePowerOf(14));
-
-    // and then multiply 2^14 by 2^14*2^3 to get to 2^31 == INT_MIN
-    emitLeftShiftBy(14);
-    emitLeftShiftBy(3);
-  } 
-
-  //hw6 start
-  if(signChanged){
-    emitRFormat(OP_SPECIAL, REG_ZR, currentTemporary(), currentTemporary(), 0, FCT_SUBU);
-  }
-  //hw6 end
-}
-    
-
-void load_string(int* string) {
-  int length;
-
-  length = stringLength(string) + 1;
-
-  allocatedMemory = allocatedMemory + roundUp(length, WORDSIZE);
-
-  createSymbolTableEntry(GLOBAL_TABLE, string, lineNumber, STRING, INTSTAR_T, 0, -allocatedMemory);
-
-  talloc();
-
-  emitIFormat(OP_ADDIU, REG_GP, currentTemporary(), -allocatedMemory);
-}
-
-int help_call_codegen(int* entry, int* procedure) {
-  int type;
-
-  if (entry == (int*) 0) {
-    // procedure never called nor declared nor defined
-
-    // default return type is "int"
-    type = INT_T;
-
-    createSymbolTableEntry(GLOBAL_TABLE, procedure, lineNumber, PROCEDURE, type, 0, binaryLength);
-
-    emitJFormat(OP_JAL, 0);
-
-  } else {
-    type = getVariableType(entry);
-
-    if (getAddress(entry) == 0) {
-      // procedure declared but never called nor defined
-      setAddress(entry, binaryLength);
-
-      emitJFormat(OP_JAL, 0);
-    } else if (getOpcode(loadBinary(getAddress(entry))) == OP_JAL) {
-      // procedure called and possibly declared but not defined
-
-      // create fixup chain
-      emitJFormat(OP_JAL, getAddress(entry) / WORDSIZE);
-      setAddress(entry, binaryLength - 2 * WORDSIZE);
-    } else
-      // procedure defined, use address
-      emitJFormat(OP_JAL, getAddress(entry) / WORDSIZE);
-  }
-
-  return type;
-}
-
-void help_procedure_prologue(int localVariables) {
-  // allocate memory for return address
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, -WORDSIZE);
-
-  // save return address
-  emitIFormat(OP_SW, REG_SP, REG_RA, 0);
-
-  // allocate memory for caller's frame pointer
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, -WORDSIZE);
-
-  // save caller's frame pointer
-  emitIFormat(OP_SW, REG_SP, REG_FP, 0);
-
-  // set callee's frame pointer
-  emitIFormat(OP_ADDIU, REG_SP, REG_FP, 0);
-
-  // allocate memory for callee's local variables
-  if (localVariables != 0)
-    emitIFormat(OP_ADDIU, REG_SP, REG_SP, -localVariables * WORDSIZE);
-}
-
-void help_procedure_epilogue(int parameters) {
-  // deallocate memory for callee's frame pointer and local variables
-  emitIFormat(OP_ADDIU, REG_FP, REG_SP, 0);
-
-  // restore caller's frame pointer
-  emitIFormat(OP_LW, REG_SP, REG_FP, 0);
-
-  // deallocate memory for caller's frame pointer
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
-
-  // restore return address
-  emitIFormat(OP_LW, REG_SP, REG_RA, 0);
-
-  // deallocate memory for return address and parameters
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, (parameters + 1) * WORDSIZE);
-
-  // return
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
-}
-
-int gr_call(int* procedure) {
-  int* entry;
-  int numberOfTemporaries;
-  int type;
-
-  // assert: n = allocatedTemporaries
-
-  entry = getScopedSymbolTableEntry(procedure, PROCEDURE);
-
-  numberOfTemporaries = allocatedTemporaries;
-
-  save_temporaries();
-
-  // assert: allocatedTemporaries == 0
-
-  if (isExpression()) {
-    gr_expression();
-
-    // TODO: check if types/number of parameters is correct
-	
-	if(currentConstant){
-		load_integer(currentValue);
-		currentConstant = 0;
-	}
-
-    // push first parameter onto stack
-    emitIFormat(OP_ADDIU, REG_SP, REG_SP, -WORDSIZE);
-    emitIFormat(OP_SW, REG_SP, currentTemporary(), 0);
-
-    tfree(1);
-
-    while (symbol == SYM_COMMA) {
-      getSymbol();
-
-      gr_expression();
-	  
-	  if(currentConstant){
-		  load_integer(currentValue);
-		  currentConstant = 0;
-	  }
-
-      // push more parameters onto stack
-      emitIFormat(OP_ADDIU, REG_SP, REG_SP, -WORDSIZE);
-      emitIFormat(OP_SW, REG_SP, currentTemporary(), 0);
-
-      tfree(1);
-    }
-
-    if (symbol == SYM_RPARENTHESIS) {
-      getSymbol();
-
-      type = help_call_codegen(entry, procedure);
-    } else {
-      syntaxErrorSymbol(SYM_RPARENTHESIS);
-
-      type = INT_T;
-    }
-  } else if (symbol == SYM_RPARENTHESIS) {
-    getSymbol();
-
-    type = help_call_codegen(entry, procedure);
-  } else {
-    syntaxErrorSymbol(SYM_RPARENTHESIS);
-
-    type = INT_T;
-  }
-
-  // assert: allocatedTemporaries == 0
-
-  restore_temporaries(numberOfTemporaries);
-
-  numberOfCalls = numberOfCalls + 1;
-
-  // assert: allocatedTemporaries == n
-
-  return type;
-}
-
-int gr_factor() {
-  int hasCast;
-  int cast;
-  int type;
-  
-  //Assignment7
-  int selectorNum;
-  int* entry;
-
-  int* variableOrProcedureName;
-
-  // assert: n = allocatedTemporaries
-
-  hasCast = 0;
-
-  type = INT_T;
-
-  while (lookForFactor()) {
-    syntaxErrorUnexpected();
-
-    if (symbol == SYM_EOF)
-      exit(-1);
-    else
-      getSymbol();
-  }
-
-  // optional cast: [ cast ]
-  if (symbol == SYM_LPARENTHESIS) {
-    getSymbol();
-
-    // cast: "(" "int" [ "*" ] ")"
-    if (symbol == SYM_INT) {
-      hasCast = 1;
-
-      cast = gr_type();
-
-      if (symbol == SYM_RPARENTHESIS)
-        getSymbol();
-      else
-        syntaxErrorSymbol(SYM_RPARENTHESIS);
-
-    // not a cast: "(" expression ")"
-    } else {
-      type = gr_expression();
-
-      if (symbol == SYM_RPARENTHESIS)
-        getSymbol();
-      else
-        syntaxErrorSymbol(SYM_RPARENTHESIS);
-
-      // assert: allocatedTemporaries == n + 1
-
-      return type;
-    }
-  }
-
-  // dereference?
-  if (symbol == SYM_ASTERISK) {
-    getSymbol();
-
-    // ["*"] identifier
-    if (symbol == SYM_IDENTIFIER) {
-      getSymbol();
-	  //Assignment7
-      //["*"] identifier [ selector ] 
-      if(symbol == SYM_LBRACKET){
-        entry = global_symbol_table;
-
-        entry = searchSymbolTable(entry, identifier, ARRAY);
-
-        if((int) entry == 0){
-          printLineNumber((int*) "error", lineNumber);
-          print(variableOrProcedureName);
-          print((int*) " undeclared");
-          println();
-
-          exit(-1);
-        }
-
-        type = getVariableType(entry);
-
-        //initialize address register with startaddress of array
-        load_integer(getAddress(entry));
-        emitRFormat(OP_SPECIAL, getScope(entry), currentTemporary(), currentTemporary(), 0, FCT_ADDU);
-
-        selectorNum = 1;
-        while(symbol == SYM_LBRACKET){
-          getSymbol();
-
-          gr_selector(selectorNum, entry);
-
-          selectorNum = selectorNum +1;
-        }
-
-        //in case of to few dimension an pointer at the first entry of first lost dimension will be returned
-        if((selectorNum-1)<getDimNumb(entry)){
-          if(type != INT_T){
-            typeWarning(INT_T, type);
-          }
-        }else{
-          if(type != INTSTAR_T){
-            typeWarning(INTSTAR_T, type);
-          }
-          //load pointer from specified array position
-          emitIFormat(OP_LW, currentTemporary(), currentTemporary(), 0);  
-        }
-        
-        type = INT_T;
-      }else
-        type = load_variable(identifier);
-
-
-    // * "(" expression ")"
-    } else if (symbol == SYM_LPARENTHESIS) {
-      getSymbol();
-
-      type = gr_expression();
-	  
-	  if(currentConstant){
-		  load_integer(currentValue);
-		  currentConstant = 0;
-	  }
-
-      if (symbol == SYM_RPARENTHESIS)
-        getSymbol();
-      else
-        syntaxErrorSymbol(SYM_RPARENTHESIS);
-    } else
-      syntaxErrorUnexpected();
-
-    if (type != INTSTAR_T)
-      typeWarning(INTSTAR_T, type);
-
-    // dereference
-    emitIFormat(OP_LW, currentTemporary(), currentTemporary(), 0);
-
-    type = INT_T;
-
-  //Assignment5
-  }else if (symbol == SYM_BITWISE_NOT) {
-    getSymbol();
-
-    // ["~"] identifier
-    if (symbol == SYM_IDENTIFIER) {
-      //Assignment7
-      getSymbol();
-      //["~"] identifier [ selector ] 
-      if(symbol == SYM_LBRACKET){
-        entry = global_symbol_table;
-
-        entry = searchSymbolTable(entry, identifier, ARRAY);
-
-        if((int) entry == 0){
-          printLineNumber((int*) "error", lineNumber);
-          print(variableOrProcedureName);
-          print((int*) " undeclared");
-          println();
-
-          exit(-1);
-        }
-
-        type = getVariableType(entry);
-
-        //initialize address register with startaddress of array
-        load_integer(getAddress(entry));
-        emitRFormat(OP_SPECIAL, getScope(entry), currentTemporary(), currentTemporary(), 0,  FCT_ADDU);
-
-        selectorNum = 1;
-        while(symbol == SYM_LBRACKET){
-          getSymbol();
-
-          gr_selector(selectorNum, entry);
-
-          selectorNum = selectorNum +1;
-        }
-
-        //in case of to few dimension an pointer at the first entry of first lost dimension will be returned
-        if((selectorNum-1)<getDimNumb(entry)){
-          type = INTSTAR_T;
-        }else{
-          //load data from specified array position
-          emitIFormat(OP_LW, currentTemporary(), currentTemporary(), 0);
-        }
-		
-      }else
-        type = load_variable(identifier);
-
-
-    // ~ "(" expression ")"
-    } else if (symbol == SYM_LPARENTHESIS) {
-      getSymbol();
-
-      type = gr_expression();
-
-      //Assignment6
-      if(currentConstant){
-        load_integer(currentValue);
-        currentConstant=0;
-      }
-      if (symbol == SYM_RPARENTHESIS)
-        getSymbol();
-      else
-        syntaxErrorSymbol(SYM_RPARENTHESIS);
-    } else
-      syntaxErrorUnexpected();
-
-    // nor
-    emitRFormat(OP_SPECIAL, currentTemporary(), REG_ZR, currentTemporary(), 0, FCT_NOR);
-	
-    type = INT_T;
-
-  // identifier?
-  } else if (symbol == SYM_IDENTIFIER) {
-    variableOrProcedureName = identifier;
-
-    getSymbol();
-
-    if (symbol == SYM_LPARENTHESIS) {
-      getSymbol();
-
-      // procedure call: identifier "(" ... ")"
-      type = gr_call(variableOrProcedureName);
-
-      talloc();
-
-      // retrieve return value
-      emitIFormat(OP_ADDIU, REG_V0, currentTemporary(), 0);
-
-      // reset return register to initial return value
-      // for missing return expressions
-      emitIFormat(OP_ADDIU, REG_ZR, REG_V0, 0);
-	
-	//Assignment7
-	}else if(symbol == SYM_LBRACKET){
-      entry = global_symbol_table;
-        
-      entry = searchSymbolTable(entry, variableOrProcedureName, ARRAY);
-
-      if((int) entry == 0){
+    if (entry == (int*) 0) {
         printLineNumber((int*) "error", lineNumber);
-        print(variableOrProcedureName);
+        print(variable);
         print((int*) " undeclared");
         println();
 
         exit(-1);
-      }
+    }
 
-      type = getVariableType(entry);
+    return entry;
+}
 
-      //initialize address register with startaddress of array
-      load_integer(getAddress(entry));
-      emitRFormat(OP_SPECIAL, getScope(entry), currentTemporary(), currentTemporary(), 0, FCT_ADDU);
+int load_variable(int* variable) {
+    int* entry;
 
-      selectorNum = 1;
-      while(symbol == SYM_LBRACKET){
-        getSymbol();
+    entry = getVariable(variable);
 
-        gr_selector(selectorNum, entry);
-
-        selectorNum = selectorNum +1;
-      }
-
-      //in case of to few dimension an pointer at the first entry of first lost dimension will be returned
-      if((selectorNum-1)<getDimNumb(entry)){
-        type = INTSTAR_T;
-      }else{
-        //load data from specified array position
-        emitIFormat(OP_LW, currentTemporary(), currentTemporary(), 0);
-      }
-
-  
-    } else
-      // variable access: identifier
-      type = load_variable(variableOrProcedureName);
-
-  // integer?
-  //Assignment6
-  } else if (symbol == SYM_INTEGER) {
-	//Assignment6
-	currentValue = literal;
-	currentConstant = 1;
-
-    getSymbol();
-
-    type = INT_T;
-
-  // character?
-  } else if (symbol == SYM_CHARACTER) {
     talloc();
 
-    emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), literal);
+    emitIFormat(OP_LW, getScope(entry), currentTemporary(), getAddress(entry));
 
-    getSymbol();
+    return getType(entry);
+}
 
-    type = INT_T;
+void load_integer(int value) {
+    // assert: value >= 0 or value == INT_MIN
 
-  // string?
-  } else if (symbol == SYM_STRING) {
-    load_string(string);
+    talloc();
 
-    getSymbol();
+    if (value >= 0) {
+        if (value < twoToThePowerOf(15))
+            // ADDIU can only load numbers < 2^15 without sign extension
+            emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), value);
+        else if (value < twoToThePowerOf(28)) {
+            // load 14 msbs of a 28-bit number first
+            emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), rightShift(value, 14));
 
-    type = INTSTAR_T;
+            // shift left by 14 bits
+            emitLeftShiftBy(14);
 
-  //  "(" expression ")"
-  } else if (symbol == SYM_LPARENTHESIS) {
-    getSymbol();
+            // and finally add 14 lsbs
+            emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift((value << 18), 18));
+        } else {
+            // load 14 msbs of a 31-bit number first
+            emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), rightShift(value, 17));
 
-    type = gr_expression();
+            emitLeftShiftBy(14);
 
-    if (symbol == SYM_RPARENTHESIS)
-      getSymbol();
-    else
-      syntaxErrorSymbol(SYM_RPARENTHESIS);
-  } else
-    syntaxErrorUnexpected();
+            // then add the next 14 msbs
+            emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift((value << 15), 18));
 
-  // assert: allocatedTemporaries == n + 1
+            emitLeftShiftBy(3);
 
-  if (hasCast)
-    return cast;
-  else
+            // and finally add the remaining 3 lsbs
+            emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift((value << 29), 29));
+        }
+    } else {
+      if(value != INT_MIN){
+		      value = -value;
+
+          if (value < twoToThePowerOf(15))
+            // ADDIU can only load numbers < 2^15 without sign extension
+            emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), value);
+          else if (value < twoToThePowerOf(28)) {
+            // load 14 msbs of a 28-bit number first
+            emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), rightShift(value, 14));
+
+            // shift left by 14 bits
+            emitLeftShiftBy(14);
+
+            // and finally add 14 lsbs
+            emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift((value << 18), 18));
+          } else {
+            // load 14 msbs of a 31-bit number first
+            emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), rightShift(value, 17));
+
+            emitLeftShiftBy(14);
+
+            // then add the next 14 msbs
+            emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift((value << 15), 18));
+
+            emitLeftShiftBy(3);
+
+            // and finally add the remaining 3 lsbs
+            emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift((value << 29), 29));
+          }
+		        //positive number make negative again
+		        emitRFormat(OP_SPECIAL,REG_ZR,currentTemporary(),currentTemporary(), 0, FCT_SUBU);
+	  }else {
+        // load largest positive 16-bit number with a single bit set: 2^14
+        emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), twoToThePowerOf(14));
+
+        // and then multiply 2^14 by 2^14*2^3 to get to 2^31 == INT_MIN
+        emitLeftShiftBy(14);
+        emitLeftShiftBy(3);
+      }
+    }
+}
+
+void load_string(int* string) {
+    int length;
+
+    length = stringLength(string) + 1;
+
+    allocatedMemory = allocatedMemory + roundUp(length, WORDSIZE);
+
+    createSymbolTableEntry(GLOBAL_TABLE, string, lineNumber, STRING, INTSTAR_T, 0, -allocatedMemory);
+
+    talloc();
+
+    emitIFormat(OP_ADDIU, REG_GP, currentTemporary(), -allocatedMemory);
+}
+
+int help_call_codegen(int* entry, int* procedure) {
+    int type;
+
+    if (entry == (int*) 0) {
+        // procedure never called nor declared nor defined
+
+        // default return type is "int"
+        type = INT_T;
+
+        createSymbolTableEntry(GLOBAL_TABLE, procedure, lineNumber, PROCEDURE, type, 0, binaryLength);
+
+        emitJFormat(OP_JAL, 0);
+
+    } else {
+        type = getType(entry);
+
+        if (getAddress(entry) == 0) {
+            // procedure declared but never called nor defined
+            setAddress(entry, binaryLength);
+
+            emitJFormat(OP_JAL, 0);
+        } else if (getOpcode(loadBinary(getAddress(entry))) == OP_JAL) {
+            // procedure called and possibly declared but not defined
+
+            // create fixup chain
+            emitJFormat(OP_JAL, getAddress(entry) / WORDSIZE);
+            setAddress(entry, binaryLength - 2 * WORDSIZE);
+        } else
+            // procedure defined, use address
+            emitJFormat(OP_JAL, getAddress(entry) / WORDSIZE);
+    }
+
     return type;
 }
 
+void help_procedure_prologue(int localVariables) {
+    // allocate memory for return address
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, -WORDSIZE);
 
+    // save return address
+    emitIFormat(OP_SW, REG_SP, REG_RA, 0);
 
-int gr_term() {
-  int ltype;
-  int operatorSymbol;
-  int rtype;
-  
-  //Assignment6
-  int leftValue;
-  int leftConstant;
-  leftValue = 0;
-  leftConstant = 0;
+    // allocate memory for caller's frame pointer
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, -WORDSIZE);
 
-  // assert: n = allocatedTemporaries
+    // save caller's frame pointer
+    emitIFormat(OP_SW, REG_SP, REG_FP, 0);
 
-  ltype = gr_factor();
-  
-  if(currentConstant){
-    leftValue = currentValue;
-    leftConstant = currentConstant;
-  }
-  
-  currentConstant = 0;
-  currentValue = 0;
+    // set callee's frame pointer
+    emitIFormat(OP_ADDIU, REG_SP, REG_FP, 0);
 
-
-  // assert: allocatedTemporaries == n + 1
-
-  // * / or % ?
-  while (isStarOrDivOrModulo()) {
-    operatorSymbol = symbol;
-
-    getSymbol();
-
-    rtype = gr_factor();
-
-    // assert: allocatedTemporaries == n + 2
-
-    if (ltype != rtype)
-      typeWarning(ltype, rtype);
-
-    //Assignment6
-    if (leftConstant) { //int
-      if (currentConstant) { //int*int => int
-        if (operatorSymbol == SYM_ASTERISK) { 
-          //const * const
-          leftValue = leftValue * currentValue;
-        } else if (operatorSymbol == SYM_DIV) { 
-          //const / const
-          leftValue = leftValue / currentValue;
-        } else if (operatorSymbol == SYM_MOD) { 
-		  //const % const
-		  load_integer(leftValue);
-		  load_integer(currentValue);
-		  leftValue = 0;
-		  leftConstant = 0;
-		  currentValue = 0;
-		  currentConstant = 0;
-        }
-		
-      } else { 
-	    //const * var _
-        if (operatorSymbol == SYM_ASTERISK) { 
-          load_integer(leftValue);
-          emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), 0,0, FCT_MULTU);
-          emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(), 0,FCT_MFLO);
-
-        //const / var
-		} else if (operatorSymbol == SYM_DIV) { 
-          load_integer(leftValue);
-          emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), 0,0, FCT_DIVU);
-          emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(),0, FCT_MFLO);
-		  
-		// const % var 
-        } else if (operatorSymbol == SYM_MOD) { 
-          load_integer(leftValue);
-          emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), 0,0,FCT_DIVU);
-          emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(), 0,FCT_MFHI);
-        }
-        tfree(1);
-
-        leftConstant = 0;
-      }
-    } else { //var
-      if (currentConstant == 1) { 
-	     //var * const 
-
-        if (operatorSymbol == SYM_ASTERISK) { 
-          load_integer(currentValue);
-          emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0,0, FCT_MULTU);
-          emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(),0, FCT_MFLO);
-
-		//var / const 
-        } else if (operatorSymbol == SYM_DIV) { 
-          load_integer(currentValue);
-          emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0,0, FCT_DIVU);
-          emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(),0, FCT_MFLO);
-
-		// var % const 
-        } else if (operatorSymbol == SYM_MOD) { 
-          load_integer(currentValue);
-          emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0, 0,FCT_DIVU);
-          emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(),0, FCT_MFHI);
-        }
-        tfree(1);
-
-        leftConstant = 0;
-		
-      } else { 
-	  
-	    //var*var
-        if (operatorSymbol == SYM_ASTERISK) { 
-          emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0,0, FCT_MULTU);
-          emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(),0, FCT_MFLO);
-
-		// var / var 
-        } else if (operatorSymbol == SYM_DIV) { 
-          emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0,0, FCT_DIVU);
-          emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(),0, FCT_MFLO);
-
-		// var % var 
-        } else if (operatorSymbol == SYM_MOD) { 
-          emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0,0, FCT_DIVU);
-          emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(),0, FCT_MFHI);
-        }
-        tfree(1);
-
-        leftConstant = 0;
-      }
-    }
-    currentValue = 0;
-    currentConstant = 0;
-  }
-
-  if (leftConstant) { //int
-    currentConstant = 1;
-    currentValue = leftValue;
-  } else { //var
-    currentValue = 0;
-    currentConstant = 0;
-  }
-  
-  return ltype;
+    // allocate memory for callee's local variables
+    if (localVariables != 0)
+        emitIFormat(OP_ADDIU, REG_SP, REG_SP, -localVariables * WORDSIZE);
 }
 
+void help_procedure_epilogue(int parameters) {
+    // deallocate memory for callee's frame pointer and local variables
+    emitIFormat(OP_ADDIU, REG_FP, REG_SP, 0);
+
+    // restore caller's frame pointer
+    emitIFormat(OP_LW, REG_SP, REG_FP, 0);
+
+    // deallocate memory for caller's frame pointer
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
+
+    // restore return address
+    emitIFormat(OP_LW, REG_SP, REG_RA, 0);
+
+    // deallocate memory for return address and parameters
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, (parameters + 1) * WORDSIZE);
+
+    // return
+
+
+    emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
+}
+
+int gr_call(int* procedure) {
+    int* entry;
+    int numberOfTemporaries;
+    int type;
+
+    // assert: n = allocatedTemporaries
+
+    entry = getScopedSymbolTableEntry(procedure, PROCEDURE);
+
+    numberOfTemporaries = allocatedTemporaries;
+
+    save_temporaries();
+
+    // assert: allocatedTemporaries == 0
+
+    if (isExpression()) {
+        gr_expression();
+
+        // TODO: check if types/number of parameters is correct
+
+        // push first parameter onto stack
+        emitIFormat(OP_ADDIU, REG_SP, REG_SP, -WORDSIZE);
+        emitIFormat(OP_SW, REG_SP, currentTemporary(), 0);
+
+        tfree(1);
+
+        while (symbol == SYM_COMMA) {
+            getSymbol();
+
+            gr_expression();
+
+            // push more parameters onto stack
+            emitIFormat(OP_ADDIU, REG_SP, REG_SP, -WORDSIZE);
+            emitIFormat(OP_SW, REG_SP, currentTemporary(), 0);
+
+            tfree(1);
+        }
+
+        if (symbol == SYM_RPARENTHESIS) {
+            getSymbol();
+
+            type = help_call_codegen(entry, procedure);
+        } else {
+            syntaxErrorSymbol(SYM_RPARENTHESIS);
+
+            type = INT_T;
+        }
+    } else if (symbol == SYM_RPARENTHESIS) {
+        getSymbol();
+
+        type = help_call_codegen(entry, procedure);
+    } else {
+        syntaxErrorSymbol(SYM_RPARENTHESIS);
+
+        type = INT_T;
+    }
+
+    // assert: allocatedTemporaries == 0
+
+    restore_temporaries(numberOfTemporaries);
+
+    numberOfCalls = numberOfCalls + 1;
+
+    // assert: allocatedTemporaries == n
+
+    return type;
+}
+
+int gr_factor() {
+    int hasCast;
+    int cast;
+    int type;
+
+    int selectorNum;
+    int* entry;
+
+    int* variableOrProcedureName;
+
+    // assert: n = allocatedTemporaries
+
+    attributeIsConstant = 0;
+    attributeValue = 0;
+
+    hasCast = 0;
+
+    type = INT_T;
+
+    while (lookForFactor()) {
+        syntaxErrorUnexpected();
+
+        if (symbol == SYM_EOF)
+            exit(-1);
+        else
+            getSymbol();
+    }
+
+    // optional cast: [ cast ]
+    if (symbol == SYM_LPARENTHESIS) {
+        getSymbol();
+
+        // cast: "(" "int" [ "*" ] ")"
+        if (symbol == SYM_INT) {
+            hasCast = 1;
+
+            cast = gr_type();
+
+            if (symbol == SYM_RPARENTHESIS)
+                getSymbol();
+            else
+                syntaxErrorSymbol(SYM_RPARENTHESIS);
+
+            // not a cast: "(" expression ")"
+        } else {
+            type = gr_expression();
+
+            if (symbol == SYM_RPARENTHESIS)
+                getSymbol();
+            else
+                syntaxErrorSymbol(SYM_RPARENTHESIS);
+
+            // assert: allocatedTemporaries == n + 1
+
+            return type;
+        }
+    }
+
+    // dereference?
+    if (symbol == SYM_ASTERISK) {
+        getSymbol();
+
+        // ["*"] identifier
+        if (symbol == SYM_IDENTIFIER) {
+          getSymbol();
+          //["*"] identifier [ selector ]
+          if(symbol == SYM_LBRACKET){
+            entry = global_symbol_table;
+
+            entry = searchSymbolTable(entry, identifier, ARRAY);
+
+            if((int) entry == 0){
+              printLineNumber((int*) "error", lineNumber);
+              print(variableOrProcedureName);
+              print((int*) " undeclared");
+              println();
+
+              exit(-1);
+            }
+
+            type = getType(entry);
+
+            //initialize address register with startaddress of array
+            load_integer(getAddress(entry));
+            emitRFormat(OP_SPECIAL, getScope(entry), currentTemporary(), currentTemporary(),0, FCT_ADDU);
+
+            selectorNum = 1;
+            while(symbol == SYM_LBRACKET){
+              getSymbol();
+
+              gr_selector(selectorNum, entry);
+
+              selectorNum = selectorNum +1;
+            }
+
+            //in case of to few dimension an pointer at the first entry of first lost dimension will be returned
+            if((selectorNum-1)<getDimensions(entry)){
+              if(type != INT_T){
+                typeWarning(INT_T, type);
+              }
+            }else{
+              if(type != INTSTAR_T){
+                typeWarning(INTSTAR_T, type);
+              }
+              //load pointer from specified array position
+              emitIFormat(OP_LW, currentTemporary(), currentTemporary(), 0);
+            }
+
+            type = INT_T;
+
+          }else
+            type = load_variable(identifier);
+
+            // * "(" expression ")"
+        } else if (symbol == SYM_LPARENTHESIS) {
+            getSymbol();
+
+            type = gr_expression();
+
+            if (symbol == SYM_RPARENTHESIS)
+                getSymbol();
+            else
+                syntaxErrorSymbol(SYM_RPARENTHESIS);
+        } else
+            syntaxErrorUnexpected();
+
+        if (type != INTSTAR_T)
+            typeWarning(INTSTAR_T, type);
+
+        // dereference
+        emitIFormat(OP_LW, currentTemporary(), currentTemporary(), 0);
+
+        type = INT_T;
+
+    }else if (symbol == SYM_BITWISE_NOT) {
+        getSymbol();
+
+        // ["~"] identifier
+        if (symbol == SYM_IDENTIFIER) {
+
+          getSymbol();
+          //["~"] identifier [ selector ]
+          if(symbol == SYM_LBRACKET){
+            entry = global_symbol_table;
+
+            entry = searchSymbolTable(entry, identifier, ARRAY);
+
+            if((int) entry == 0){
+              printLineNumber((int*) "error", lineNumber);
+              print(variableOrProcedureName);
+              print((int*) " undeclared");
+              println();
+
+              exit(-1);
+            }
+
+            type = getType(entry);
+
+            //initialize address register with startaddress of array
+            load_integer(getAddress(entry));
+            emitRFormat(OP_SPECIAL, getScope(entry), currentTemporary(), currentTemporary(),0, FCT_ADDU);
+
+            selectorNum = 1;
+            while(symbol == SYM_LBRACKET){
+              getSymbol();
+
+              gr_selector(selectorNum, entry);
+
+              selectorNum = selectorNum +1;
+            }
+
+            //in case of to few dimension an pointer at the first entry of first lost dimension will be returned
+            if((selectorNum-1)<getDimensions(entry)){
+              type = INTSTAR_T;
+            }else{
+              //load data from specified array position
+              emitIFormat(OP_LW, currentTemporary(), currentTemporary(), 0);
+            }
+          }else
+          type = load_variable(identifier);
+
+            // ~ "(" expression ")"
+        } else if (symbol == SYM_LPARENTHESIS) {
+            getSymbol();
+
+            type = gr_expression();
+
+            if (symbol == SYM_RPARENTHESIS)
+                getSymbol();
+            else
+                syntaxErrorSymbol(SYM_RPARENTHESIS);
+        } else
+            syntaxErrorUnexpected();
+
+        // nor
+        emitRFormat(OP_SPECIAL, currentTemporary(), REG_ZR, currentTemporary(), 0, FCT_NOR);
+
+        type = INT_T;
+
+        // identifier?
+    } else if (symbol == SYM_IDENTIFIER) {
+        variableOrProcedureName = identifier;
+
+        getSymbol();
+
+        if (symbol == SYM_LPARENTHESIS) {
+            getSymbol();
+
+            // procedure call: identifier "(" ... ")"
+            type = gr_call(variableOrProcedureName);
+
+            talloc();
+
+            // retrieve return value
+            emitIFormat(OP_ADDIU, REG_V0, currentTemporary(), 0);
+
+            // reset return register to initial return value
+            // for missing return expressions
+            emitIFormat(OP_ADDIU, REG_ZR, REG_V0, 0);
+        }else if(symbol == SYM_LBRACKET){
+          entry = global_symbol_table;
+
+          entry = searchSymbolTable(entry, variableOrProcedureName, ARRAY);
+
+          if((int) entry == 0){
+            printLineNumber((int*) "error", lineNumber);
+            print(variableOrProcedureName);
+            print((int*) " undeclared");
+            println();
+
+            exit(-1);
+          }
+
+          type = getType(entry);
+
+          //initialize address register with startaddress of array
+          load_integer(getAddress(entry));
+          emitRFormat(OP_SPECIAL, getScope(entry), currentTemporary(), currentTemporary(), 0, FCT_ADDU);
+
+          selectorNum = 1;
+          while(symbol == SYM_LBRACKET){
+            getSymbol();
+
+            gr_selector(selectorNum, entry);
+
+            selectorNum = selectorNum +1;
+          }
+
+          //in case of to few dimension an pointer at the first entry of first lost dimension will be returned
+          if((selectorNum-1)<getDimensions(entry)){
+            type = INTSTAR_T;
+          }else{
+            //load data from specified array position
+            emitIFormat(OP_LW, currentTemporary(), currentTemporary(), 0);
+          }
+
+        } else
+        // variable access: identifier
+        type = load_variable(variableOrProcedureName);
+
+        // integer?
+    } else if (symbol == SYM_INTEGER) {
+      attributeValue = literal;
+      attributeIsConstant = 1;
+
+        getSymbol();
+
+        type = INT_T;
+
+        // character?
+    } else if (symbol == SYM_CHARACTER) {
+        talloc();
+
+        emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), literal);
+
+        getSymbol();
+
+        type = INT_T;
+
+        // string?
+    } else if (symbol == SYM_STRING) {
+        load_string(string);
+
+        getSymbol();
+
+        type = INTSTAR_T;
+
+        //  "(" expression ")"
+    } else if (symbol == SYM_LPARENTHESIS) {
+        getSymbol();
+
+        type = gr_expression();
+
+        if (symbol == SYM_RPARENTHESIS)
+            getSymbol();
+        else
+            syntaxErrorSymbol(SYM_RPARENTHESIS);
+    } else
+        syntaxErrorUnexpected();
+
+    // assert: allocatedTemporaries == n + 1
+
+    if (hasCast)
+        return cast;
+    else
+        return type;
+}
+
+int gr_term() {
+    int ltype;
+    int operatorSymbol;
+    int rtype;
+
+    int leftAttributeValue;
+    int leftAttributeIsConstant;
+
+    leftAttributeValue = 0;
+    leftAttributeIsConstant = 0;
+
+    // assert: n = allocatedTemporaries
+
+    ltype = gr_factor();
+
+    if(attributeIsConstant){
+      leftAttributeValue = attributeValue;
+      leftAttributeIsConstant = attributeIsConstant;
+    }
+    attributeIsConstant = 0;
+    attributeValue = 0;
+
+    // assert: allocatedTemporaries == n + 1
+
+    // * / or % ?
+    while (isStarOrDivOrModulo()) {
+        operatorSymbol = symbol;
+
+        getSymbol();
+
+        rtype = gr_factor();
+
+        // assert: allocatedTemporaries == n + 2
+
+        if (ltype != rtype)
+          typeWarning(ltype, rtype);
+
+          if (leftAttributeIsConstant == 1) {
+            if (attributeIsConstant == 1) {
+              //const * const
+              if (operatorSymbol == SYM_ASTERISK) {
+                leftAttributeValue = leftAttributeValue * attributeValue;
+
+                  //const / const
+              } else if (operatorSymbol == SYM_DIV) {
+                leftAttributeValue = leftAttributeValue / attributeValue;
+
+                //const % const
+              }else if (operatorSymbol == SYM_MOD) {
+                load_integer(leftAttributeValue);
+                load_integer(attributeValue);
+                leftAttributeValue = 0;
+                leftAttributeIsConstant = 0;
+                attributeValue = 0;
+                attributeIsConstant = 0;
+              }
+            } else {
+
+              //const * var
+              if (operatorSymbol == SYM_ASTERISK) {
+                load_integer(leftAttributeValue);
+                emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), 0,0, FCT_MULTU);
+                emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(), 0,FCT_MFLO);
+
+              //const / var
+              } else if (operatorSymbol == SYM_DIV) {
+                load_integer(leftAttributeValue);
+                emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), 0,0, FCT_DIVU);
+                emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(),0, FCT_MFLO);
+
+              //const / var
+              }else if (operatorSymbol == SYM_MOD) {
+                load_integer(leftAttributeValue);
+                emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), 0,0,FCT_DIVU);
+                emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(), 0,FCT_MFHI);
+              }
+
+              tfree(1);
+
+              leftAttributeIsConstant = 0;
+            }
+          } else {
+            if (attributeIsConstant == 1) {
+
+              //var * const
+              if (operatorSymbol == SYM_ASTERISK) {
+                load_integer(attributeValue);
+                emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0,0, FCT_MULTU);
+                emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(),0, FCT_MFLO);
+
+              //var / const
+              } else if (operatorSymbol == SYM_DIV) {
+                load_integer(attributeValue);
+                emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0,0, FCT_DIVU);
+                emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(),0, FCT_MFLO);
+
+                //var % const
+              }else if (operatorSymbol == SYM_MOD) {
+                load_integer(attributeValue);
+                emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0, 0,FCT_DIVU);
+                emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(),0, FCT_MFHI);
+              }
+
+              tfree(1);
+
+              leftAttributeIsConstant = 0;
+
+            } else {
+               //var * var
+              if (operatorSymbol == SYM_ASTERISK) {
+                emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0,0, FCT_MULTU);
+                emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(),0, FCT_MFLO);
+                 //var / var
+              } else if (operatorSymbol == SYM_DIV) {
+                emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0,0, FCT_DIVU);
+                emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(),0, FCT_MFLO);
+                 //var % var
+              }else if (operatorSymbol == SYM_MOD) {
+                emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0,0, FCT_DIVU);
+                emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(),0, FCT_MFHI);
+              }
+              tfree(1);
+
+              leftAttributeIsConstant = 0;
+            }
+          }
+          attributeValue = 0;
+          attributeIsConstant = 0;
+        }
+
+  if (leftAttributeIsConstant == 1) {
+    attributeIsConstant = 1;
+    attributeValue = leftAttributeValue;
+  } else {
+    attributeValue = 0;
+    attributeIsConstant = 0;
+  }
+
+    // assert: allocatedTemporaries == n + 1
+
+    return ltype;
+}
 
 int gr_simpleExpression() {
-  int sign;
-  int ltype;
-  int operatorSymbol;
-  int rtype;
-  
-  //Assignment6
-  int leftValue;
-  int leftConstant;
-  leftValue = 0;
-  leftConstant = 0;
+    int sign;
+    int ltype;
+    int operatorSymbol;
+    int rtype;
 
+    int leftAttributeValue;
+    int leftAttributeIsConstant;
 
-  // assert: n = allocatedTemporaries
+    leftAttributeValue = 0;
+    leftAttributeIsConstant = 0;
 
-  // optional: -
-  if (symbol == SYM_MINUS) {
-    sign = 1;
+    // assert: n = allocatedTemporaries
 
-    mayBeINTMIN = 1;
-    isINTMIN    = 0;
+    // optional: -
+    if (symbol == SYM_MINUS) {
+        sign = 1;
 
-    getSymbol();
+        mayBeINTMIN = 1;
+        isINTMIN    = 0;
 
-    mayBeINTMIN = 0;
+        getSymbol();
 
-    if (isINTMIN) {
-      isINTMIN = 0;
+        mayBeINTMIN = 0;
 
-      // avoids 0-INT_MIN overflow when bootstrapping
-      // even though 0-INT_MIN == INT_MIN
-      sign = 0;
-    }
-  } else{
-    sign = 0;
-  }
-  ltype = gr_term();
+        if (isINTMIN) {
+            isINTMIN = 0;
 
-  //Assignment6
-  if (currentConstant) { //int
-    leftValue = currentValue;
-    leftConstant = currentConstant;
-  }
-  
-  // assert: allocatedTemporaries == n + 1
+            // avoids 0-INT_MIN overflow when bootstrapping
+            // even though 0-INT_MIN == INT_MIN
+            sign = 0;
+        }
+    } else
+        sign = 0;
 
-  if (sign) {
-    if (ltype != INT_T) {
-      typeWarning(INT_T, ltype);
+    ltype = gr_term();
 
-      ltype = INT_T;
-    }
-	
-	//Assignment6
-    if(leftConstant){
-      leftValue = 0 - leftValue;
-    }else{
-      emitRFormat(OP_SPECIAL, REG_ZR, currentTemporary(), currentTemporary(), 0, FCT_SUBU);
+    // assert: allocatedTemporaries == n + 1
+    if (attributeIsConstant) {
+      leftAttributeValue = attributeValue;
+      leftAttributeIsConstant = attributeIsConstant;
     }
 
-  }
-   
+    if (sign) {
+      if (ltype != INT_T) {
+        typeWarning(INT_T, ltype);
+
+        ltype = INT_T;
+      }
+
+      if (leftAttributeIsConstant)
+        leftAttributeValue = 0 - leftAttributeValue;
+      else
+        emitRFormat(OP_SPECIAL, REG_ZR, currentTemporary(), currentTemporary(), 0,FCT_SUBU);
+      }
+
+    attributeIsConstant = 0;
+    attributeValue = 0;
 
     // + or -?
-  while (isPlusOrMinus()) {
-    operatorSymbol = symbol;
+    while (isPlusOrMinus()) {
+        operatorSymbol = symbol;
 
-    getSymbol();
+        getSymbol();
 
-    rtype = gr_term();
+        rtype = gr_term();
 
-    //Assignment6
-    if (leftConstant) { //int
-      if(currentConstant) { 
-          //const + const 
-          if (operatorSymbol == SYM_PLUS) { 
-            leftValue = leftValue + currentValue;
-		  //const - const 
-          } else if (operatorSymbol == SYM_MINUS) { 
-            leftValue = leftValue - currentValue;
-          }
-      
-      } else { 
-	    //const+var 
-        load_integer(leftValue);
-      
+        // assert: allocatedTemporaries == n + 2
+
+        if (leftAttributeIsConstant == 1) {
+          if(attributeIsConstant == 1) {
+
+              //const + const
+            if (operatorSymbol == SYM_PLUS) {
+              leftAttributeValue = leftAttributeValue + attributeValue;
+
+              //const - const
+            } else if (operatorSymbol == SYM_MINUS) {
+              leftAttributeValue = leftAttributeValue - attributeValue;
+            }
+
+          } else {
+            load_integer(leftAttributeValue);
+
+              //const + var
+            if (operatorSymbol == SYM_PLUS) {
+              if (ltype == INTSTAR_T) {
+                if (rtype == INT_T)
+                // pointer arithmetic: factor of 2^2 of integer operand
+                emitLeftShiftBy(2);
+              } else if (rtype == INTSTAR_T)
+                typeWarning(ltype, rtype);
+
+              emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(),0, FCT_ADDU);
+
+                //const - var
+            } else if (operatorSymbol == SYM_MINUS) {
+              if (ltype != rtype)
+                typeWarning(ltype, rtype);
+
+                emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(),0, FCT_SUBU);
+            }
+
+        tfree(1);
+
+        leftAttributeIsConstant = 0;
+        }
+
+      } else {
+      if(attributeIsConstant == 1) {
+        load_integer(attributeValue);
+
+         //var + const
         if (operatorSymbol == SYM_PLUS) {
           if (ltype == INTSTAR_T) {
             if (rtype == INT_T)
@@ -3893,26 +3823,22 @@ int gr_simpleExpression() {
           } else if (rtype == INTSTAR_T)
             typeWarning(ltype, rtype);
 
-          emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(),0, FCT_ADDU);
-          
-        } else if (operatorSymbol == SYM_MINUS) { 
+          emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(),0, FCT_ADDU);
+
+          //var - const
+        } else if (operatorSymbol == SYM_MINUS) {
           if (ltype != rtype)
             typeWarning(ltype, rtype);
 
-          emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(),0, FCT_SUBU);
-      
+          emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(),0, FCT_SUBU);
         }
-		
-		tfree(1);
+        tfree(1);
 
-        leftConstant = 0;
-      }
-    } else { //var
-      if(currentConstant) {
-        load_integer(currentValue);
+        leftAttributeIsConstant = 0;
 
-		// var + const 
-        if (operatorSymbol == SYM_PLUS) { 
+      } else {
+        //var + var
+        if (operatorSymbol == SYM_PLUS) {
           if (ltype == INTSTAR_T) {
             if (rtype == INT_T)
               // pointer arithmetic: factor of 2^2 of integer operand
@@ -3921,737 +3847,666 @@ int gr_simpleExpression() {
             typeWarning(ltype, rtype);
 
           emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(),0, FCT_ADDU);
-         
-        // var - const 		 
-        } else if (operatorSymbol == SYM_MINUS) { 
+
+          //var - var
+        } else if (operatorSymbol == SYM_MINUS) {
           if (ltype != rtype)
             typeWarning(ltype, rtype);
 
           emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(),0, FCT_SUBU);
-          
         }
-		
-		tfree(1);
-        leftConstant = 0;
-		
-      } else { 
-	    //var+var
-        if (operatorSymbol == SYM_PLUS) { 
-          if (ltype == INTSTAR_T) {
-            if (rtype == INT_T)
-              // pointer arithmetic: factor of 2^2 of integer operand
-              emitLeftShiftBy(2);
-          } else if (rtype == INTSTAR_T)
-            typeWarning(ltype, rtype);
+        tfree(1);
 
-          emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(),0, FCT_ADDU);
-          
-		// var - var 
-        } else if (operatorSymbol == SYM_MINUS) { 
-          if (ltype != rtype)
-            typeWarning(ltype, rtype);
-
-          emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(),0, FCT_SUBU);
-          
-        }
-		
-	    tfree(1);
-        leftConstant = 0;
+        leftAttributeIsConstant = 0;
       }
     }
 
-  currentConstant = 0;
-  currentValue = 0;
+    attributeIsConstant = 0;
+    attributeValue = 0;
 
   }
 
   // assert: allocatedTemporaries == n + 1
 
-  if (leftConstant) { //int
-    currentConstant = 1;
-    currentValue = leftValue;
+  if (leftAttributeIsConstant == 1) { //int
+    attributeIsConstant = 1;
+    attributeValue = leftAttributeValue;
   } else { //var
-    currentConstant = 0;
-    currentValue = 0;
+    attributeIsConstant = 0;
+    attributeValue = 0;
   }
-
-  return ltype;
+   return ltype;
 }
 
-
-//Assignment4
-int isShiftSymbol(){
-  if(symbol == SYM_LEFTSHIFT){
-    return 1;
-  }else if(symbol == SYM_RIGHTSHIFT){
-    return 1;
-  }else{
-    return 0;
-  }
-}
-
-//Assignment4
-//shiftExpression  = simpleExpression [ ("<<"|">>")  simpleExpression ] .
 int  gr_shiftExpression(){
 
-  int ltype;
-  int operatorSymbol;
-  int rtype;
+    int ltype;
+    int operatorSymbol;
+    int rtype;
 
-  // assert: n = allocatedTemporaries
-  //Assignment6
-  int leftConstant;
-  int leftValue;
-  leftConstant = 0;
-  leftValue = 0;
+    // assert: n = allocatedTemporaries
+    int leftAttributeIsConstant;
+    int leftAttributeValue;
 
+    leftAttributeIsConstant = 0;
+    leftAttributeValue = 0;
 
-  ltype = gr_simpleExpression();
-  
-  if(currentConstant){
-	  leftConstant = currentConstant;
-	  leftValue = currentValue;
-	  load_integer(leftValue);
-  }
-  currentConstant = 0;
-  currentValue = 0;
+    ltype = gr_simpleExpression();
 
-  // assert: allocatedTemporaries == n + 1
-
-  // << or >>
-  while(isShiftSymbol()){
-    operatorSymbol = symbol;
-
-    getSymbol();
-
-    rtype = gr_simpleExpression();
-	
-	//Assignment6
-	leftValue = 0;
-	leftConstant = 0;
-	
-	if(currentConstant){
-		leftValue = currentValue;
-		leftConstant = currentConstant;
-		load_integer(leftValue);
-	}
-	currentConstant = 0;
-	currentValue = 0;
-
-    if (operatorSymbol == SYM_LEFTSHIFT) {
-
-      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_SLLV);
-	  
-    } else if (operatorSymbol == SYM_RIGHTSHIFT) {
-
-      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_SRLV);
-	
-	}
-	
-	tfree(1);
-   
-  }
-
-  // assert: allocatedTemporaries == n + 1
-
-  return ltype;
-}
-
-//Assignment5
-int gr_comparisonExpression() {
-  int ltype;
-  int operatorSymbol;
-  int rtype;
-
-  // assert: n = allocatedTemporaries
-
-  ltype = gr_shiftExpression();
-
-  // assert: allocatedTemporaries == n + 1
-
-  //optional: ==, !=, <, >, <=, >= simpleExpression
-  if (isComparison()) {
-    operatorSymbol = symbol;
-
-    getSymbol();
-
-    rtype = gr_shiftExpression();
-
-    // assert: allocatedTemporaries == n + 2
-
-    if (ltype != rtype)
-      typeWarning(ltype, rtype);
-
-    if (operatorSymbol == SYM_EQUALITY) {
-      // subtract, if result = 0 then 1, else 0
-
-
-      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), 0, FCT_SUBU);
-	  
-      tfree(1);
-
-      emitIFormat(OP_BEQ, REG_ZR, currentTemporary(), 4);
-      emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 0);
-      emitIFormat(OP_BEQ, REG_ZR, currentTemporary(), 2);
-      emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 1);
-
-    } else if (operatorSymbol == SYM_NOTEQ) {
-      // subtract, if result = 0 then 0, else 1
-
-
-      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), 0, FCT_SUBU);
-      tfree(1); 
-	   
-      emitIFormat(OP_BNE, REG_ZR, currentTemporary(), 4);
-      emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 0);
-      emitIFormat(OP_BEQ, REG_ZR, currentTemporary(), 2);
-      emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 1);
-
-    } else if (operatorSymbol == SYM_LT) {
-      // set to 1 if a < b, else 0
-
-
-      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), 0, FCT_SLT);
-      tfree(1);
-
-    } else if (operatorSymbol == SYM_GT) {
-      // set to 1 if b < a, else 0
-
-
-      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_SLT);
-      tfree(1);
-
-    } else if (operatorSymbol == SYM_LEQ) {
-      // if b < a set 0, else 1
-
-
-      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_SLT);
-      tfree(1);
-
-      emitIFormat(OP_BNE, REG_ZR, currentTemporary(), 4);
-      emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 1);
-      emitIFormat(OP_BEQ, REG_ZR, REG_ZR, 2);
-      emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 0);
-
-    } else if (operatorSymbol == SYM_GEQ) {
-      // if a < b set 0, else 1
-
-
-      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), 0, FCT_SLT);
-      tfree(1);
-	  
-      emitIFormat(OP_BNE, REG_ZR, currentTemporary(), 4);
-      emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 1);
-      emitIFormat(OP_BEQ, REG_ZR, REG_ZR, 2);
-      emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 0);
+    if(attributeIsConstant){
+      leftAttributeIsConstant = attributeIsConstant;
+      leftAttributeValue = attributeValue;
+      load_integer(leftAttributeValue);
     }
-  }
+    attributeIsConstant = 0;
+    attributeValue = 0;
 
-  // assert: allocatedTemporaries == n + 1
+    // assert: allocatedTemporaries == n + 1
 
-  return ltype;
+    // << or >>
+    while(isShiftSymbol()){
+        operatorSymbol = symbol;
+
+        getSymbol();
+
+        rtype = gr_simpleExpression();
+
+        leftAttributeValue = 0;
+        leftAttributeIsConstant = 0;
+
+        if(attributeIsConstant){
+          leftAttributeValue = attributeValue;
+          leftAttributeIsConstant = attributeIsConstant;
+          load_integer(leftAttributeValue);
+        }
+        attributeIsConstant = 0;
+        attributeValue = 0;
+
+        if (operatorSymbol == SYM_LEFTSHIFT) {
+
+            emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_SLLV);
+
+        } else if (operatorSymbol == SYM_RIGHTSHIFT) {
+            //if (ltype != rtype)
+            //  typeWarning(ltype, rtype);
+
+            emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_SRLV);
+        }
+
+        tfree(1);
+    }
+
+    // assert: allocatedTemporaries == n + 1
+
+    return ltype;
 }
 
-int isBitwiseAndOr(){
-  if(symbol == SYM_BITWISE_AND){
-    return 1;
-  }else if(symbol == SYM_BITWISE_OR){
-    return 1;
-  //}else if(symbol == SYM_BITWISE_NOT){
-    //return 1;
-  }else{
-    return 0;
-  }
+int gr_comparisonExpression() {
+    int ltype;
+    int operatorSymbol;
+    int rtype;
+
+    // assert: n = allocatedTemporaries
+
+    ltype = gr_shiftExpression();
+
+    // assert: allocatedTemporaries == n + 1
+
+    //optional: ==, !=, <, >, <=, >= simpleExpression
+    if (isComparison()) {
+        operatorSymbol = symbol;
+
+        getSymbol();
+
+        rtype = gr_shiftExpression();
+
+        // assert: allocatedTemporaries == n + 2
+
+        if (ltype != rtype)
+            typeWarning(ltype, rtype);
+
+        if (operatorSymbol == SYM_EQUALITY) {
+            // subtract, if result = 0 then 1, else 0
+
+
+            emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), 0, FCT_SUBU);
+
+            tfree(1);
+
+            emitIFormat(OP_BEQ, REG_ZR, currentTemporary(), 4);
+            emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 0);
+            emitIFormat(OP_BEQ, REG_ZR, currentTemporary(), 2);
+            emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 1);
+
+        } else if (operatorSymbol == SYM_NOTEQ) {
+            // subtract, if result = 0 then 0, else 1
+
+
+            emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), 0, FCT_SUBU);
+
+            tfree(1);
+
+            emitIFormat(OP_BNE, REG_ZR, currentTemporary(), 4);
+            emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 0);
+            emitIFormat(OP_BEQ, REG_ZR, currentTemporary(), 2);
+            emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 1);
+
+        } else if (operatorSymbol == SYM_LT) {
+            // set to 1 if a < b, else 0
+
+
+            emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), 0, FCT_SLT);
+
+            tfree(1);
+
+        } else if (operatorSymbol == SYM_GT) {
+            // set to 1 if b < a, else 0
+
+
+            emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_SLT);
+
+            tfree(1);
+
+        } else if (operatorSymbol == SYM_LEQ) {
+            // if b < a set 0, else 1
+
+
+            emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_SLT);
+
+            tfree(1);
+
+            emitIFormat(OP_BNE, REG_ZR, currentTemporary(), 4);
+            emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 1);
+            emitIFormat(OP_BEQ, REG_ZR, REG_ZR, 2);
+            emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 0);
+
+        } else if (operatorSymbol == SYM_GEQ) {
+            // if a < b set 0, else 1
+
+
+            emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), 0, FCT_SLT);
+
+            tfree(1);
+
+            emitIFormat(OP_BNE, REG_ZR, currentTemporary(), 4);
+            emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 1);
+            emitIFormat(OP_BEQ, REG_ZR, REG_ZR, 2);
+            emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 0);
+        }
+    }
+
+    // assert: allocatedTemporaries == n + 1
+
+    return ltype;
 }
 
 
 int gr_expression() {
-  int ltype;
-  int operatorSymbol;
-  int rtype;
+    int ltype;
+    int operatorSymbol;
+    int rtype;
 
-  // assert: n = allocatedTemporaries
+    // assert: n = allocatedTemporaries
 
-  ltype = gr_comparisonExpression();
+    ltype = gr_comparisonExpression();
 
-  // assert: allocatedTemporaries == n + 1
+    // assert: allocatedTemporaries == n + 1
 
-  //optional: ==, !=, <, >, <=, >= simpleExpression
-  while (isBitwiseAndOr()) { //davor if
-    operatorSymbol = symbol;
 
-    getSymbol();
+    while (isBitwiseAndOrOperator()) {
+        operatorSymbol = symbol;
 
-    rtype = gr_comparisonExpression();
+        getSymbol();
 
-    // assert: allocatedTemporaries == n + 2
+        rtype = gr_comparisonExpression();
 
-    //Assignment5
-    if (operatorSymbol == SYM_BITWISE_AND) {
+        // assert: allocatedTemporaries == n + 2
 
-      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_AND);
-      
-  
-    } else if (operatorSymbol == SYM_BITWISE_OR) {
+        if (operatorSymbol == SYM_BITWISE_AND) {
 
-      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_OR);
-	  
+            //  emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), 0, FCT_AND);
+            emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_AND);
+
+
+        } else if (operatorSymbol == SYM_BITWISE_OR) {
+
+            //  emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), previousTemporary(), 0, FCT_OR);
+            emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_OR);
+
+
+        }
+        tfree(1);
+
     }
-	
-	tfree(1);
-	
- }
+    // assert: allocatedTemporaries == n + 1
 
-  // assert: allocatedTemporaries == n + 1
-
-  return ltype;
+    return ltype;
 }
 
 void gr_while() {
-  int brBackToWhile;
-  int brForwardToEnd;
+    int brBackToWhile;
+    int brForwardToEnd;
 
-  // assert: allocatedTemporaries == 0
+    // assert: allocatedTemporaries == 0
 
-  brBackToWhile = binaryLength;
+    brBackToWhile = binaryLength;
 
-  brForwardToEnd = 0;
+    brForwardToEnd = 0;
 
-  // while ( expression )
-  if (symbol == SYM_WHILE) {
-    getSymbol();
-
-    if (symbol == SYM_LPARENTHESIS) {
-      getSymbol();
-
-      gr_expression();
-
-      //Assignment6
-      if(currentConstant){
-        load_integer(currentValue);
-        currentConstant=0;
-      }
-
-      // do not know where to branch, fixup later
-      brForwardToEnd = binaryLength;
-
-      emitIFormat(OP_BEQ, REG_ZR, currentTemporary(), 0);
-
-      tfree(1);
-
-      if (symbol == SYM_RPARENTHESIS) {
+    // while ( expression )
+    if (symbol == SYM_WHILE) {
         getSymbol();
 
-        // zero or more statements: { statement }
-        if (symbol == SYM_LBRACE) {
-          getSymbol();
-
-          while (isNotRbraceOrEOF())
-            gr_statement();
-
-          if (symbol == SYM_RBRACE)
+        if (symbol == SYM_LPARENTHESIS) {
             getSymbol();
-          else {
-            syntaxErrorSymbol(SYM_RBRACE);
 
-            exit(-1);
-          }
-        }
-        // only one statement without {}
-        else
-          gr_statement();
-      } else
-        syntaxErrorSymbol(SYM_RPARENTHESIS);
+            gr_expression();
+
+            // do not know where to branch, fixup later
+            brForwardToEnd = binaryLength;
+
+            emitIFormat(OP_BEQ, REG_ZR, currentTemporary(), 0);
+
+            tfree(1);
+
+            if (symbol == SYM_RPARENTHESIS) {
+                getSymbol();
+
+                // zero or more statements: { statement }
+                if (symbol == SYM_LBRACE) {
+                    getSymbol();
+
+                    while (isNotRbraceOrEOF())
+                        gr_statement();
+
+                    if (symbol == SYM_RBRACE)
+                        getSymbol();
+                    else {
+                        syntaxErrorSymbol(SYM_RBRACE);
+
+                        exit(-1);
+                    }
+                }
+                // only one statement without {}
+                else
+                    gr_statement();
+            } else
+                syntaxErrorSymbol(SYM_RPARENTHESIS);
+        } else
+            syntaxErrorSymbol(SYM_LPARENTHESIS);
     } else
-      syntaxErrorSymbol(SYM_LPARENTHESIS);
-  } else
-    syntaxErrorSymbol(SYM_WHILE);
+        syntaxErrorSymbol(SYM_WHILE);
 
-  // unconditional branch to beginning of while
-  emitIFormat(OP_BEQ, REG_ZR, REG_ZR, (brBackToWhile - binaryLength - WORDSIZE) / WORDSIZE);
+    // unconditional branch to beginning of while
+    emitIFormat(OP_BEQ, REG_ZR, REG_ZR, (brBackToWhile - binaryLength - WORDSIZE) / WORDSIZE);
 
-  if (brForwardToEnd != 0)
-    // first instruction after loop comes here
-    // now we have our address for the conditional branch from above
-    fixup_relative(brForwardToEnd);
+    if (brForwardToEnd != 0)
+        // first instruction after loop comes here
+        // now we have our address for the conditional branch from above
+        fixup_relative(brForwardToEnd);
 
-  // assert: allocatedTemporaries == 0
+    // assert: allocatedTemporaries == 0
 
-  numberOfWhile = numberOfWhile + 1;
+    numberOfWhile = numberOfWhile + 1;
 }
 
 void gr_if() {
-  int brForwardToElseOrEnd;
-  int brForwardToEnd;
+    int brForwardToElseOrEnd;
+    int brForwardToEnd;
 
-  // assert: allocatedTemporaries == 0
+    // assert: allocatedTemporaries == 0
 
-  // if ( expression )
-  if (symbol == SYM_IF) {
-    getSymbol();
-
-    if (symbol == SYM_LPARENTHESIS) {
-      getSymbol();
-
-      gr_expression();
-
-      //hw6 start
-      if(currentConstant){
-        load_integer(currentValue);
-        currentConstant=0;
-      }
-      // if the "if" case is not true, we branch to "else" (if provided)
-      brForwardToElseOrEnd = binaryLength;
-
-      emitIFormat(OP_BEQ, REG_ZR, currentTemporary(), 0);
-
-      tfree(1);
-
-      if (symbol == SYM_RPARENTHESIS) {
+    // if ( expression )
+    if (symbol == SYM_IF) {
         getSymbol();
 
-        // zero or more statements: { statement }
-        if (symbol == SYM_LBRACE) {
-          getSymbol();
-
-          while (isNotRbraceOrEOF())
-            gr_statement();
-
-          if (symbol == SYM_RBRACE)
-            getSymbol();
-          else {
-            syntaxErrorSymbol(SYM_RBRACE);
-
-            exit(-1);
-          }
-        }
-        // only one statement without {}
-        else
-          gr_statement();
-
-        //optional: else
-        if (symbol == SYM_ELSE) {
-          getSymbol();
-
-          // if the "if" case was true, we branch to the end
-          brForwardToEnd = binaryLength;
-          emitIFormat(OP_BEQ, REG_ZR, REG_ZR, 0);
-
-          // if the "if" case was not true, we branch here
-          fixup_relative(brForwardToElseOrEnd);
-
-          // zero or more statements: { statement }
-          if (symbol == SYM_LBRACE) {
+        if (symbol == SYM_LPARENTHESIS) {
             getSymbol();
 
-            while (isNotRbraceOrEOF())
-              gr_statement();
+            gr_expression();
 
-            if (symbol == SYM_RBRACE)
-              getSymbol();
-            else {
-              syntaxErrorSymbol(SYM_RBRACE);
+            // if the "if" case is not true, we branch to "else" (if provided)
+            brForwardToElseOrEnd = binaryLength;
 
-              exit(-1);
-            }
+            emitIFormat(OP_BEQ, REG_ZR, currentTemporary(), 0);
 
-          // only one statement without {}
-          } else
-            gr_statement();
+            tfree(1);
 
-          // if the "if" case was true, we branch here
-          fixup_relative(brForwardToEnd);
+            if (symbol == SYM_RPARENTHESIS) {
+                getSymbol();
+
+                // zero or more statements: { statement }
+                if (symbol == SYM_LBRACE) {
+                    getSymbol();
+
+                    while (isNotRbraceOrEOF())
+                        gr_statement();
+
+                    if (symbol == SYM_RBRACE)
+                        getSymbol();
+                    else {
+                        syntaxErrorSymbol(SYM_RBRACE);
+
+                        exit(-1);
+                    }
+                }
+                // only one statement without {}
+                else
+                    gr_statement();
+
+                //optional: else
+                if (symbol == SYM_ELSE) {
+                    getSymbol();
+
+                    // if the "if" case was true, we branch to the end
+                    brForwardToEnd = binaryLength;
+                    emitIFormat(OP_BEQ, REG_ZR, REG_ZR, 0);
+
+                    // if the "if" case was not true, we branch here
+                    fixup_relative(brForwardToElseOrEnd);
+
+                    // zero or more statements: { statement }
+                    if (symbol == SYM_LBRACE) {
+                        getSymbol();
+
+                        while (isNotRbraceOrEOF())
+                            gr_statement();
+
+                        if (symbol == SYM_RBRACE)
+                            getSymbol();
+                        else {
+                            syntaxErrorSymbol(SYM_RBRACE);
+
+                            exit(-1);
+                        }
+
+                        // only one statement without {}
+                    } else
+                        gr_statement();
+
+                    // if the "if" case was true, we branch here
+                    fixup_relative(brForwardToEnd);
+                } else
+                    // if the "if" case was not true, we branch here
+                    fixup_relative(brForwardToElseOrEnd);
+            } else
+                syntaxErrorSymbol(SYM_RPARENTHESIS);
         } else
-          // if the "if" case was not true, we branch here
-          fixup_relative(brForwardToElseOrEnd);
-      } else
-        syntaxErrorSymbol(SYM_RPARENTHESIS);
+            syntaxErrorSymbol(SYM_LPARENTHESIS);
     } else
-      syntaxErrorSymbol(SYM_LPARENTHESIS);
-  } else
-    syntaxErrorSymbol(SYM_IF);
+        syntaxErrorSymbol(SYM_IF);
 
-  // assert: allocatedTemporaries == 0
+    // assert: allocatedTemporaries == 0
 
-  numberOfIf = numberOfIf + 1;
+    numberOfIf = numberOfIf + 1;
 }
 
 void gr_return() {
-  int type;
+    int type;
 
-  // assert: allocatedTemporaries == 0
+    // assert: allocatedTemporaries == 0
 
-  if (symbol == SYM_RETURN)
-    getSymbol();
-  else
-    syntaxErrorSymbol(SYM_RETURN);
+    if (symbol == SYM_RETURN)
+        getSymbol();
+    else
+        syntaxErrorSymbol(SYM_RETURN);
 
-  // optional: expression
-  if (symbol != SYM_SEMICOLON) {
-    type = gr_expression();
+    // optional: expression
+    if (symbol != SYM_SEMICOLON) {
+        type = gr_expression();
 
-    //hw6 start
-    if(currentConstant){
-      load_integer(currentValue);
-      currentConstant=0;
-    }
-    if (type != returnType)
-      typeWarning(returnType, type);
+        if (type != returnType)
+            typeWarning(returnType, type);
 
-    // save value of expression in return register
-    emitRFormat(OP_SPECIAL, REG_ZR, currentTemporary(), REG_V0, 0, FCT_ADDU);
-	tfree(1);
+        // save value of expression in return register
 
-  } else if (returnType != VOID_T)
-    typeWarning(returnType, VOID_T);
 
-  // unconditional branch to procedure epilogue
-  // maintain fixup chain for later fixup
-  emitJFormat(OP_J, returnBranches / WORDSIZE);
+        emitRFormat(OP_SPECIAL, REG_ZR, currentTemporary(), REG_V0, 0, FCT_ADDU);
 
-  // new head of fixup chain
-  // offest is two words rather than one because of delay slot NOP
-  returnBranches = binaryLength - 2 * WORDSIZE;
+        tfree(1);
+    } else if (returnType != VOID_T)
+        typeWarning(returnType, VOID_T);
 
-  // assert: allocatedTemporaries == 0
+    // unconditional branch to procedure epilogue
+    // maintain fixup chain for later fixup
+    emitJFormat(OP_J, returnBranches / WORDSIZE);
 
-  numberOfReturn = numberOfReturn + 1;
+    // new head of fixup chain
+    // offest is two words rather than one because of delay slot NOP
+    returnBranches = binaryLength - 2 * WORDSIZE;
+
+    // assert: allocatedTemporaries == 0
+
+    numberOfReturn = numberOfReturn + 1;
 }
 
 void gr_statement() {
-  int ltype;
-  int rtype;
-  int* variableOrProcedureName;
-  int* entry;
-  int selectorNum;
+    int ltype;
+    int rtype;
+    int* variableOrProcedureName;
+    int* entry;
+    int selectorNum;
+    // assert: allocatedTemporaries == 0;
 
-  // assert: allocatedTemporaries == 0;
+    while (lookForStatement()) {
+        syntaxErrorUnexpected();
 
-  while (lookForStatement()) {
-    syntaxErrorUnexpected();
-
-    if (symbol == SYM_EOF)
-      exit(-1);
-    else
-      getSymbol();
-  }
-
-  // ["*"]
-  if (symbol == SYM_ASTERISK) {
-    getSymbol();
-
-    // "*" identifier
-    if (symbol == SYM_IDENTIFIER) {
-		
-	  //Assignment7
-	  variableOrProcedureName = identifier;
-	  
-	  getSymbol();
-
-      // "*" identifier "="
-      if (symbol == SYM_ASSIGN) {
-        ltype = load_variable(identifier);
-
-        if (ltype != INTSTAR_T)
-          typeWarning(INTSTAR_T, ltype);
-
-        getSymbol();
-
-        rtype = gr_expression();
-		
-		if(currentConstant){
-			load_integer(currentValue);
-			currentConstant = 0;
-		}
-
-        if (rtype != INT_T)
-          typeWarning(INT_T, rtype);
-
-        emitIFormat(OP_SW, previousTemporary(), currentTemporary(), 0);
-
-        tfree(2);
-
-        numberOfAssignments = numberOfAssignments + 1;
-
-        //"*" identifier [ selector ] "=" 
-      }else if(symbol == SYM_LBRACKET){
-        entry = global_symbol_table;
-        
-        entry = searchSymbolTable(entry, variableOrProcedureName, ARRAY);
-
-        if((int) entry == 0){
-          printLineNumber((int*) "error", lineNumber);
-          print(variableOrProcedureName);
-          print((int*) " undeclared");
-          println();
-
-          exit(-1);
-        }
-
-        ltype = getVariableType(entry);
-        if(ltype != INTSTAR_T){
-          typeWarning(INTSTAR_T, ltype);
-        }
-
-        //initialize address register with startaddress of array
-        load_integer(getAddress(entry));
-        emitRFormat(OP_SPECIAL, getScope(entry), currentTemporary(), currentTemporary(), 0, FCT_ADDU);
-		
-
-        selectorNum = 1;
-        while(symbol == SYM_LBRACKET){
-          getSymbol();
-
-          gr_selector(selectorNum, entry);
-
-          selectorNum = selectorNum +1;
-        }
-
-        if(symbol != SYM_ASSIGN){
-          syntaxErrorSymbol(SYM_ASSIGN);
-        }
-        getSymbol();
-
-        rtype = gr_expression();
-
-        //gr_expression must return an int
-        if(rtype != INT_T){
-          typeWarning(INT_T, rtype);
-        }
-		
-		if(currentConstant){
-			load_integer(currentValue);
-			currentConstant = 0;
-		}
-
-        //load pointer from specified array position
-        emitIFormat(OP_LW, previousTemporary(), previousTemporary(), 0);
-
-        //store value to pointed address
-        emitIFormat(OP_SW, previousTemporary(), currentTemporary(), 0);
-        
-		tfree(2);
-
-        numberOfAssignments = numberOfAssignments + 1;
-		
-      } else {
-        syntaxErrorSymbol(SYM_ASSIGN);
-
-        tfree(1);
-      }
-
-      if (symbol == SYM_SEMICOLON)
-        getSymbol();
-      else
-        syntaxErrorSymbol(SYM_SEMICOLON);
-
-    // "*" "(" expression ")"
-    } else if (symbol == SYM_LPARENTHESIS) {
-      getSymbol();
-
-      ltype = gr_expression();
-
-	  if(currentConstant){
-		  load_integer(currentValue);
-		  currentConstant = 0;
-	  }
-	  
-      if (ltype != INTSTAR_T)
-        typeWarning(INTSTAR_T, ltype);
-
-      if (symbol == SYM_RPARENTHESIS) {
-        getSymbol();
-
-        // "*" "(" expression ")" "="
-        if (symbol == SYM_ASSIGN) {
-          getSymbol();
-
-          rtype = gr_expression();
-		  
-		  if(currentConstant){
-		  load_integer(currentValue);
-		  currentConstant = 0;
-	      }
-		  
-          if (rtype != INT_T)
-            typeWarning(INT_T, rtype);
-
-          emitIFormat(OP_SW, previousTemporary(), currentTemporary(), 0);
-
-          tfree(2);
-
-          numberOfAssignments = numberOfAssignments + 1;
-        } else {
-          syntaxErrorSymbol(SYM_ASSIGN);
-
-          tfree(1);
-        }
-
-        if (symbol == SYM_SEMICOLON)
-          getSymbol();
+        if (symbol == SYM_EOF)
+            exit(-1);
         else
-          syntaxErrorSymbol(SYM_SEMICOLON);
-      } else
-        syntaxErrorSymbol(SYM_RPARENTHESIS);
-    } else
-      syntaxErrorSymbol(SYM_LPARENTHESIS);
-  }
-  // identifier "=" expression | call
-  else if (symbol == SYM_IDENTIFIER) {
-    variableOrProcedureName = identifier;
+            getSymbol();
+    }
 
-    getSymbol();
-
-    // procedure call
-    if (symbol == SYM_LPARENTHESIS) {
-      getSymbol();
-
-      gr_call(variableOrProcedureName);
-
-      // reset return register to initial return value
-      // for missing return expressions
-      emitIFormat(OP_ADDIU, REG_ZR, REG_V0, 0);
-
-      if (symbol == SYM_SEMICOLON)
+    // ["*"]
+    if (symbol == SYM_ASTERISK) {
         getSymbol();
-      else
-        syntaxErrorSymbol(SYM_SEMICOLON);
 
-    // identifier = expression
-    } else if (symbol == SYM_ASSIGN) {
-      entry = getVariable(variableOrProcedureName);
+        // "*" identifier
+        if (symbol == SYM_IDENTIFIER) {
+          variableOrProcedureName = identifier;
 
-      ltype = getVariableType(entry);
+          getSymbol();
 
-      getSymbol();
+            // "*" identifier "="
+            if (symbol == SYM_ASSIGN) {
+              ltype = load_variable(identifier);
 
-      rtype = gr_expression();
-	  
-	  if(currentConstant){
-		  load_integer(currentValue);
-		  currentConstant = 0;
-	  }
-	  
-      if (ltype != rtype)
-        typeWarning(ltype, rtype);
+              if (ltype != INTSTAR_T)
+                typeWarning(INTSTAR_T, ltype);
 
-      emitIFormat(OP_SW, getScope(entry), currentTemporary(), getAddress(entry));
+                getSymbol();
 
-      tfree(1);
+                rtype = gr_expression();
 
-      numberOfAssignments = numberOfAssignments + 1;
+                if(attributeIsConstant){
+                  load_integer(attributeValue);
+                  attributeIsConstant=0;
+                }
 
-      if (symbol == SYM_SEMICOLON)
+                if (rtype != INT_T)
+                    typeWarning(INT_T, rtype);
+
+                emitIFormat(OP_SW, previousTemporary(), currentTemporary(), 0);
+
+                tfree(2);
+
+                numberOfAssignments = numberOfAssignments + 1;
+              }else if(symbol == SYM_LBRACKET){
+                entry = global_symbol_table;
+
+                entry = searchSymbolTable(entry, variableOrProcedureName, ARRAY);
+
+                if((int) entry == 0){
+                  printLineNumber((int*) "error", lineNumber);
+                  print(variableOrProcedureName);
+                  print((int*) " undeclared");
+                  println();
+
+                  exit(-1);
+                }
+
+                ltype = getType(entry);
+                if(ltype != INTSTAR_T){
+                  typeWarning(INTSTAR_T, ltype);
+                }
+
+                //initialize address register with startaddress of array
+                load_integer(getAddress(entry));
+                emitRFormat(OP_SPECIAL, getScope(entry), currentTemporary(), currentTemporary(), 0, FCT_ADDU);
+
+                selectorNum = 1;
+                while(symbol == SYM_LBRACKET){
+                  getSymbol();
+
+                  gr_selector(selectorNum, entry);
+
+                  selectorNum = selectorNum +1;
+                }
+
+                if(symbol != SYM_ASSIGN){
+                  syntaxErrorSymbol(SYM_ASSIGN);
+                }
+                getSymbol();
+
+                rtype = gr_expression();
+
+                //gr_expression must return an int
+                if(rtype != INT_T){
+                  typeWarning(INT_T, rtype);
+                }
+
+                //value from constant folding
+                if(attributeIsConstant){
+                  load_integer(attributeValue);
+                  attributeIsConstant = 0;
+                }
+
+                //load pointer from specified array position
+                emitIFormat(OP_LW, previousTemporary(), previousTemporary(), 0);
+
+                //store value to pointed address
+                emitIFormat(OP_SW, previousTemporary(), currentTemporary(), 0);
+                tfree(2);
+
+                numberOfAssignments = numberOfAssignments + 1;
+
+            } else {
+                syntaxErrorSymbol(SYM_ASSIGN);
+
+                tfree(1);
+            }
+
+            if (symbol == SYM_SEMICOLON)
+                getSymbol();
+            else
+                syntaxErrorSymbol(SYM_SEMICOLON);
+
+            // "*" "(" expression ")"
+        } else if (symbol == SYM_LPARENTHESIS) {
+            getSymbol();
+
+            ltype = gr_expression();
+
+            if(attributeIsConstant){
+              load_integer(attributeValue);
+              attributeIsConstant=0;
+            }
+
+
+            if (ltype != INTSTAR_T)
+                typeWarning(INTSTAR_T, ltype);
+
+            if (symbol == SYM_RPARENTHESIS) {
+                getSymbol();
+
+                // "*" "(" expression ")" "="
+                if (symbol == SYM_ASSIGN) {
+                    getSymbol();
+
+                    rtype = gr_expression();
+                    if(attributeIsConstant){
+                      load_integer(attributeValue);
+                      attributeIsConstant=0;
+                    }
+
+                    if (rtype != INT_T)
+                        typeWarning(INT_T, rtype);
+
+                    emitIFormat(OP_SW, previousTemporary(), currentTemporary(), 0);
+
+                    tfree(2);
+
+                    numberOfAssignments = numberOfAssignments + 1;
+                } else {
+                    syntaxErrorSymbol(SYM_ASSIGN);
+
+                    tfree(1);
+                }
+
+                if (symbol == SYM_SEMICOLON)
+                    getSymbol();
+                else
+                    syntaxErrorSymbol(SYM_SEMICOLON);
+            } else
+                syntaxErrorSymbol(SYM_RPARENTHESIS);
+        } else
+            syntaxErrorSymbol(SYM_LPARENTHESIS);
+    }
+    // identifier "=" expression | call
+    else if (symbol == SYM_IDENTIFIER) {
+        variableOrProcedureName = identifier;
+
         getSymbol();
-      else
-        syntaxErrorSymbol(SYM_SEMICOLON);
-    
-  //Assignment7
-  }else if(symbol == SYM_LBRACKET){
+
+        // procedure call
+        if (symbol == SYM_LPARENTHESIS) {
+            getSymbol();
+
+            gr_call(variableOrProcedureName);
+
+            // reset return register to initial return value
+            // for missing return expressions
+            emitIFormat(OP_ADDIU, REG_ZR, REG_V0, 0);
+
+            if (symbol == SYM_SEMICOLON)
+                getSymbol();
+            else
+                syntaxErrorSymbol(SYM_SEMICOLON);
+
+            // identifier = expression
+        } else if (symbol == SYM_ASSIGN) {
+            entry = getVariable(variableOrProcedureName);
+
+            ltype = getType(entry);
+
+            getSymbol();
+
+            rtype = gr_expression();
+
+            if(attributeIsConstant){
+              load_integer(attributeValue);
+              attributeIsConstant=0;
+            }
+
+            if (ltype != rtype)
+                typeWarning(ltype, rtype);
+
+            emitIFormat(OP_SW, getScope(entry), currentTemporary(), getAddress(entry));
+
+            tfree(1);
+
+            numberOfAssignments = numberOfAssignments + 1;
+
+            if (symbol == SYM_SEMICOLON)
+                getSymbol();
+            else
+                syntaxErrorSymbol(SYM_SEMICOLON);
+
+    }else if(symbol == SYM_LBRACKET){
       entry = global_symbol_table;
-      
+
       entry = searchSymbolTable(entry, variableOrProcedureName, ARRAY);
-      
+
       if((int) entry == 0){
         printLineNumber((int*) "error", lineNumber);
         print(variableOrProcedureName);
@@ -4661,8 +4516,8 @@ void gr_statement() {
         exit(-1);
       }
 
-      ltype = getVariableType(entry);
-      
+      ltype = getType(entry);
+
       //initialize address register with startaddress of array
       load_integer(getAddress(entry));
       emitRFormat(OP_SPECIAL, getScope(entry), currentTemporary(), currentTemporary(), 0, FCT_ADDU);
@@ -4688,11 +4543,12 @@ void gr_statement() {
       if(ltype != rtype){
         typeWarning(ltype, rtype);
       }
-	  
-	  if(currentConstant){
-	    load_integer(currentValue);
-		currentConstant = 0;
-	  }
+
+      //get value from constant folding
+      if(attributeIsConstant){
+        load_integer(attributeValue);
+        attributeIsConstant = 0;
+      }
 
       //store new value
       emitIFormat(OP_SW, previousTemporary(), currentTemporary(), 0);
@@ -4709,298 +4565,57 @@ void gr_statement() {
       syntaxErrorUnexpected();
     }
   }
-  
-  // while statement?
-  else if (symbol == SYM_WHILE) {
-    gr_while();
-  }
-  // if statement?
-  else if (symbol == SYM_IF) {
-    gr_if();
-  }
-  // return statement?
-  else if (symbol == SYM_RETURN) {
-    gr_return();
+    // while statement?
+    else if (symbol == SYM_WHILE) {
+        gr_while();
+    }
+    // if statement?
+    else if (symbol == SYM_IF) {
+        gr_if();
+    }
+    // return statement?
+    else if (symbol == SYM_RETURN) {
+        gr_return();
 
-    if (symbol == SYM_SEMICOLON)
-      getSymbol();
-    else
-      syntaxErrorSymbol(SYM_SEMICOLON);
-  }
+        if (symbol == SYM_SEMICOLON)
+            getSymbol();
+        else
+            syntaxErrorSymbol(SYM_SEMICOLON);
+    }
 }
 
 int gr_type() {
-  int type;
+    int type;
 
-  type = INT_T;
+    type = INT_T;
 
-  if (symbol == SYM_INT) {
-    getSymbol();
-
-    if (symbol == SYM_ASTERISK) {
-      type = INTSTAR_T;
-
-      getSymbol();
-    }
-  } else
-    syntaxErrorSymbol(SYM_INT);
-
-  return type;
-}
-
-void gr_variable(int offset) {
-  int type;
-
-  type = gr_type();
-
-  if (symbol == SYM_IDENTIFIER) {
-    // TODO: check if identifier has already been declared
-    createSymbolTableEntry(LOCAL_TABLE, identifier, lineNumber, VARIABLE, type, 0, offset);
-
-    getSymbol();
-  } else {
-    syntaxErrorSymbol(SYM_IDENTIFIER);
-
-    createSymbolTableEntry(LOCAL_TABLE, (int*) "missing variable name", lineNumber, VARIABLE, type, 0, offset);
-  }
-}
-
-int gr_initialization(int type) {
-  int initialValue;
-  int hasCast;
-  int cast;
-  int sign;
-
-  initialValue = 0;
-
-  hasCast = 0;
-
-  if (symbol == SYM_ASSIGN) {
-    getSymbol();
-
-    // optional cast: [ cast ]
-    if (symbol == SYM_LPARENTHESIS) {
-      hasCast = 1;
-
-      getSymbol();
-
-      cast = gr_type();
-
-      if (symbol == SYM_RPARENTHESIS)
+    if (symbol == SYM_INT) {
         getSymbol();
-      else
-        syntaxErrorSymbol(SYM_RPARENTHESIS);
-    }
 
-    // optional: -
-    if (symbol == SYM_MINUS) {
-      sign = 1;
+        if (symbol == SYM_ASTERISK) {
+            type = INTSTAR_T;
 
-      mayBeINTMIN = 1;
-      isINTMIN    = 0;
+            getSymbol();
+        }
+    }else if(symbol == SYM_STRUCT){
+      type = STRUCT_T;
 
       getSymbol();
-
-      mayBeINTMIN = 0;
-
-      if (isINTMIN) {
-        isINTMIN = 0;
-
-        // avoids 0-INT_MIN overflow when bootstrapping
-        // even though 0-INT_MIN == INT_MIN
-        sign = 0;
-      }
     } else
-      sign = 0;
+        syntaxErrorSymbol(SYM_INT);
 
-    if (isLiteral()) {
-      initialValue = literal;
-
-      getSymbol();
-
-      if (sign)
-        initialValue = -initialValue;
-    } else
-      syntaxErrorUnexpected();
-
-    if (symbol == SYM_SEMICOLON)
-      getSymbol();
-    else
-      syntaxErrorSymbol(SYM_SEMICOLON);
-  } else
-    syntaxErrorSymbol(SYM_ASSIGN);
-
-  if (hasCast) {
-    if (type != cast)
-      typeWarning(type, cast);
-  } else if (type != INT_T)
-    typeWarning(type, INT_T);
-
-  return initialValue;
+    return type;
 }
 
-void gr_procedure(int* procedure, int type) {
-  int isUndefined;
-  int numberOfParameters;
-  int parameters;
-  int localVariables;
-  int* entry;
 
-  // assuming procedure is undefined
-  isUndefined = 1;
 
-  numberOfParameters = 0;
-
-  // try parsing formal parameters
-  if (symbol == SYM_LPARENTHESIS) {
-    getSymbol();
-
-    if (symbol != SYM_RPARENTHESIS) {
-      gr_variable(0);
-
-      numberOfParameters = 1;
-
-      while (symbol == SYM_COMMA) {
-        getSymbol();
-
-        gr_variable(0);
-
-        numberOfParameters = numberOfParameters + 1;
-      }
-
-      entry = local_symbol_table;
-
-      parameters = 0;
-
-      while (parameters < numberOfParameters) {
-        // 8 bytes offset to skip frame pointer and link
-        setAddress(entry, parameters * WORDSIZE + 2 * WORDSIZE);
-
-        parameters = parameters + 1;
-
-        entry = getNextEntry(entry);
-      }
-
-      if (symbol == SYM_RPARENTHESIS)
-        getSymbol();
-      else
-        syntaxErrorSymbol(SYM_RPARENTHESIS);
-    } else
-      getSymbol();
-  } else
-    syntaxErrorSymbol(SYM_LPARENTHESIS);
-
-  entry = searchSymbolTable(global_symbol_table, procedure, PROCEDURE);
-
-  if (symbol == SYM_SEMICOLON) {
-    // this is a procedure declaration
-    if (entry == (int*) 0)
-      // procedure never called nor declared nor defined
-      createSymbolTableEntry(GLOBAL_TABLE, procedure, lineNumber, PROCEDURE, type, 0, 0);
-    else if (getVariableType(entry) != type)
-      // procedure already called, declared, or even defined
-      // check return type but otherwise ignore
-      typeWarning(getVariableType(entry), type);
-
-    getSymbol();
-
-  } else if (symbol == SYM_LBRACE) {
-    // this is a procedure definition
-    if (entry == (int*) 0)
-      // procedure never called nor declared nor defined
-      createSymbolTableEntry(GLOBAL_TABLE, procedure, lineNumber, PROCEDURE, type, 0, binaryLength);
-    else {
-      // procedure already called or declared or defined
-      if (getAddress(entry) != 0) {
-        // procedure already called or defined
-        if (getOpcode(loadBinary(getAddress(entry))) == OP_JAL) {
-          // procedure already called but not defined
-          fixlink_absolute(getAddress(entry), binaryLength);
-
-          if (stringCompare(procedure, (int*) "main"))
-            // first source containing main procedure provides binary name
-            binaryName = sourceName;
-        } else
-          // procedure already defined
-          isUndefined = 0;
-      }
-
-      if (isUndefined) {
-        // procedure already called or declared but not defined
-        setLineNumber(entry, lineNumber);
-
-        if (getVariableType(entry) != type)
-          typeWarning(getVariableType(entry), type);
-
-        setVariableType(entry, type);
-        setAddress(entry, binaryLength);
-      } else {
-        // procedure already defined
-        printLineNumber((int*) "warning", lineNumber);
-        print((int*) "redefinition of procedure ");
-        print(procedure);
-        print((int*) " ignored");
-        println();
-      }
-    }
-
-    getSymbol();
-
-    localVariables = 0;
-
-    while (symbol == SYM_INT) {
-      localVariables = localVariables + 1;
-
-      gr_variable(-localVariables * WORDSIZE);
-
-      if (symbol == SYM_SEMICOLON)
-        getSymbol();
-      else
-        syntaxErrorSymbol(SYM_SEMICOLON);
-    }
-
-    help_procedure_prologue(localVariables);
-
-    // create a fixup chain for return statements
-    returnBranches = 0;
-
-    returnType = type;
-
-    while (isNotRbraceOrEOF())
-      gr_statement();
-
-    returnType = 0;
-
-    if (symbol == SYM_RBRACE)
-      getSymbol();
-    else {
-      syntaxErrorSymbol(SYM_RBRACE);
-
-      exit(-1);
-    }
-
-    fixlink_absolute(returnBranches, binaryLength);
-
-    returnBranches = 0;
-
-    help_procedure_epilogue(numberOfParameters);
-
-  } else
-    syntaxErrorUnexpected();
-
-  local_symbol_table = (int*) 0;
-
-  // assert: allocatedTemporaries == 0
-}
-
-//Assignment7
 int gr_selector(int selectorNum, int* entry){
   int size;
   int multiplier;
   int type;
   size = 0;
 
-  
+
   if(arrayDeklaration){
     getSymbol();
     if(symbol != SYM_INTEGER & symbol != SYM_CHARACTER){
@@ -5014,11 +4629,11 @@ int gr_selector(int selectorNum, int* entry){
   }else{
     type = gr_simpleExpression();
 
-    //indices must be integers
+    //indices must ba integers
     if(type != INT_T){
       typeWarning(INT_T, type);
     }
-    
+
     //calculate address offset for this dimension
     multiplier = getDimMultiplier(entry, selectorNum);
     multiplier = multiplier * WORDSIZE;
@@ -5027,18 +4642,16 @@ int gr_selector(int selectorNum, int* entry){
 
       exit(-1);
     }
-    
-    if(currentConstant){
-	  currentValue = currentValue * multiplier;
-      load_integer(currentValue);
-      currentConstant = 0;
-	  
+
+    if(attributeIsConstant){
+      attributeValue = attributeValue * multiplier;
+      load_integer(attributeValue);
+      attributeIsConstant = 0;
     }else{
-		
-	  load_integer(multiplier);  
-   	  
-      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0, 0,  FCT_MULTU);
-      emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(), 0,  FCT_MFLO);
+      load_integer(multiplier);
+
+      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0, 0, FCT_MULTU);
+      emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(),0, FCT_MFLO);
       tfree(1);
     }
 
@@ -5057,255 +4670,436 @@ int gr_selector(int selectorNum, int* entry){
   return size;
 }
 
-//struct =  "{"
-//{ type identifier  ( selector | [ "=" [ cast ] [ "-" ] literal ] ) ";"  |
-//structDeclaration }  "}" ";" .
-//Assignment8
-void gr_struct(int* structName){
-  int type;
-  int* entry;
-  int* variableName;
-  int* structEntry;
-  int offset;
-  
-  entry = searchSymbolTable(global_symbol_table, structName, STRUCT);
-  
-  if((int) entry != 0){
-    // global variable already declared or defined
-    printLineNumber((int*) "warning", lineNumber);
-    print((int*) "redefinition of struct ");
-    print(structName);
-    print((int*) " ignored");
-    println();
-    return;
-  }
 
-  entry = createSymbolTableEntry(GLOBAL_TABLE, structName, lineNumber, STRUCT, 0, 0, 0);
+void gr_variable(int offset) {
+    int type;
 
-  if(symbol != SYM_LBRACE)
-    syntaxErrorSymbol(SYM_LBRACE);
-  getSymbol();
+    type = gr_type();
 
-  offset = 0;
-  while(lookForType() == 0){
-    if(symbol == SYM_STRUCT){
-      type = STRUCT_T;
+    if (symbol == SYM_IDENTIFIER) {
+        // TODO: check if identifier has already been declared
+        createSymbolTableEntry(LOCAL_TABLE, identifier, lineNumber, VARIABLE, type, 0, offset);
 
-      getSymbol();
+        getSymbol();
 
-      if(symbol == SYM_IDENTIFIER){
-        structName = identifier;
-      }else{
+    } else {
         syntaxErrorSymbol(SYM_IDENTIFIER);
-      }
-      structEntry = searchSymbolTable(global_symbol_table, structName, STRUCT);
 
-      getSymbol();
-      if(symbol != SYM_ASTERISK)
-        syntaxErrorSymbol(SYM_ASTERISK);
-
-      getSymbol();
-      if(symbol == SYM_IDENTIFIER){
-        variableName = identifier;
-      }else{
-        syntaxErrorSymbol(SYM_IDENTIFIER);
-      }
-
-      addStructElement(entry, variableName, -1, structEntry, offset); 
-
-    }else{
-      type = gr_type();
-
-      if(symbol == SYM_IDENTIFIER){
-        variableName = identifier;
-      }else{
-        syntaxErrorSymbol(SYM_IDENTIFIER);
-      }
-
-      addStructElement(entry, variableName, type, (int*) 0, offset);
+        createSymbolTableEntry(LOCAL_TABLE, (int*) "missing variable name", lineNumber, VARIABLE, type, 0, offset);
     }
-
-    getSymbol();
-    if(symbol != SYM_SEMICOLON)
-      syntaxErrorSymbol(SYM_SEMICOLON);
-
-    getSymbol();
-
-    offset = offset + 1;
-  }
-
-  if(symbol != SYM_RBRACE)
-    syntaxErrorSymbol(SYM_RBRACE);
-  getSymbol();
-
-  if(symbol != SYM_SEMICOLON)
-    syntaxErrorSymbol(SYM_SEMICOLON);
-
-  getSymbol();
 }
 
+int gr_initialization(int type) {
+    int initialValue;
+    int hasCast;
+    int cast;
+    int sign;
 
-void gr_cstar() {
+    initialValue = 0;
+
+    hasCast = 0;
+
+    if (symbol == SYM_ASSIGN) {
+        getSymbol();
+
+        // optional cast: [ cast ]
+        if (symbol == SYM_LPARENTHESIS) {
+            hasCast = 1;
+
+            getSymbol();
+
+            cast = gr_type();
+
+            if (symbol == SYM_RPARENTHESIS)
+                getSymbol();
+            else
+                syntaxErrorSymbol(SYM_RPARENTHESIS);
+        }
+
+        // optional: -
+        if (symbol == SYM_MINUS) {
+            sign = 1;
+
+            mayBeINTMIN = 1;
+            isINTMIN    = 0;
+
+            getSymbol();
+
+            mayBeINTMIN = 0;
+
+            if (isINTMIN) {
+                isINTMIN = 0;
+
+                // avoids 0-INT_MIN overflow when bootstrapping
+                // even though 0-INT_MIN == INT_MIN
+                sign = 0;
+            }
+        } else
+            sign = 0;
+
+        if (isLiteral()) {
+            initialValue = literal;
+
+            getSymbol();
+
+            if (sign)
+                initialValue = -initialValue;
+        } else
+            syntaxErrorUnexpected();
+
+        if (symbol == SYM_SEMICOLON)
+            getSymbol();
+        else
+            syntaxErrorSymbol(SYM_SEMICOLON);
+    } else
+        syntaxErrorSymbol(SYM_ASSIGN);
+
+    if (hasCast) {
+        if (type != cast)
+            typeWarning(type, cast);
+    } else if (type != INT_T)
+        typeWarning(type, INT_T);
+
+    return initialValue;
+}
+
+void gr_procedure(int* procedure, int type) {
+    int isUndefined;
+    int numberOfParameters;
+    int parameters;
+    int localVariables;
+    int* entry;
+
+    // assuming procedure is undefined
+    isUndefined = 1;
+
+    numberOfParameters = 0;
+
+    // try parsing formal parameters
+    if (symbol == SYM_LPARENTHESIS) {
+        getSymbol();
+
+        if (symbol != SYM_RPARENTHESIS) {
+            gr_variable(0);
+
+            numberOfParameters = 1;
+
+            while (symbol == SYM_COMMA) {
+                getSymbol();
+
+                gr_variable(0);
+
+                numberOfParameters = numberOfParameters + 1;
+            }
+
+            entry = local_symbol_table;
+
+            parameters = 0;
+
+            while (parameters < numberOfParameters) {
+                // 8 bytes offset to skip frame pointer and link
+                setAddress(entry, parameters * WORDSIZE + 2 * WORDSIZE);
+
+                parameters = parameters + 1;
+
+                entry = getNextEntry(entry);
+            }
+
+            if (symbol == SYM_RPARENTHESIS)
+                getSymbol();
+            else
+                syntaxErrorSymbol(SYM_RPARENTHESIS);
+        } else
+            getSymbol();
+    } else
+        syntaxErrorSymbol(SYM_LPARENTHESIS);
+
+    entry = searchSymbolTable(global_symbol_table, procedure, PROCEDURE);
+
+    if (symbol == SYM_SEMICOLON) {
+        // this is a procedure declaration
+        if (entry == (int*) 0)
+            // procedure never called nor declared nor defined
+            createSymbolTableEntry(GLOBAL_TABLE, procedure, lineNumber, PROCEDURE, type, 0, 0);
+        else if (getType(entry) != type)
+            // procedure already called, declared, or even defined
+            // check return type but otherwise ignore
+            typeWarning(getType(entry), type);
+
+        getSymbol();
+
+    } else if (symbol == SYM_LBRACE) {
+        // this is a procedure definition
+        if (entry == (int*) 0)
+            // procedure never called nor declared nor defined
+            createSymbolTableEntry(GLOBAL_TABLE, procedure, lineNumber, PROCEDURE, type, 0, binaryLength);
+        else {
+            // procedure already called or declared or defined
+            if (getAddress(entry) != 0) {
+                // procedure already called or defined
+                if (getOpcode(loadBinary(getAddress(entry))) == OP_JAL) {
+                    // procedure already called but not defined
+                    fixlink_absolute(getAddress(entry), binaryLength);
+
+                    if (stringCompare(procedure, (int*) "main"))
+                        // first source containing main procedure provides binary name
+                        binaryName = sourceName;
+                } else
+                    // procedure already defined
+                    isUndefined = 0;
+            }
+
+            if (isUndefined) {
+                // procedure already called or declared but not defined
+                setLineNumber(entry, lineNumber);
+
+                if (getType(entry) != type)
+                    typeWarning(getType(entry), type);
+
+                setType(entry, type);
+                setAddress(entry, binaryLength);
+            } else {
+                // procedure already defined
+                printLineNumber((int*) "warning", lineNumber);
+                print((int*) "redefinition of procedure ");
+                print(procedure);
+                print((int*) " ignored");
+                println();
+            }
+        }
+
+        getSymbol();
+
+        localVariables = 0;
+
+        while (symbol == SYM_INT) {
+            localVariables = localVariables + 1;
+
+            gr_variable(-localVariables * WORDSIZE);
+
+            if (symbol == SYM_SEMICOLON)
+                getSymbol();
+            else
+                syntaxErrorSymbol(SYM_SEMICOLON);
+        }
+
+        help_procedure_prologue(localVariables);
+
+        // create a fixup chain for return statements
+        returnBranches = 0;
+
+        returnType = type;
+
+        while (isNotRbraceOrEOF())
+            gr_statement();
+
+        returnType = 0;
+
+        if (symbol == SYM_RBRACE)
+            getSymbol();
+        else {
+            syntaxErrorSymbol(SYM_RBRACE);
+
+            exit(-1);
+        }
+
+        fixlink_absolute(returnBranches, binaryLength);
+
+        returnBranches = 0;
+
+        help_procedure_epilogue(numberOfParameters);
+
+    } else
+        syntaxErrorUnexpected();
+
+    local_symbol_table = (int*) 0;
+
+    // assert: allocatedTemporaries == 0
+}
+
+//struct =  "{"
+//            { type identifier  ( selector | [ "=" [ cast ] [ "-" ] literal ] ) ";"  |
+//            structDeclaration }  "}" ";" .
+void gr_struct(){
   int type;
   int* variableOrProcedureName;
   int currentLineNumber;
   int initialValue;
   int* entry;
-  //Assignment7
+  int localVariables;
   int dimSize;
   int totalSize;
-  //Assignment8
-  int* structName;
-
-  while (symbol != SYM_EOF) {
-    while (lookForType()) {
-      syntaxErrorUnexpected();
-
-      if (symbol == SYM_EOF)
-        exit(-1);
-      else
-        getSymbol();
-    }
-
-    if (symbol == SYM_VOID) {
-      // void identifier ...
-      // procedure declaration or definition
-      type = VOID_T;
-
-      getSymbol();
-
-      if (symbol == SYM_IDENTIFIER) {
-        variableOrProcedureName = identifier;
-
-        getSymbol();
 
 
-        gr_procedure(variableOrProcedureName, type);
-      } else
-        syntaxErrorSymbol(SYM_IDENTIFIER);
-	
-	//Assignment8
-	} else if(symbol == SYM_STRUCT){
-      getSymbol();
-
-      if(symbol == SYM_IDENTIFIER){
-        structName = identifier;
-      }else{
-        syntaxErrorSymbol(SYM_IDENTIFIER);
-      }
-
-      getSymbol();
-
-      if(symbol == SYM_ASTERISK){
-        getSymbol();
-
-        if(symbol == SYM_IDENTIFIER){
-          variableOrProcedureName = identifier;
-        }else
-          syntaxErrorSymbol(SYM_IDENTIFIER);
-
-        entry = searchSymbolTable(global_symbol_table, variableOrProcedureName, VARIABLE);
-
-        if (entry == (int*) 0) {
-          allocatedMemory = allocatedMemory + SIZEOFINTSTAR;
-
-          createSymbolTableEntry(GLOBAL_TABLE, variableOrProcedureName, lineNumber, VARIABLE, STRUCT_T, 0, -allocatedMemory);
-        } else {
-          // global variable already declared or defined
-          printLineNumber((int*) "warning", currentLineNumber);
-          print((int*) "redefinition of global variable ");
-          print(variableOrProcedureName);
-          print((int*) " ignored");
-          println();
-        }
-
-        getSymbol();
-        if(symbol != SYM_SEMICOLON)
-          syntaxErrorSymbol(SYM_SEMICOLON);
-
-        getSymbol();
-        
-      }else{
-		  
-        gr_struct(structName);
-		
-	  }
-	
-    } else {
-		
-      type = gr_type();
-
-      if (symbol == SYM_IDENTIFIER) {
-        variableOrProcedureName = identifier;
-
-        getSymbol();
-
-        if (symbol == SYM_LPARENTHESIS)
-          // type identifier "(" ...
-          // procedure declaration or definition
-          gr_procedure(variableOrProcedureName, type);
-		  
-        //Assignment7
-        // type identifier "["
-        else if(symbol == SYM_LBRACKET){
-          totalSize = 1;
-          dimSize = 0;
-          arrayDeklaration = 1;
-
-          entry = createSymbolTableEntry(GLOBAL_TABLE, variableOrProcedureName, currentLineNumber, ARRAY, type, 0, 0);
-
-          while(symbol == SYM_LBRACKET){
-            dimSize = gr_selector(0, entry);
-            //write the new size into the linked list for size in the symbol table entry
-            addDimension(entry, dimSize);
-            totalSize = totalSize * dimSize;
-          }
-          //add the needed memory for the array to calculate the offset of gp pointer
-          allocatedMemory = allocatedMemory + WORDSIZE * totalSize;
-          setAddress(entry, -allocatedMemory);
-          
-          arrayDeklaration = 0;
-
-          if(symbol != SYM_SEMICOLON){
-            syntaxErrorSymbol(SYM_SEMICOLON);
-
-            exit(-1);
-          }
+        //"struct" identifier "{"
+        if(symbol == SYM_LBRACE){
           getSymbol();
 
-        } else {
-          currentLineNumber = lineNumber;
 
-          if (symbol == SYM_SEMICOLON) {
-            // type identifier ";" ...
-            // global variable declaration
+          localVariables = 0;
+
+          while (symbol == SYM_INT) {
+              localVariables = localVariables + 1;
+
+              gr_variable(-localVariables * WORDSIZE);
+
+              if (symbol == SYM_SEMICOLON)
+                  getSymbol();
+              else
+                  syntaxErrorSymbol(SYM_SEMICOLON);
+          }
+
+          help_procedure_prologue(localVariables);
+
+
+
+
+
+
+
+
+
+          //"}"
+          if (symbol == SYM_RBRACE){
+              getSymbol();
+              if(symbol == SYM_SEMICOLON){
+                getSymbol();
+              }else {
+                  syntaxErrorSymbol(SYM_SEMICOLON);
+
+                  exit(-1);
+              }
+
+          }else {
+              syntaxErrorSymbol(SYM_RBRACE);
+
+              exit(-1);
+          }
+
+        }
+
+
+
+
+
+}
+
+void gr_cstar() {
+    int type;
+    int* variableOrProcedureName;
+    int currentLineNumber;
+    int initialValue;
+    int* entry;
+
+    int dimSize;
+    int totalSize;
+
+
+    while (symbol != SYM_EOF) {
+        while (lookForType()) {
+            syntaxErrorUnexpected();
+
+            if (symbol == SYM_EOF)
+                exit(-1);
+            else
+                getSymbol();
+        }
+
+        if (symbol == SYM_VOID) {
+            // void identifier ...
+            // procedure declaration or definition
+            type = VOID_T;
+
             getSymbol();
 
-            initialValue = 0;
-          } else
-            // type identifier "=" ...
-            // global variable definition
-            initialValue = gr_initialization(type);
+            if (symbol == SYM_IDENTIFIER) {
+                variableOrProcedureName = identifier;
 
-          entry = searchSymbolTable(global_symbol_table, variableOrProcedureName, VARIABLE);
+                getSymbol();
 
-          if (entry == (int*) 0) {
-            allocatedMemory = allocatedMemory + WORDSIZE;
 
-            createSymbolTableEntry(GLOBAL_TABLE, variableOrProcedureName, currentLineNumber, VARIABLE, type, initialValue, -allocatedMemory);
-          } else {
-            // global variable already declared or defined
-            printLineNumber((int*) "warning", currentLineNumber);
-            print((int*) "redefinition of global variable ");
-            print(variableOrProcedureName);
-            print((int*) " ignored");
-            println();
-          }
+                gr_procedure(variableOrProcedureName, type);
+            } else
+                syntaxErrorSymbol(SYM_IDENTIFIER);
+
+        } else {
+            type = gr_type();
+
+            if (symbol == SYM_IDENTIFIER) {
+                variableOrProcedureName = identifier;
+
+                getSymbol();
+
+                if (symbol == SYM_LPARENTHESIS){
+                    // type identifier "(" ...
+                    // procedure declaration or definition
+                    gr_procedure(variableOrProcedureName, type);
+                }else if(symbol == SYM_LBRACKET){
+                  totalSize = 1;
+                  dimSize = 0;
+                  arrayDeklaration = 1;
+
+                  entry = createSymbolTableEntry(GLOBAL_TABLE, variableOrProcedureName, currentLineNumber, ARRAY, type, 0, 0);
+
+                  while(symbol == SYM_LBRACKET){
+                    dimSize = gr_selector(0, entry);
+                    //write the new size into the linked list for size in the symbol table entry
+                    addDimension(entry, dimSize);
+                    totalSize = totalSize * dimSize;
+                  }
+                  //add the needed memory for the array to calculate the offset of gp pointer
+                  allocatedMemory = allocatedMemory + WORDSIZE * totalSize;
+                  setAddress(entry, -allocatedMemory);
+
+                  arrayDeklaration = 0;
+
+                  if(symbol != SYM_SEMICOLON){
+                    syntaxErrorSymbol(SYM_SEMICOLON);
+
+                    exit(-1);
+                  }
+                  getSymbol();
+
+                }else if (symbol == SYM_LBRACE){
+
+                  gr_struct();
+
+                } else {
+                    currentLineNumber = lineNumber;
+
+                    if (symbol == SYM_SEMICOLON) {
+                        // type identifier ";" ...
+                        // global variable declaration
+                        getSymbol();
+
+                        initialValue = 0;
+                    } else
+                        // type identifier "=" ...
+                        // global variable definition
+                        initialValue = gr_initialization(type);
+
+                    entry = searchSymbolTable(global_symbol_table, variableOrProcedureName, VARIABLE);
+
+                    if (entry == (int*) 0) {
+                        allocatedMemory = allocatedMemory + WORDSIZE;
+
+                        createSymbolTableEntry(GLOBAL_TABLE, variableOrProcedureName, currentLineNumber, VARIABLE, type, initialValue, -allocatedMemory);
+                    } else {
+                        // global variable already declared or defined
+                        printLineNumber((int*) "warning", currentLineNumber);
+                        print((int*) "redefinition of global variable ");
+                        print(variableOrProcedureName);
+                        print((int*) " ignored");
+                        println();
+                    }
+                }
+            } else
+                syntaxErrorSymbol(SYM_IDENTIFIER);
         }
-      } else
-        syntaxErrorSymbol(SYM_IDENTIFIER);
+
+
+
     }
-  }
 }
 
 // -----------------------------------------------------------------
@@ -5313,93 +5107,87 @@ void gr_cstar() {
 // -----------------------------------------------------------------
 
 void emitLeftShiftBy(int b) {
-  // assert: 0 <= b < 15
-
-  //Assignment3
-  emitRFormat(OP_SPECIAL, 0, currentTemporary(), currentTemporary(), b, FCT_SLL);
-
-  // load multiplication factor less than 2^15 to avoid sign extension
-  //emitIFormat(OP_ADDIU, REG_ZR, nextTemporary(), twoToThePowerOf(b));
-  //emitRFormat(OP_SPECIAL, currentTemporary(), nextTemporary(), 0, FCT_MULTU);
-  //emitRFormat(OP_SPECIAL, 0, 0, currentTemporary(), FCT_MFLO);
-
+    // assert: 0 <= b < 15
+    emitRFormat(OP_SPECIAL, 0, currentTemporary(), currentTemporary() , b , FCT_SLL);
 }
 
 void emitMainEntry() {
-  int i;
+    int i;
 
-  // the instruction at address zero cannot be fixed up
-  // we therefore need at least one not-to-be-fixed-up instruction here
+    // the instruction at address zero cannot be fixed up
+    // we therefore need at least one not-to-be-fixed-up instruction here
 
-  // we generate NOPs to accommodate GP and SP register
-  // initialization code that overwrites the NOPs later
-  // when binaryLength is known
+    // we generate NOPs to accommodate GP and SP register
+    // initialization code that overwrites the NOPs later
+    // when binaryLength is known
 
-  i = 0;
+    i = 0;
 
-  // 8 NOPs per register is enough for initialization
-  // since we load positive integers < 2^28 which take
-  // no more than 8 instructions each, see load_integer
-  while (i < 16) {
-    emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_NOP);
+    // 8 NOPs per register is enough for initialization
+    // since we load positive integers < 2^28 which take
+    // no more than 8 instructions each, see load_integer
+    while (i < 16) {
 
-    i = i + 1;
-  }
 
-  mainJump = binaryLength;
+        emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_NOP);
 
-  createSymbolTableEntry(GLOBAL_TABLE, (int*) "main", 0, PROCEDURE, INT_T, 0, mainJump);
+        i = i + 1;
+    }
 
-  // jump and link to main, will return here only if there is no exit call
-  emitJFormat(OP_JAL, 0);
+    mainJump = binaryLength;
 
-  // we exit with exit code in return register pushed onto the stack
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, -WORDSIZE);
-  emitIFormat(OP_SW, REG_SP, REG_V0, 0);
+    createSymbolTableEntry(GLOBAL_TABLE, (int*) "main", 0, PROCEDURE, INT_T, 0, mainJump);
 
-  // no need to reset return register here
+    // jump and link to main, will return here only if there is no exit call
+    emitJFormat(OP_JAL, 0);
+
+    // we exit with exit code in return register pushed onto the stack
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, -WORDSIZE);
+    emitIFormat(OP_SW, REG_SP, REG_V0, 0);
+
+    // no need to reset return register here
 }
 
 void bootstrapCode() {
-  int savedBinaryLength;
+    int savedBinaryLength;
 
-  savedBinaryLength = binaryLength;
+    savedBinaryLength = binaryLength;
 
-  binaryLength = 0;
+    binaryLength = 0;
 
-  // assert: allocatedTemporaries == 0
+    // assert: allocatedTemporaries == 0
 
-  // assert: 0 <= savedBinaryLength < 2^28 (see load_integer)
+    // assert: 0 <= savedBinaryLength < 2^28 (see load_integer)
 
-  load_integer(savedBinaryLength);
+    load_integer(savedBinaryLength);
 
-  // load binaryLength into GP register
-  emitIFormat(OP_ADDIU, currentTemporary(), REG_GP, 0);
+    // load binaryLength into GP register
+    emitIFormat(OP_ADDIU, currentTemporary(), REG_GP, 0);
 
-  tfree(1);
+    tfree(1);
 
-  // assert: allocatedTemporaries == 0
+    // assert: allocatedTemporaries == 0
 
-  // assert: 0 <= VIRTUALMEMORYSIZE - WORDSIZE < 2^28 (see load_integer)
+    // assert: 0 <= VIRTUALMEMORYSIZE - WORDSIZE < 2^28 (see load_integer)
 
-  // initial stack pointer is stored at highest virtual address
-  load_integer(VIRTUALMEMORYSIZE - WORDSIZE);
+    // initial stack pointer is stored at highest virtual address
+    load_integer(VIRTUALMEMORYSIZE - WORDSIZE);
 
-  // load initial stack pointer into SP register
-  emitIFormat(OP_LW, currentTemporary(), REG_SP, 0);
+    // load initial stack pointer into SP register
+    emitIFormat(OP_LW, currentTemporary(), REG_SP, 0);
 
-  tfree(1);
+    tfree(1);
 
-  // assert: allocatedTemporaries == 0
+    // assert: allocatedTemporaries == 0
 
-  binaryLength = savedBinaryLength;
+    binaryLength = savedBinaryLength;
 
-  if (reportUndefinedProcedures())
-    // rather than jump and link to the main procedure
-    // exit by continuing to the next instruction (with delay slot)
-    fixup_absolute(mainJump, mainJump + 8);
+    if (reportUndefinedProcedures())
+        // rather than jump and link to the main procedure
+        // exit by continuing to the next instruction (with delay slot)
+        fixup_absolute(mainJump, mainJump + 8);
 
-  mainJump = 0;
+    mainJump = 0;
 }
 
 // -----------------------------------------------------------------
@@ -5407,159 +5195,152 @@ void bootstrapCode() {
 // -----------------------------------------------------------------
 
 void selfie_compile() {
-  int link;
-  int numberOfSourceFiles;
+    int link;
+    int numberOfSourceFiles;
 
-  // link until next console option
-  link = 1;
+    // link until next console option
+    link = 1;
 
-  numberOfSourceFiles = 0;
+    numberOfSourceFiles = 0;
 
-  sourceName = (int*) "library";
+    sourceName = (int*) "library";
 
-  binaryName = sourceName;
+    binaryName = sourceName;
 
-  // allocate memory for storing binary
-  binary       = malloc(maxBinaryLength);
-  binaryLength = 0;
+    // allocate memory for storing binary
+    binary       = malloc(maxBinaryLength);
+    binaryLength = 0;
 
-  // reset code length
-  codeLength = 0;
+    // reset code length
+    codeLength = 0;
 
-  // allocate zeroed memory for storing source code line numbers
-  sourceLineNumber = zalloc(maxBinaryLength);
+    // allocate zeroed memory for storing source code line numbers
+    sourceLineNumber = zalloc(maxBinaryLength);
 
-  resetSymbolTables();
+    resetSymbolTables();
 
-  // jump and link to main
-  emitMainEntry();
+    // jump and link to main
+    emitMainEntry();
 
-  // library:
-  // exit must be first to exit main
-  // if exit call in main is missing
-  emitExit();
-  emitRead();
-  emitWrite();
-  emitOpen();
-  emitMalloc();
+    // library:
+    // exit must be first to exit main
+    // if exit call in main is missing
+    emitExit();
+    emitRead();
+    emitWrite();
+    emitOpen();
+    emitMalloc();
 
-  emitID();
-  emitCreate();
-  emitSwitch();
-  emitStatus();
-  emitDelete();
-  emitMap();
+    emitID();
+    emitCreate();
+    emitSwitch();
+    emitStatus();
+    emitDelete();
+    emitMap();
 
-  while (link) {
-    if (numberOfRemainingArguments() == 0)
-      link = 0;
-    else if (loadCharacter(peekArgument(), 0) == '-')
-      link = 0;
-    else {
-      sourceName = getArgument();
+    while (link) {
+        if (numberOfRemainingArguments() == 0)
+            link = 0;
+        else if (loadCharacter(peekArgument(), 0) == '-')
+            link = 0;
+        else {
+            sourceName = getArgument();
 
-      numberOfSourceFiles = numberOfSourceFiles + 1;
+            numberOfSourceFiles = numberOfSourceFiles + 1;
 
-      print(selfieName);
-      print((int*) ": this is selfie's starc compiling ");
-      print(sourceName);
-      println();
+            print(selfieName);
+            print((int*) ": this is selfie's starc compiling ");
+            print(sourceName);
+            println();
 
-      // assert: sourceName is mapped and not longer than maxFilenameLength
+            // assert: sourceName is mapped and not longer than maxFilenameLength
 
-      sourceFD = open(sourceName, O_RDONLY, 0);
+            sourceFD = open(sourceName, O_RDONLY, 0);
 
-      if (sourceFD < 0) {
-        print(selfieName);
-        print((int*) ": could not open input file ");
-        print(sourceName);
-        println();
+            if (sourceFD < 0) {
+                print(selfieName);
+                print((int*) ": could not open input file ");
+                print(sourceName);
+                println();
 
-        exit(-1);
-      }
+                exit(-1);
+            }
 
-      resetScanner();
-      resetParser();
+            resetScanner();
+            resetParser();
 
-      // compile
-      gr_cstar();
+            // compile
+            gr_cstar();
 
-      print(selfieName);
-      print((int*) ": ");
-      printInteger(numberOfReadCharacters);
-      print((int*) " characters read in ");
-      printInteger(lineNumber - 1);
-      print((int*) " lines and ");
-      printInteger(numberOfComments);
-      print((int*) " comments");
-      println();
+            print(selfieName);
+            print((int*) ": ");
+            printInteger(numberOfReadCharacters);
+            print((int*) " characters read in ");
+            printInteger(lineNumber - 1);
+            print((int*) " lines and ");
+            printInteger(numberOfComments);
+            print((int*) " comments");
+            println();
 
-      print(selfieName);
-      print((int*) ": with ");
-      printInteger(numberOfReadCharacters - numberOfIgnoredCharacters);
-      print((int*) "(");
-      printFixedPointPercentage(numberOfReadCharacters, numberOfReadCharacters - numberOfIgnoredCharacters);
-      print((int*) "%) characters in ");
-      printInteger(numberOfScannedSymbols);
-      print((int*) " actual symbols");
-      println();
+            print(selfieName);
+            print((int*) ": with ");
+            printInteger(numberOfReadCharacters - numberOfIgnoredCharacters);
+            print((int*) "(");
+            printFixedPointPercentage(numberOfReadCharacters, numberOfReadCharacters - numberOfIgnoredCharacters);
+            print((int*) "%) characters in ");
+            printInteger(numberOfScannedSymbols);
+            print((int*) " actual symbols");
+            println();
 
-      print(selfieName);
-      print((int*) ": ");
-      printInteger(numberOfGlobalVariables);
-      print((int*) " global variables, ");
-	  //Assignment7
-	  printInteger(numberOfArrays);
-      print((int*) " arrays, ");
-	  //Assignment8
-      printInteger(numberOfStructDef);
-      print((int*) " structs defined, ");
-      printInteger(numberOfStructInst);
-      print((int*) " global struct pointers, ");
-	  
-      printInteger(numberOfProcedures);
-      print((int*) " procedures, ");
-      printInteger(numberOfStrings);
-      print((int*) " string literals");
-      println();
+            print(selfieName);
+            print((int*) ": ");
+            printInteger(numberOfGlobalVariables);
+            print((int*) " global variables, ");
+            printInteger(numberOfArrays);
+            print((int*) " arrays, ");
+            printInteger(numberOfProcedures);
+            print((int*) " procedures, ");
+            printInteger(numberOfStrings);
+            print((int*) " string literals");
+            println();
 
-      print(selfieName);
-      print((int*) ": ");
-      printInteger(numberOfCalls);
-      print((int*) " calls, ");
-      printInteger(numberOfAssignments);
-      print((int*) " assignments, ");
-      printInteger(numberOfWhile);
-      print((int*) " while, ");
-      printInteger(numberOfIf);
-      print((int*) " if, ");
-      printInteger(numberOfReturn);
-      print((int*) " return");
-      println();
+            print(selfieName);
+            print((int*) ": ");
+            printInteger(numberOfCalls);
+            print((int*) " calls, ");
+            printInteger(numberOfAssignments);
+            print((int*) " assignments, ");
+            printInteger(numberOfWhile);
+            print((int*) " while, ");
+            printInteger(numberOfIf);
+            print((int*) " if, ");
+            printInteger(numberOfReturn);
+            print((int*) " return");
+            println();
+        }
     }
-  }
 
-  if (numberOfSourceFiles == 0) {
+    if (numberOfSourceFiles == 0) {
+        print(selfieName);
+        print((int*) ": nothing to compile, only library generated");
+        println();
+    }
+
+    codeLength = binaryLength;
+
+    emitGlobalsStrings();
+
+    bootstrapCode();
+
     print(selfieName);
-    print((int*) ": nothing to compile, only library generated");
+    print((int*) ": ");
+    printInteger(binaryLength + WORDSIZE);
+    print((int*) " bytes generated with ");
+    printInteger(codeLength / WORDSIZE);
+    print((int*) " instructions and ");
+    printInteger(binaryLength - codeLength + WORDSIZE);
+    print((int*) " bytes of data");
     println();
-  }
-
-  codeLength = binaryLength;
-
-  emitGlobalsStrings();
-
-  bootstrapCode();
-
-  print(selfieName);
-  print((int*) ": ");
-  printInteger(binaryLength + WORDSIZE);
-  print((int*) " bytes generated with ");
-  printInteger(codeLength / WORDSIZE);
-  print((int*) " instructions and ");
-  printInteger(binaryLength - codeLength + WORDSIZE);
-  print((int*) " bytes of data");
-  println();
 }
 
 // *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~
@@ -5573,8 +5354,8 @@ void selfie_compile() {
 // -----------------------------------------------------------------
 
 void printRegister(int reg) {
-  //Assignment7
-  print((int*) REGISTERS[ABBR][reg]);
+    //print((int*) *(REGISTERS + reg));
+    print((int*) REGISTERS[ABBR][reg]);
 }
 
 // -----------------------------------------------------------------
@@ -5589,16 +5370,21 @@ void printRegister(int reg) {
 // +------+-----+-----+-----+-----+------+
 //    6      5     5     5     5     6
 int encodeRFormat(int opcode, int rs, int rt, int rd, int shamt, int function) {
-  // assert: 0 <= opcode < 2^6
-  // assert: 0 <= rs < 2^5
-  // assert: 0 <= rt < 2^5
-  // assert: 0 <= rd < 2^5
-  // assert: 0 <= function < 2^6
+    // assert: 0 <= opcode < 2^6
+    // assert: 0 <= rs < 2^5
+    // assert: 0 <= rt < 2^5
+    // assert: 0 <= rd < 2^5
+    // assert: 0 <= function < 2^6
 
+    //when using SLL or SRL emit the following style. (rs becomes SHAMT)
 
-  //return leftShift(leftShift(leftShift(leftShift(leftShift(opcode, 5) + rs, 5) + rt, 5) + rd, 5) + shamt, 6) + function;
-  //return (((((opcode << 5) + rs << 5) + rt << 5) + rd << 5) + shamt << 6) + function;
-  return ((((opcode << 5 | rs) << 5 | rt) << 5 | rd) << 5 | shamt) << 6 | function;
+    // +------+-----+-----+-----+-----+------+
+    // |opcode| rs  |  rt |  rd |shamt|fction|
+    // +------+-----+-----+-----+-----+------+
+    //    6      5     5     5     5     6
+
+    //  return (((((opcode << 5) | rs << 5) | rt << 5) | rd << 5) | shamt << 6) | function;
+    return ((((opcode << 5 | rs) << 5 | rt) << 5 | rd) << 5 | shamt) << 6 | function;
 
 }
 
@@ -5610,18 +5396,15 @@ int encodeRFormat(int opcode, int rs, int rt, int rd, int shamt, int function) {
 // +------+-----+-----+----------------+
 //    6      5     5          16
 int encodeIFormat(int opcode, int rs, int rt, int immediate) {
-  // assert: 0 <= opcode < 2^6
-  // assert: 0 <= rs < 2^5
-  // assert: 0 <= rt < 2^5
-  // assert: -2^15 <= immediate < 2^15
-  if (immediate < 0)
-    // convert from 32-bit to 16-bit two's complement
-    immediate = immediate + twoToThePowerOf(16);
-
-  //return leftShift(leftShift(leftShift(opcode, 5) + rs, 5) + rt, 16) + immediate;
-  //return (((opcode << 5) + rs << 5) + rt << 16) + immediate;
-  return ((opcode << 5 | rs) << 5 | rt) << 16 | immediate;
-
+    // assert: 0 <= opcode < 2^6
+    // assert: 0 <= rs < 2^5
+    // assert: 0 <= rt < 2^5
+    // assert: -2^15 <= immediate < 2^15
+    if (immediate < 0)
+        // convert from 32-bit to 16-bit two's complement
+        immediate = immediate + twoToThePowerOf(16);
+    // //return leftShift(leftShift(leftShift(opcode, 5) + rs, 5) + rt, 16) + immediate;
+    return ((opcode << 5 | rs) << 5 | rt) << 16 | immediate;
 }
 
 // --------------------------------------------------------------
@@ -5632,14 +5415,9 @@ int encodeIFormat(int opcode, int rs, int rt, int immediate) {
 // +------+--------------------------+
 //    6                26
 int encodeJFormat(int opcode, int instr_index) {
-  // assert: 0 <= opcode < 2^6
-  // assert: 0 <= instr_index < 2^26
-  
-  //return leftShift(opcode, 26) + instr_index;
-    //Assignment4
-	//return (opcode << 26) + instr_index;
-	return (opcode << 26) | instr_index;
-
+    // assert: 0 <= opcode < 2^6
+    // assert: 0 <= instr_index < 2^26
+    return (opcode << 26) | instr_index;
 }
 
 // -----------------------------------------------------------------
@@ -5647,82 +5425,66 @@ int encodeJFormat(int opcode, int instr_index) {
 // -----------------------------------------------------------------
 
 int getOpcode(int instruction) {
-  //return rightShift(instruction, 26);
-  return rightShift(instruction, 32-6);
+    return rightShift(instruction, 26);
 }
 
-
-//Assignment4 leftshifts changed
-//Assignment5 masking
 int getRS(int instruction) {
-  //return rightShift((instruction << 6), 27);
-  //return rightShift((instruction & 3E00000), 21) ;
-  //rightshift um 27-6, & mit 0b11111 (rs sind 5 Stellen) 
-  //return rightShift(instruction, 21) & 0b11111;
-  return rightShift( instruction & 0x3E00000, 32-(6+5));
+    return rightShift(instruction & 0x3E00000, 32-(6+5));
 }
 
 int getRT(int instruction) {
-  //return rightShift((instruction << 11), 27);
-  //return rightShift(instruction, 16) & 0b11111;
-  //1F0000 == 111110000000000000000
-  return rightShift(instruction & 0x1F0000, 32-(6+5+5));
+    return rightShift(instruction & 0x1F0000, 32 - (6 + 5 + 5));
 }
 
 int getRD(int instruction) {
-  //return rightShift((instruction << 16), 27);
-  //return rightShift(instruction, 11) & 0b11111;
-  //F800 == 1111100000000000
-  return rightShift(instruction & 0xF800, 32-(6+5+5+5));
+    return rightShift(instruction & 0xF800, 32 - (6 + 5 + 5 + 5));
 }
 
 int getShamt(int instruction) {
-  //return rightShift((instruction << 21), 27);
-  //return rightShift(instruction, 6) & 0b11111;
-  //7C0 == 11111000000
-  return rightShift(instruction & 0x7C0, 32-(6+5+5+5+5));
+    return rightShift(instruction & 0x7C0, 32 - (6 + 5 + 5 + 5 + 5));
 }
 
 int getFunction(int instruction) {
-  //return rightShift((instruction << 26), 26);
-  //function: 6 bit
-  return instruction & 0b111111;
+    //return rightShift((instruction << 26), 26);
+    //return instruction & 0b111111;
+    return rightShift((instruction & 0x3F), 0);
 }
 
 int getImmediate(int instruction) {
-  //return rightShift((instruction << 16), 16);
-  //last 16 bits
-  return instruction & 0xFFFF; //0b1111111111111111;
+    //return rightShift((instruction << 16), 16);
+    //return instruction & 0xFFFF;
+    return rightShift((instruction & 0xFFFF),0);
 }
 
 int getInstrIndex(int instruction) {
-  //return rightShift((instruction << 6), 6);
-  return instruction & 0x3FFFFFF; //0b26*1
+    //return rightShift((instruction << 6), 6);
+    //return instruction & 0x3FFFFFF;
+    return rightShift((instruction & 0x3FFFFFF), 0);
 }
 
 int signExtend(int immediate) {
-  // sign-extend from 16-bit to 32-bit two's complement
-  if (immediate < twoToThePowerOf(15))
-    return immediate;
-  else
-    return immediate - twoToThePowerOf(16);
+    // sign-extend from 16-bit to 32-bit two's complement
+    if (immediate < twoToThePowerOf(15))
+        return immediate;
+    else
+        return immediate - twoToThePowerOf(16);
 }
 
 // --------------------------------------------------------------
 // 32 bit
-//
-// +------+-----+-----+-----+-----+--------+
-// |opcode| rs  | rt  | rd  |00000|function|
-// +------+-----+-----+-----+-----+--------+
+//                           shamt
+// +------+-----+-----+-----+-----+------+
+// |opcode| rs  | rt  | rd  |00000|fction|
+// +------+-----+-----+-----+-----+------+
 //    6      5     5     5     5     6
 void decodeRFormat() {
-  rs          = getRS(ir);
-  rt          = getRT(ir);
-  rd          = getRD(ir);
-  shamt       = getShamt(ir);
-  immediate   = 0;
-  function    = getFunction(ir);
-  instr_index = 0;
+    rs          = getRS(ir);
+    rt          = getRT(ir);
+    rd          = getRD(ir);
+    shamt       = getShamt(ir);
+    immediate   = 0;
+    function    = getFunction(ir);
+    instr_index = 0;
 }
 
 // --------------------------------------------------------------
@@ -5733,12 +5495,12 @@ void decodeRFormat() {
 // +------+-----+-----+----------------+
 //    6      5     5          16
 void decodeIFormat() {
-  rs          = getRS(ir);
-  rt          = getRT(ir);
-  rd          = 0;
-  immediate   = getImmediate(ir);
-  function    = 0;
-  instr_index = 0;
+    rs          = getRS(ir);
+    rt          = getRT(ir);
+    rd          = 0;
+    immediate   = getImmediate(ir);
+    function    = 0;
+    instr_index = 0;
 }
 
 // --------------------------------------------------------------
@@ -5749,33 +5511,33 @@ void decodeIFormat() {
 // +------+--------------------------+
 //    6                26
 void decodeJFormat() {
-  rs          = 0;
-  rt          = 0;
-  rd          = 0;
-  immediate   = 0;
-  function    = 0;
-  instr_index = getInstrIndex(ir);
+    rs          = 0;
+    rt          = 0;
+    rd          = 0;
+    immediate   = 0;
+    function    = 0;
+    instr_index = getInstrIndex(ir);
 }
 
 void decode() {
-  opcode = getOpcode(ir);
+    opcode = getOpcode(ir);
 
-  if (opcode == 0)
-    decodeRFormat();
-  else if (opcode == OP_JAL)
-    decodeJFormat();
-  else if (opcode == OP_J)
-    decodeJFormat();
-  else
-    decodeIFormat();
+    if (opcode == 0)
+        decodeRFormat();
+    else if (opcode == OP_JAL)
+        decodeJFormat();
+    else if (opcode == OP_J)
+        decodeJFormat();
+    else
+        decodeIFormat();
 }
 
 void printOpcode(int opcode) {
-  print((int*) *(OPCODES + opcode));
+    print((int*) *(OPCODES + opcode));
 }
 
 void printFunction(int function) {
-  print((int*) *(FUNCTIONS + function));
+    print((int*) *(FUNCTIONS + function));
 }
 
 // -----------------------------------------------------------------
@@ -5783,321 +5545,331 @@ void printFunction(int function) {
 // -----------------------------------------------------------------
 
 int loadBinary(int baddr) {
-  return *(binary + baddr / WORDSIZE);
+    return *(binary + baddr / WORDSIZE);
 }
 
 void storeBinary(int baddr, int instruction) {
-  *(binary + baddr / WORDSIZE) = instruction;
+    *(binary + baddr / WORDSIZE) = instruction;
 }
 
 void emitInstruction(int instruction) {
-  if (binaryLength >= maxBinaryLength) {
-    syntaxErrorMessage((int*) "exceeded maximum binary length");
+    if (binaryLength >= maxBinaryLength) {
+        syntaxErrorMessage((int*) "exceeded maximum binary length");
 
-    exit(-1);
-  } else {
-    if (*(sourceLineNumber + binaryLength / WORDSIZE) == 0)
-      *(sourceLineNumber + binaryLength / WORDSIZE) = lineNumber;
+        exit(-1);
+    } else {
+        if (*(sourceLineNumber + binaryLength / WORDSIZE) == 0)
+            *(sourceLineNumber + binaryLength / WORDSIZE) = lineNumber;
 
-    storeBinary(binaryLength, instruction);
+        storeBinary(binaryLength, instruction);
 
-    binaryLength = binaryLength + WORDSIZE;
-  }
+        binaryLength = binaryLength + WORDSIZE;
+    }
 }
 
-//Assignment3 shamt added
 void emitRFormat(int opcode, int rs, int rt, int rd, int shamt, int function) {
-  emitInstruction(encodeRFormat(opcode, rs, rt, rd, shamt, function));
+    emitInstruction(encodeRFormat(opcode, rs, rt, rd, shamt, function));
 
-  if (opcode == OP_SPECIAL) {
-    if (function == FCT_JR)
-      emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_NOP); // delay slot
-    else if (function == FCT_MFLO) {
-      // In MIPS I-III two instructions after MFLO/MFHI
-      // must not modify the LO/HI registers
-      emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SLL); // pipeline delay
-      emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SLL); // pipeline delay
-    } else if (function == FCT_MFHI) {
-      emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SLL); // pipeline delay
-      emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SLL); // pipeline delay
+    if (opcode == OP_SPECIAL) {
+        if (function == FCT_JR)
+
+
+            emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_NOP); // delay slot
+        else if (function == FCT_MFLO) {
+            // In MIPS I-III two instructions after MFLO/MFHI
+            // must not modify the LO/HI registers
+
+
+            emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SLL); // pipeline delay
+
+
+            emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SLL); // pipeline delay
+        } else if (function == FCT_MFHI) {
+
+
+            emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SLL); // pipeline delay
+
+
+            emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SLL); // pipeline delay
+        }
     }
-  }
 }
 
 void emitIFormat(int opcode, int rs, int rt, int immediate) {
-  emitInstruction(encodeIFormat(opcode, rs, rt, immediate));
+    emitInstruction(encodeIFormat(opcode, rs, rt, immediate));
 
-  if (opcode == OP_BEQ)
-    emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_NOP); // delay slot
-  else if (opcode == OP_BNE)
-    emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_NOP); // delay slot
+    if (opcode == OP_BEQ)
+
+
+        emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_NOP); // delay slot
+    else if (opcode == OP_BNE)
+
+
+        emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_NOP); // delay slot
 }
 
 void emitJFormat(int opcode, int instr_index) {
-  emitInstruction(encodeJFormat(opcode, instr_index));
+    emitInstruction(encodeJFormat(opcode, instr_index));
 
-  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_NOP); // delay slot
+
+
+    emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_NOP); // delay slot
 }
 
 void fixup_relative(int fromAddress) {
-  int instruction;
+    int instruction;
 
-  instruction = loadBinary(fromAddress);
+    instruction = loadBinary(fromAddress);
 
-  storeBinary(fromAddress,
-    encodeIFormat(getOpcode(instruction),
-      getRS(instruction),
-      getRT(instruction),
-      (binaryLength - fromAddress - WORDSIZE) / WORDSIZE));
+    storeBinary(fromAddress,
+                encodeIFormat(getOpcode(instruction),
+                              getRS(instruction),
+                              getRT(instruction),
+                              (binaryLength - fromAddress - WORDSIZE) / WORDSIZE));
 }
 
 void fixup_absolute(int fromAddress, int toAddress) {
-  storeBinary(fromAddress,
-    encodeJFormat(getOpcode(loadBinary(fromAddress)), toAddress / WORDSIZE));
+    storeBinary(fromAddress,
+                encodeJFormat(getOpcode(loadBinary(fromAddress)), toAddress / WORDSIZE));
 }
 
 void fixlink_absolute(int fromAddress, int toAddress) {
-  int previousAddress;
+    int previousAddress;
 
-  while (fromAddress != 0) {
-    previousAddress = getInstrIndex(loadBinary(fromAddress)) * WORDSIZE;
+    while (fromAddress != 0) {
+        previousAddress = getInstrIndex(loadBinary(fromAddress)) * WORDSIZE;
 
-    fixup_absolute(fromAddress, toAddress);
+        fixup_absolute(fromAddress, toAddress);
 
-    fromAddress = previousAddress;
-  }
+        fromAddress = previousAddress;
+    }
 }
 
 int copyStringToBinary(int* s, int baddr) {
-  int next;
+    int next;
 
-  next = baddr + roundUp(stringLength(s) + 1, WORDSIZE);
+    next = baddr + roundUp(stringLength(s) + 1, WORDSIZE);
 
-  while (baddr < next) {
-    storeBinary(baddr, *s);
+    while (baddr < next) {
+        storeBinary(baddr, *s);
 
-    s = s + 1;
+        s = s + 1;
 
-    baddr = baddr + WORDSIZE;
-  }
+        baddr = baddr + WORDSIZE;
+    }
 
-  return next;
+    return next;
 }
 
 void emitGlobalsStrings() {
-  int* entry;
-  //Assignment7
-  int i;
-  int totalSize;
+    int* entry;
+    int i;
+    int totalSize;
 
-  entry = global_symbol_table;
+    entry = global_symbol_table;
 
-  // assert: n = binaryLength
+    // assert: n = binaryLength
 
-  // allocate space for global variables and copy strings
-  while ((int) entry != 0) {
-    if (getClass(entry) == VARIABLE) {
-      storeBinary(binaryLength, getValue(entry));
+    // allocate space for global variables and copy strings
+    while ((int) entry != 0) {
+        if (getClass(entry) == VARIABLE) {
+            storeBinary(binaryLength, getValue(entry));
 
-      binaryLength = binaryLength + WORDSIZE;
-    } else if (getClass(entry) == STRING) {
-      binaryLength = copyStringToBinary(getString(entry), binaryLength);
- 
-    //Assignment7
-	//allocate space for arrays and initialize it with 0
-    } else if (getClass(entry) == ARRAY){
-      i = 0;
-      totalSize = getTotalSize(entry);
-      while(i < totalSize){
-        storeBinary(binaryLength, 0);
-        
-        binaryLength = binaryLength + WORDSIZE;
-        i = i +1;
-      }
+            binaryLength = binaryLength + WORDSIZE;
+        } else if (getClass(entry) == STRING){
+            binaryLength = copyStringToBinary(getString(entry), binaryLength);
+        }else if (getClass(entry) == ARRAY){
+          i = 0;
+          totalSize = getTotalSize(entry);
+          while(i < totalSize){
+            storeBinary(binaryLength, 0);
+
+            binaryLength = binaryLength + WORDSIZE;
+            i = i +1;
+          }
+        }
+        entry = getNextEntry(entry);
     }
-  
-    entry = getNextEntry(entry);
-  }
 
-  // assert: binaryLength == n + allocatedMemory
+    // assert: binaryLength == n + allocatedMemory
 
-  allocatedMemory = 0;
+    allocatedMemory = 0;
 }
 
 int openWriteOnly(int* name) {
-  // we try opening write-only files using platform-specific flags
-  // to make selfie platform-independent, this may nevertheless
-  // not always work and require intervention
-  int fd;
+    // we try opening write-only files using platform-specific flags
+    // to make selfie platform-independent, this may nevertheless
+    // not always work and require intervention
+    int fd;
 
-  // try Mac flags
-  fd = open(name, MAC_O_CREAT_TRUNC_WRONLY, S_IRUSR_IWUSR_IRGRP_IROTH);
+    // try Mac flags
+    fd = open(name, MAC_O_CREAT_TRUNC_WRONLY, S_IRUSR_IWUSR_IRGRP_IROTH);
 
-  if (fd < 0) {
-    // try Linux flags
-    fd = open(name, LINUX_O_CREAT_TRUNC_WRONLY, S_IRUSR_IWUSR_IRGRP_IROTH);
+    if (fd < 0) {
+        // try Linux flags
+        fd = open(name, LINUX_O_CREAT_TRUNC_WRONLY, S_IRUSR_IWUSR_IRGRP_IROTH);
 
-    if (fd < 0)
-      // try Windows flags
-      fd = open(name, WINDOWS_O_BINARY_CREAT_TRUNC_WRONLY, S_IRUSR_IWUSR_IRGRP_IROTH);
-  }
+        if (fd < 0)
+            // try Windows flags
+            fd = open(name, WINDOWS_O_BINARY_CREAT_TRUNC_WRONLY, S_IRUSR_IWUSR_IRGRP_IROTH);
+    }
 
-  return fd;
+    return fd;
 }
 
 void selfie_output() {
-  int fd;
+    int fd;
 
-  binaryName = getArgument();
+    binaryName = getArgument();
 
-  if (binaryLength == 0) {
+    if (binaryLength == 0) {
+        print(selfieName);
+        print((int*) ": nothing to emit to output file ");
+        print(binaryName);
+        println();
+
+        return;
+    }
+
+    // assert: binaryName is mapped and not longer than maxFilenameLength
+
+    fd = openWriteOnly(binaryName);
+
+    if (fd < 0) {
+        print(selfieName);
+        print((int*) ": could not create binary output file ");
+        print(binaryName);
+        println();
+
+        exit(-1);
+    }
+
+    *binary_buffer = codeLength;
+
+    // assert: binary_buffer is mapped
+
+    // first write code length
+    write(fd, binary_buffer, WORDSIZE);
+
+    // assert: binary is mapped
+
+    // then write binary
+    write(fd, binary, binaryLength);
+
     print(selfieName);
-    print((int*) ": nothing to emit to output file ");
+    print((int*) ": ");
+    printInteger(binaryLength + WORDSIZE);
+    print((int*) " bytes with ");
+    printInteger(codeLength / WORDSIZE);
+    print((int*) " instructions and ");
+    printInteger(binaryLength - codeLength + WORDSIZE);
+    print((int*) " bytes of data written into ");
     print(binaryName);
     println();
-
-    return;
-  }
-
-  // assert: binaryName is mapped and not longer than maxFilenameLength
-
-  fd = openWriteOnly(binaryName);
-
-  if (fd < 0) {
-    print(selfieName);
-    print((int*) ": could not create binary output file ");
-    print(binaryName);
-    println();
-
-    exit(-1);
-  }
-
-  *binary_buffer = codeLength;
-
-  // assert: binary_buffer is mapped
-
-  // first write code length
-  write(fd, binary_buffer, WORDSIZE);
-
-  // assert: binary is mapped
-
-  // then write binary
-  write(fd, binary, binaryLength);
-
-  print(selfieName);
-  print((int*) ": ");
-  printInteger(binaryLength + WORDSIZE);
-  print((int*) " bytes with ");
-  printInteger(codeLength / WORDSIZE);
-  print((int*) " instructions and ");
-  printInteger(binaryLength - codeLength + WORDSIZE);
-  print((int*) " bytes of data written into ");
-  print(binaryName);
-  println();
 }
 
 int* touch(int* memory, int length) {
-  int* m;
-  int n;
+    int* m;
+    int n;
 
-  m = memory;
+    m = memory;
 
-  if (length > 0)
-    // touch memory at beginning
-    n = *m;
+    if (length > 0)
+        // touch memory at beginning
+        n = *m;
 
-  while (length > PAGESIZE) {
-    length = length - PAGESIZE;
+    while (length > PAGESIZE) {
+        length = length - PAGESIZE;
 
-    m = m + PAGESIZE / WORDSIZE;
+        m = m + PAGESIZE / WORDSIZE;
 
-    // touch every following page
-    n = *m;
-  }
+        // touch every following page
+        n = *m;
+    }
 
-  if (length > 0) {
-    m = m + (length - 1) / WORDSIZE;
+    if (length > 0) {
+        m = m + (length - 1) / WORDSIZE;
 
-    // touch at end
-    n = *m;
-  }
+        // touch at end
+        n = *m;
+    }
 
-  // avoids unused warning for n
-  n = 0; n = n + 1;
+    // avoids unused warning for n
+    n = 0; n = n + 1;
 
-  return memory;
+    return memory;
 }
 
 void selfie_load() {
-  int fd;
-  int numberOfReadBytes;
+    int fd;
+    int numberOfReadBytes;
 
-  binaryName = getArgument();
+    binaryName = getArgument();
 
-  // assert: binaryName is mapped and not longer than maxFilenameLength
+    // assert: binaryName is mapped and not longer than maxFilenameLength
 
-  fd = open(binaryName, O_RDONLY, 0);
+    fd = open(binaryName, O_RDONLY, 0);
 
-  if (fd < 0) {
+    if (fd < 0) {
+        print(selfieName);
+        print((int*) ": could not open input file ");
+        print(binaryName);
+        println();
+
+        exit(-1);
+    }
+
+    // make sure binary is mapped
+    binary = touch(malloc(maxBinaryLength), maxBinaryLength);
+
+    binaryLength = 0;
+    codeLength   = 0;
+
+    // no source line numbers in binaries
+    sourceLineNumber = (int*) 0;
+
+    // assert: binary_buffer is mapped
+
+    // read code length first
+    numberOfReadBytes = read(fd, binary_buffer, WORDSIZE);
+
+    if (numberOfReadBytes == WORDSIZE) {
+        codeLength = *binary_buffer;
+
+        if (codeLength <= maxBinaryLength) {
+            // assert: binary is mapped
+
+            // now read binary including global variables and strings
+            numberOfReadBytes = read(fd, binary, maxBinaryLength);
+
+            if (numberOfReadBytes > 0) {
+                binaryLength = numberOfReadBytes;
+
+                // check if we are really at EOF
+                if (read(fd, binary_buffer, WORDSIZE) == 0) {
+                    print(selfieName);
+                    print((int*) ": ");
+                    printInteger(binaryLength + WORDSIZE);
+                    print((int*) " bytes with ");
+                    printInteger(codeLength / WORDSIZE);
+                    print((int*) " instructions and ");
+                    printInteger(binaryLength - codeLength + WORDSIZE);
+                    print((int*) " bytes of data loaded from ");
+                    print(binaryName);
+                    println();
+
+                    return;
+                }
+            }
+        }
+    }
+
     print(selfieName);
-    print((int*) ": could not open input file ");
+    print((int*) ": failed to load code from input file ");
     print(binaryName);
     println();
 
     exit(-1);
-  }
-
-  // make sure binary is mapped
-  binary = touch(malloc(maxBinaryLength), maxBinaryLength);
-
-  binaryLength = 0;
-  codeLength   = 0;
-
-  // no source line numbers in binaries
-  sourceLineNumber = (int*) 0;
-
-  // assert: binary_buffer is mapped
-
-  // read code length first
-  numberOfReadBytes = read(fd, binary_buffer, WORDSIZE);
-
-  if (numberOfReadBytes == WORDSIZE) {
-    codeLength = *binary_buffer;
-
-    if (codeLength <= maxBinaryLength) {
-      // assert: binary is mapped
-
-      // now read binary including global variables and strings
-      numberOfReadBytes = read(fd, binary, maxBinaryLength);
-
-      if (numberOfReadBytes > 0) {
-        binaryLength = numberOfReadBytes;
-
-        // check if we are really at EOF
-        if (read(fd, binary_buffer, WORDSIZE) == 0) {
-          print(selfieName);
-          print((int*) ": ");
-          printInteger(binaryLength + WORDSIZE);
-          print((int*) " bytes with ");
-          printInteger(codeLength / WORDSIZE);
-          print((int*) " instructions and ");
-          printInteger(binaryLength - codeLength + WORDSIZE);
-          print((int*) " bytes of data loaded from ");
-          print(binaryName);
-          println();
-
-          return;
-        }
-      }
-    }
-  }
-
-  print(selfieName);
-  print((int*) ": failed to load code from input file ");
-  print(binaryName);
-  println();
-
-  exit(-1);
 }
 
 // -----------------------------------------------------------------
@@ -6105,430 +5877,448 @@ void selfie_load() {
 // -----------------------------------------------------------------
 
 void emitExit() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "exit", 0, PROCEDURE, VOID_T, 0, binaryLength);
+    createSymbolTableEntry(LIBRARY_TABLE, (int*) "exit", 0, PROCEDURE, VOID_T, 0, binaryLength);
 
-  // load argument for exit
-  emitIFormat(OP_LW, REG_SP, REG_A0, 0); // exit code
+    // load argument for exit
+    emitIFormat(OP_LW, REG_SP, REG_A0, 0); // exit code
 
-  // remove the argument from the stack
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
+    // remove the argument from the stack
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
-  // load the correct syscall number and invoke syscall
-  emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_EXIT);
-  emitRFormat(0, 0, 0, 0, 0, FCT_SYSCALL);
+    // load the correct syscall number and invoke syscall
+    emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_EXIT);
 
-  // never returns here
+
+    emitRFormat(0, 0, 0, 0, 0, FCT_SYSCALL);
+
+    // never returns here
 }
 
 void implementExit() {
-  int exitCode;
+    int exitCode;
 
-  exitCode = *(registers+REG_A0);
+    exitCode = *(registers+REG_A0);
 
-  // exit code must be signed 16-bit integer
-  if (exitCode > INT16_MAX)
-    exitCode = INT16_MAX;
-  else if (exitCode < INT16_MIN)
-    exitCode = INT16_MIN;
+    // exit code must be signed 16-bit integer
+    if (exitCode > INT16_MAX)
+        exitCode = INT16_MAX;
+    else if (exitCode < INT16_MIN)
+        exitCode = INT16_MIN;
 
-  throwException(EXCEPTION_EXIT, exitCode);
+    throwException(EXCEPTION_EXIT, exitCode);
 
-  print(binaryName);
-  print((int*) ": exiting with exit code ");
-  printInteger(*(registers+REG_A0));
-  print((int*) " and ");
-  printFixedPointRatio(brk - maxBinaryLength, MEGABYTE);
-  print((int*) "MB of mallocated memory");
-  println();
+    print(binaryName);
+    print((int*) ": exiting with exit code ");
+    printInteger(*(registers+REG_A0));
+    print((int*) " and ");
+    printFixedPointRatio(brk - maxBinaryLength, MEGABYTE);
+    print((int*) "MB of mallocated memory");
+    println();
 }
 
 void emitRead() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "read", 0, PROCEDURE, INT_T, 0, binaryLength);
+    createSymbolTableEntry(LIBRARY_TABLE, (int*) "read", 0, PROCEDURE, INT_T, 0, binaryLength);
 
-  emitIFormat(OP_LW, REG_SP, REG_A2, 0); // size
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
+    emitIFormat(OP_LW, REG_SP, REG_A2, 0); // size
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
-  emitIFormat(OP_LW, REG_SP, REG_A1, 0); // *buffer
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
+    emitIFormat(OP_LW, REG_SP, REG_A1, 0); // *buffer
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
-  emitIFormat(OP_LW, REG_SP, REG_A0, 0); // fd
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
+    emitIFormat(OP_LW, REG_SP, REG_A0, 0); // fd
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
-  emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_READ);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+    emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_READ);
 
-  // jump back to caller, return value is in REG_V0
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
+
+    emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+
+    // jump back to caller, return value is in REG_V0
+
+
+    emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 void implementRead() {
-  int size;
-  int vaddr;
-  int fd;
-  int readTotal;
-  int bytesToRead;
-  int* buffer;
-  int actuallyRead;
-  int failed;
+    int size;
+    int vaddr;
+    int fd;
+    int readTotal;
+    int bytesToRead;
+    int* buffer;
+    int actuallyRead;
+    int failed;
 
-  // assert: read buffer is mapped
+    // assert: read buffer is mapped
 
-  size  = *(registers+REG_A2);
-  vaddr = *(registers+REG_A1);
-  fd    = *(registers+REG_A0);
+    size  = *(registers+REG_A2);
+    vaddr = *(registers+REG_A1);
+    fd    = *(registers+REG_A0);
 
-  if (debug_read) {
-    print(binaryName);
-    print((int*) ": trying to read ");
-    printInteger(size);
-    print((int*) " bytes from file with descriptor ");
-    printInteger(fd);
-    print((int*) " into buffer at virtual address ");
-    printHexadecimal(vaddr, 8);
-    println();
-  }
-
-  readTotal   = 0;
-  bytesToRead = WORDSIZE;
-
-  failed = 0;
-
-  while (size > 0) {
-    if (isValidVirtualAddress(vaddr)) {
-      if (isVirtualAddressMapped(pt, vaddr)) {
-        buffer = tlb(pt, vaddr);
-
-        if (size < bytesToRead)
-          bytesToRead = size;
-
-        actuallyRead = read(fd, buffer, bytesToRead);
-
-        if (actuallyRead == bytesToRead) {
-          readTotal = readTotal + actuallyRead;
-
-          size = size - actuallyRead;
-
-          if (size > 0)
-            vaddr = vaddr + WORDSIZE;
-        } else {
-          if (actuallyRead > 0)
-            readTotal = readTotal + actuallyRead;
-
-          size = 0;
-        }
-      } else {
-        failed = 1;
-
-        size = 0;
-
-        if (debug_read) {
-          print(binaryName);
-          print((int*) ": reading into virtual address ");
-          printHexadecimal(vaddr, 8);
-          print((int*) " failed because the address is unmapped");
-          println();
-        }
-      }
-    } else {
-      failed = 1;
-
-      size = 0;
-
-      if (debug_read) {
+    if (debug_read) {
         print(binaryName);
-        print((int*) ": reading into virtual address ");
+        print((int*) ": trying to read ");
+        printInteger(size);
+        print((int*) " bytes from file with descriptor ");
+        printInteger(fd);
+        print((int*) " into buffer at virtual address ");
         printHexadecimal(vaddr, 8);
-        print((int*) " failed because the address is invalid");
         println();
-      }
     }
-  }
 
-  if (failed == 0)
-    *(registers+REG_V0) = readTotal;
-  else
-    *(registers+REG_V0) = -1;
+    readTotal   = 0;
+    bytesToRead = WORDSIZE;
 
-  if (debug_read) {
-    print(binaryName);
-    print((int*) ": actually read ");
-    printInteger(readTotal);
-    print((int*) " bytes from file with descriptor ");
-    printInteger(fd);
-    println();
-  }
+    failed = 0;
+
+    while (size > 0) {
+        if (isValidVirtualAddress(vaddr)) {
+            if (isVirtualAddressMapped(pt, vaddr)) {
+                buffer = tlb(pt, vaddr);
+
+                if (size < bytesToRead)
+                    bytesToRead = size;
+
+                actuallyRead = read(fd, buffer, bytesToRead);
+
+                if (actuallyRead == bytesToRead) {
+                    readTotal = readTotal + actuallyRead;
+
+                    size = size - actuallyRead;
+
+                    if (size > 0)
+                        vaddr = vaddr + WORDSIZE;
+                } else {
+                    if (actuallyRead > 0)
+                        readTotal = readTotal + actuallyRead;
+
+                    size = 0;
+                }
+            } else {
+                failed = 1;
+
+                size = 0;
+
+                if (debug_read) {
+                    print(binaryName);
+                    print((int*) ": reading into virtual address ");
+                    printHexadecimal(vaddr, 8);
+                    print((int*) " failed because the address is unmapped");
+                    println();
+                }
+            }
+        } else {
+            failed = 1;
+
+            size = 0;
+
+            if (debug_read) {
+                print(binaryName);
+                print((int*) ": reading into virtual address ");
+                printHexadecimal(vaddr, 8);
+                print((int*) " failed because the address is invalid");
+                println();
+            }
+        }
+    }
+
+    if (failed == 0)
+        *(registers+REG_V0) = readTotal;
+    else
+        *(registers+REG_V0) = -1;
+
+    if (debug_read) {
+        print(binaryName);
+        print((int*) ": actually read ");
+        printInteger(readTotal);
+        print((int*) " bytes from file with descriptor ");
+        printInteger(fd);
+        println();
+    }
 }
 
 void emitWrite() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "write", 0, PROCEDURE, INT_T, 0, binaryLength);
+    createSymbolTableEntry(LIBRARY_TABLE, (int*) "write", 0, PROCEDURE, INT_T, 0, binaryLength);
 
-  emitIFormat(OP_LW, REG_SP, REG_A2, 0); // size
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
+    emitIFormat(OP_LW, REG_SP, REG_A2, 0); // size
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
-  emitIFormat(OP_LW, REG_SP, REG_A1, 0); // *buffer
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
+    emitIFormat(OP_LW, REG_SP, REG_A1, 0); // *buffer
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
-  emitIFormat(OP_LW, REG_SP, REG_A0, 0); // fd
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
+    emitIFormat(OP_LW, REG_SP, REG_A0, 0); // fd
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
-  emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_WRITE);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+    emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_WRITE);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
+
+    emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+
+
+
+    emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 void implementWrite() {
-  int size;
-  int vaddr;
-  int fd;
-  int writtenTotal;
-  int bytesToWrite;
-  int* buffer;
-  int actuallyWritten;
-  int failed;
+    int size;
+    int vaddr;
+    int fd;
+    int writtenTotal;
+    int bytesToWrite;
+    int* buffer;
+    int actuallyWritten;
+    int failed;
 
-  // assert: write buffer is mapped
+    // assert: write buffer is mapped
 
-  size  = *(registers+REG_A2);
-  vaddr = *(registers+REG_A1);
-  fd    = *(registers+REG_A0);
+    size  = *(registers+REG_A2);
+    vaddr = *(registers+REG_A1);
+    fd    = *(registers+REG_A0);
 
-  if (debug_write) {
-    print(binaryName);
-    print((int*) ": trying to write ");
-    printInteger(size);
-    print((int*) " bytes from buffer at virtual address ");
-    printHexadecimal(vaddr, 8);
-    print((int*) " into file with descriptor ");
-    printInteger(fd);
-    println();
-  }
-
-  writtenTotal = 0;
-  bytesToWrite = WORDSIZE;
-
-  failed = 0;
-
-  while (size > 0) {
-    if (isValidVirtualAddress(vaddr)) {
-      if (isVirtualAddressMapped(pt, vaddr)) {
-        buffer = tlb(pt, vaddr);
-
-        if (size < bytesToWrite)
-          bytesToWrite = size;
-
-        actuallyWritten = write(fd, buffer, bytesToWrite);
-
-        if (actuallyWritten == bytesToWrite) {
-          writtenTotal = writtenTotal + actuallyWritten;
-
-          size = size - actuallyWritten;
-
-          if (size > 0)
-            vaddr = vaddr + WORDSIZE;
-        } else {
-          if (actuallyWritten > 0)
-            writtenTotal = writtenTotal + actuallyWritten;
-
-          size = 0;
-        }
-      } else {
-        failed = 1;
-
-        size = 0;
-
-        if (debug_write) {
-          print(binaryName);
-          print((int*) ": writing into virtual address ");
-          printHexadecimal(vaddr, 8);
-          print((int*) " failed because the address is unmapped");
-          println();
-        }
-      }
-    } else {
-      failed = 1;
-
-      size = 0;
-
-      if (debug_write) {
+    if (debug_write) {
         print(binaryName);
-        print((int*) ": writing into virtual address ");
+        print((int*) ": trying to write ");
+        printInteger(size);
+        print((int*) " bytes from buffer at virtual address ");
         printHexadecimal(vaddr, 8);
-        print((int*) " failed because the address is invalid");
+        print((int*) " into file with descriptor ");
+        printInteger(fd);
         println();
-      }
     }
-  }
 
-  if (failed == 0)
-    *(registers+REG_V0) = writtenTotal;
-  else
-    *(registers+REG_V0) = -1;
+    writtenTotal = 0;
+    bytesToWrite = WORDSIZE;
 
-  if (debug_write) {
-    print(binaryName);
-    print((int*) ": actually wrote ");
-    printInteger(writtenTotal);
-    print((int*) " bytes into file with descriptor ");
-    printInteger(fd);
-    println();
-  }
+    failed = 0;
+
+    while (size > 0) {
+        if (isValidVirtualAddress(vaddr)) {
+            if (isVirtualAddressMapped(pt, vaddr)) {
+                buffer = tlb(pt, vaddr);
+
+                if (size < bytesToWrite)
+                    bytesToWrite = size;
+
+                actuallyWritten = write(fd, buffer, bytesToWrite);
+
+                if (actuallyWritten == bytesToWrite) {
+                    writtenTotal = writtenTotal + actuallyWritten;
+
+                    size = size - actuallyWritten;
+
+                    if (size > 0)
+                        vaddr = vaddr + WORDSIZE;
+                } else {
+                    if (actuallyWritten > 0)
+                        writtenTotal = writtenTotal + actuallyWritten;
+
+                    size = 0;
+                }
+            } else {
+                failed = 1;
+
+                size = 0;
+
+                if (debug_write) {
+                    print(binaryName);
+                    print((int*) ": writing into virtual address ");
+                    printHexadecimal(vaddr, 8);
+                    print((int*) " failed because the address is unmapped");
+                    println();
+                }
+            }
+        } else {
+            failed = 1;
+
+            size = 0;
+
+            if (debug_write) {
+                print(binaryName);
+                print((int*) ": writing into virtual address ");
+                printHexadecimal(vaddr, 8);
+                print((int*) " failed because the address is invalid");
+                println();
+            }
+        }
+    }
+
+    if (failed == 0)
+        *(registers+REG_V0) = writtenTotal;
+    else
+        *(registers+REG_V0) = -1;
+
+    if (debug_write) {
+        print(binaryName);
+        print((int*) ": actually wrote ");
+        printInteger(writtenTotal);
+        print((int*) " bytes into file with descriptor ");
+        printInteger(fd);
+        println();
+    }
 }
 
 void emitOpen() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "open", 0, PROCEDURE, INT_T, 0, binaryLength);
+    createSymbolTableEntry(LIBRARY_TABLE, (int*) "open", 0, PROCEDURE, INT_T, 0, binaryLength);
 
-  emitIFormat(OP_LW, REG_SP, REG_A2, 0); // mode
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
+    emitIFormat(OP_LW, REG_SP, REG_A2, 0); // mode
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
-  emitIFormat(OP_LW, REG_SP, REG_A1, 0); // flags
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
+    emitIFormat(OP_LW, REG_SP, REG_A1, 0); // flags
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
-  emitIFormat(OP_LW, REG_SP, REG_A0, 0); // filename
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
+    emitIFormat(OP_LW, REG_SP, REG_A0, 0); // filename
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
-  emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_OPEN);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+    emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_OPEN);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
+
+    emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+
+
+
+    emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 int down_loadString(int* table, int vaddr, int* s) {
-  int i;
-  int* paddr;
+    int i;
+    int* paddr;
 
-  i = 0;
+    i = 0;
 
-  while (i < maxFilenameLength / WORDSIZE) {
-    if (isValidVirtualAddress(vaddr)) {
-      if (isVirtualAddressMapped(table, vaddr)) {
-        paddr = tlb(table, vaddr);
+    while (i < maxFilenameLength / WORDSIZE) {
+        if (isValidVirtualAddress(vaddr)) {
+            if (isVirtualAddressMapped(table, vaddr)) {
+                paddr = tlb(table, vaddr);
 
-        *(s + i) = loadPhysicalMemory(paddr);
+                *(s + i) = loadPhysicalMemory(paddr);
 
-        if (loadCharacter(paddr, 0) == 0)
-          return 1;
-        else if (loadCharacter(paddr, 1) == 0)
-          return 1;
-        else if (loadCharacter(paddr, 2) == 0)
-          return 1;
-        else if (loadCharacter(paddr, 3) == 0)
-          return 1;
+                if (loadCharacter(paddr, 0) == 0)
+                    return 1;
+                else if (loadCharacter(paddr, 1) == 0)
+                    return 1;
+                else if (loadCharacter(paddr, 2) == 0)
+                    return 1;
+                else if (loadCharacter(paddr, 3) == 0)
+                    return 1;
 
-        vaddr = vaddr + WORDSIZE;
+                vaddr = vaddr + WORDSIZE;
 
-        i = i + 1;
-      } else {
-        if (debug_open) {
-          print(binaryName);
-          print((int*) ": opening file with name at virtual address ");
-          printHexadecimal(vaddr, 8);
-          print((int*) " failed because the address is unmapped");
-          println();
+                i = i + 1;
+            } else {
+                if (debug_open) {
+                    print(binaryName);
+                    print((int*) ": opening file with name at virtual address ");
+                    printHexadecimal(vaddr, 8);
+                    print((int*) " failed because the address is unmapped");
+                    println();
+                }
+            }
+        } else {
+            if (debug_open) {
+                print(binaryName);
+                print((int*) ": opening file with name at virtual address ");
+                printHexadecimal(vaddr, 8);
+                print((int*) " failed because the address is invalid");
+                println();
+            }
         }
-      }
-    } else {
-      if (debug_open) {
-        print(binaryName);
-        print((int*) ": opening file with name at virtual address ");
-        printHexadecimal(vaddr, 8);
-        print((int*) " failed because the address is invalid");
-        println();
-      }
     }
-  }
 
-  return 0;
+    return 0;
 }
 
 void implementOpen() {
-  int mode;
-  int flags;
-  int vaddr;
-  int fd;
+    int mode;
+    int flags;
+    int vaddr;
+    int fd;
 
-  mode  = *(registers+REG_A2);
-  flags = *(registers+REG_A1);
-  vaddr = *(registers+REG_A0);
+    mode  = *(registers+REG_A2);
+    flags = *(registers+REG_A1);
+    vaddr = *(registers+REG_A0);
 
-  if (down_loadString(pt, vaddr, filename_buffer)) {
-    fd = open(filename_buffer, flags, mode);
+    if (down_loadString(pt, vaddr, filename_buffer)) {
+        fd = open(filename_buffer, flags, mode);
 
-    *(registers+REG_V0) = fd;
+        *(registers+REG_V0) = fd;
 
-    if (debug_open) {
-      print(binaryName);
-      print((int*) ": opened file ");
-      printString(filename_buffer);
-      print((int*) " with flags ");
-      printHexadecimal(flags, 0);
-      print((int*) " and mode ");
-      printOctal(mode, 0);
-      print((int*) " returning file descriptor ");
-      printInteger(fd);
-      println();
+        if (debug_open) {
+            print(binaryName);
+            print((int*) ": opened file ");
+            printString(filename_buffer);
+            print((int*) " with flags ");
+            printHexadecimal(flags, 0);
+            print((int*) " and mode ");
+            printOctal(mode, 0);
+            print((int*) " returning file descriptor ");
+            printInteger(fd);
+            println();
+        }
+    } else {
+        *(registers+REG_V0) = -1;
+
+        if (debug_open) {
+            print(binaryName);
+            print((int*) ": opening file with name at virtual address ");
+            printHexadecimal(vaddr, 8);
+            print((int*) " failed because the name is too long");
+            println();
+        }
     }
-  } else {
-    *(registers+REG_V0) = -1;
-
-    if (debug_open) {
-      print(binaryName);
-      print((int*) ": opening file with name at virtual address ");
-      printHexadecimal(vaddr, 8);
-      print((int*) " failed because the name is too long");
-      println();
-    }
-  }
 }
 
 void emitMalloc() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "malloc", 0, PROCEDURE, INTSTAR_T, 0, binaryLength);
+    createSymbolTableEntry(LIBRARY_TABLE, (int*) "malloc", 0, PROCEDURE, INTSTAR_T, 0, binaryLength);
 
-  // on boot levels higher than zero, zalloc falls back to malloc
-  // assuming that page frames are zeroed on boot level zero
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "zalloc", 0, PROCEDURE, INTSTAR_T, 0, binaryLength);
+    // on boot levels higher than zero, zalloc falls back to malloc
+    // assuming that page frames are zeroed on boot level zero
+    createSymbolTableEntry(LIBRARY_TABLE, (int*) "zalloc", 0, PROCEDURE, INTSTAR_T, 0, binaryLength);
 
-  emitIFormat(OP_LW, REG_SP, REG_A0, 0); // size
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
+    emitIFormat(OP_LW, REG_SP, REG_A0, 0); // size
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
-  emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_MALLOC);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+    emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_MALLOC);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
+
+    emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+
+
+
+    emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 void implementMalloc() {
-  int size;
-  int bump;
-
-  if (debug_malloc) {
-    print(binaryName);
-    print((int*) ": trying to malloc ");
-    printInteger(*(registers+REG_A0));
-    print((int*) " bytes");
-    println();
-  }
-
-  size = roundUp(*(registers+REG_A0), WORDSIZE);
-
-  bump = brk;
-
-  if (bump + size >= *(registers+REG_SP))
-    throwException(EXCEPTION_HEAPOVERFLOW, 0);
-  else {
-    *(registers+REG_V0) = bump;
-
-    brk = bump + size;
+    int size;
+    int bump;
 
     if (debug_malloc) {
-      print(binaryName);
-      print((int*) ": actually mallocating ");
-      printInteger(size);
-      print((int*) " bytes at virtual address ");
-      printHexadecimal(bump, 8);
-      println();
+        print(binaryName);
+        print((int*) ": trying to malloc ");
+        printInteger(*(registers+REG_A0));
+        print((int*) " bytes");
+        println();
     }
-  }
+
+    size = roundUp(*(registers+REG_A0), WORDSIZE);
+
+    bump = brk;
+
+    if (bump + size >= *(registers+REG_SP))
+        throwException(EXCEPTION_HEAPOVERFLOW, 0);
+    else {
+        *(registers+REG_V0) = bump;
+
+        brk = bump + size;
+
+        if (debug_malloc) {
+            print(binaryName);
+            print((int*) ": actually mallocating ");
+            printInteger(size);
+            print((int*) " bytes at virtual address ");
+            printHexadecimal(bump, 8);
+            println();
+        }
+    }
 }
 
 // -----------------------------------------------------------------
@@ -6536,341 +6326,367 @@ void implementMalloc() {
 // -----------------------------------------------------------------
 
 void emitID() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_ID", 0, PROCEDURE, INT_T, 0, binaryLength);
+    createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_ID", 0, PROCEDURE, INT_T, 0, binaryLength);
 
-  emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_ID);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+    emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_ID);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
+
+    emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+
+
+
+    emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 void implementID() {
-  *(registers+REG_V0) = getID(currentContext);
+    *(registers+REG_V0) = getID(currentContext);
 }
 
 int hypster_ID() {
-  // this procedure is only executed at boot level zero
-  return MIPSTER_ID;
+    // this procedure is only executed at boot level zero
+    return MIPSTER_ID;
 }
 
 int selfie_ID() {
-  if (mipster)
-    return MIPSTER_ID;
-  else
-    return hypster_ID();
+    if (mipster)
+        return MIPSTER_ID;
+    else
+        return hypster_ID();
 }
 
 void emitCreate() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_create", 0, PROCEDURE, INT_T, 0, binaryLength);
+    createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_create", 0, PROCEDURE, INT_T, 0, binaryLength);
 
-  emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_CREATE);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+    emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_CREATE);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
+
+    emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+
+
+
+    emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 int doCreate(int parentID) {
-  if (bumpID < INT_MAX) {
-    bumpID = createID(bumpID);
+    if (bumpID < INT_MAX) {
+        bumpID = createID(bumpID);
 
-    usedContexts = createContext(bumpID, parentID, usedContexts);
+        usedContexts = createContext(bumpID, parentID, usedContexts);
 
-    if (currentContext == (int*) 0)
-      currentContext = usedContexts;
+        if (currentContext == (int*) 0)
+            currentContext = usedContexts;
 
-    if (debug_create) {
-      print(binaryName);
-      print((int*) ": selfie_create context ");
-      printInteger(bumpID);
-      println();
+        if (debug_create) {
+            print(binaryName);
+            print((int*) ": selfie_create context ");
+            printInteger(bumpID);
+            println();
+        }
+
+        return bumpID;
+    } else {
+        print(binaryName);
+        print((int*) ": selfie_create failed");
+        println();
+
+        exit(-1);
     }
-
-    return bumpID;
-  } else {
-    print(binaryName);
-    print((int*) ": selfie_create failed");
-    println();
-
-    exit(-1);
-  }
 }
 
 void implementCreate() {
-  *(registers+REG_V0) = doCreate(getID(currentContext));
+    *(registers+REG_V0) = doCreate(getID(currentContext));
 }
 
 int hypster_create() {
-  // this procedure is only executed at boot level zero
-  return doCreate(selfie_ID());
+    // this procedure is only executed at boot level zero
+    return doCreate(selfie_ID());
 }
 
 int selfie_create() {
-  if (mipster)
-    return doCreate(selfie_ID());
-  else
-    return hypster_create();
+    if (mipster)
+        return doCreate(selfie_ID());
+    else
+        return hypster_create();
 }
 
 void emitSwitch() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_switch", 0, PROCEDURE, INT_T, 0, binaryLength);
+    createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_switch", 0, PROCEDURE, INT_T, 0, binaryLength);
 
-  emitIFormat(OP_LW, REG_SP, REG_A0, 0); // ID of context to which we switch
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
+    emitIFormat(OP_LW, REG_SP, REG_A0, 0); // ID of context to which we switch
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
-  emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_SWITCH);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+    emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_SWITCH);
 
-  // save ID of context from which we are switching here in return register
-  emitRFormat(OP_SPECIAL, REG_ZR, REG_V1, REG_V0, 0, FCT_ADDU);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
+    emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+
+    // save ID of context from which we are switching here in return register
+
+
+    emitRFormat(OP_SPECIAL, REG_ZR, REG_V1, REG_V0, 0, FCT_ADDU);
+
+
+
+    emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 int doSwitch(int toID) {
-  int fromID;
-  int* toContext;
+    int fromID;
+    int* toContext;
 
-  fromID = getID(currentContext);
+    fromID = getID(currentContext);
 
-  toContext = findContext(toID, usedContexts);
+    toContext = findContext(toID, usedContexts);
 
-  if (toContext != (int*) 0) {
-    switchContext(currentContext, toContext);
+    if (toContext != (int*) 0) {
+        switchContext(currentContext, toContext);
 
-    currentContext = toContext;
+        currentContext = toContext;
 
-    if (debug_switch) {
-      print(binaryName);
-      print((int*) ": selfie_switch from context ");
-      printInteger(fromID);
-      print((int*) " to context ");
-      printInteger(toID);
-      println();
+        if (debug_switch) {
+            print(binaryName);
+            print((int*) ": selfie_switch from context ");
+            printInteger(fromID);
+            print((int*) " to context ");
+            printInteger(toID);
+            println();
+        }
+    } else if (debug_switch) {
+        print(binaryName);
+        print((int*) ": selfie_switch context ");
+        printInteger(toID);
+        print((int*) " not found");
+        println();
     }
-  } else if (debug_switch) {
-    print(binaryName);
-    print((int*) ": selfie_switch context ");
-    printInteger(toID);
-    print((int*) " not found");
-    println();
-  }
 
-  return fromID;
+    return fromID;
 }
 
 void implementSwitch() {
-  int fromID;
+    int fromID;
 
-  // CAUTION: doSwitch() modifies the global variable registers
-  // but some compilers dereference the lvalue *(registers+REG_V1)
-  // before evaluating the rvalue doSwitch()
+    // CAUTION: doSwitch() modifies the global variable registers
+    // but some compilers dereference the lvalue *(registers+REG_V1)
+    // before evaluating the rvalue doSwitch()
 
-  fromID = doSwitch(*(registers+REG_A0));
+    fromID = doSwitch(*(registers+REG_A0));
 
-  // use REG_V1 instead of REG_V0 to avoid race condition with interrupt
-  *(registers+REG_V1) = fromID;
+    // use REG_V1 instead of REG_V0 to avoid race condition with interrupt
+    *(registers+REG_V1) = fromID;
 }
 
 int mipster_switch(int toID) {
-  int fromID;
+    int fromID;
 
-  // CAUTION: doSwitch() modifies the global variable registers
-  // but some compilers dereference the lvalue *(registers+REG_V1)
-  // before evaluating the rvalue doSwitch()
+    // CAUTION: doSwitch() modifies the global variable registers
+    // but some compilers dereference the lvalue *(registers+REG_V1)
+    // before evaluating the rvalue doSwitch()
 
-  fromID = doSwitch(toID);
+    fromID = doSwitch(toID);
 
-  // use REG_V1 instead of REG_V0 to avoid race condition with interrupt
-  *(registers+REG_V1) = fromID;
+    // use REG_V1 instead of REG_V0 to avoid race condition with interrupt
+    *(registers+REG_V1) = fromID;
 
-  runUntilException();
+    runUntilException();
 
-  return getID(currentContext);
+    return getID(currentContext);
 }
 
 int hypster_switch(int toID) {
-  // this procedure is only executed at boot level zero
-  return mipster_switch(toID);
+    // this procedure is only executed at boot level zero
+    return mipster_switch(toID);
 }
 
 int selfie_switch(int toID) {
-  if (mipster)
-    return mipster_switch(toID);
-  else
-    return hypster_switch(toID);
+    if (mipster)
+        return mipster_switch(toID);
+    else
+        return hypster_switch(toID);
 }
 
 void emitStatus() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_status", 0, PROCEDURE, INT_T, 0, binaryLength);
+    createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_status", 0, PROCEDURE, INT_T, 0, binaryLength);
 
-  emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_STATUS);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+    emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_STATUS);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
+
+    emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+
+
+
+    emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 int doStatus() {
-  int savedStatus;
+    int savedStatus;
 
-  savedStatus = status;
+    savedStatus = status;
 
-  status = 0;
+    status = 0;
 
-  if (debug_status) {
-    print(binaryName);
-    print((int*) ": selfie_status ");
-    printStatus(savedStatus);
-    println();
-  }
+    if (debug_status) {
+        print(binaryName);
+        print((int*) ": selfie_status ");
+        printStatus(savedStatus);
+        println();
+    }
 
-  return savedStatus;
+    return savedStatus;
 }
 
 void implementStatus() {
-  *(registers+REG_V0) = doStatus();
+    *(registers+REG_V0) = doStatus();
 }
 
 int hypster_status() {
-  // this procedure is only executed at boot level zero
-  return doStatus();
+    // this procedure is only executed at boot level zero
+    return doStatus();
 }
 
 int selfie_status() {
-  if (mipster)
-    return doStatus();
-  else
-    return hypster_status();
+    if (mipster)
+        return doStatus();
+    else
+        return hypster_status();
 }
 
 void emitDelete() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_delete", 0, PROCEDURE, VOID_T, 0, binaryLength);
+    createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_delete", 0, PROCEDURE, VOID_T, 0, binaryLength);
 
-  emitIFormat(OP_LW, REG_SP, REG_A0, 0); // context ID
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
+    emitIFormat(OP_LW, REG_SP, REG_A0, 0); // context ID
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
-  emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_DELETE);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+    emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_DELETE);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
+
+    emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+
+
+
+    emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 void doDelete(int ID) {
-  int* context;
+    int* context;
 
-  context = findContext(ID, usedContexts);
+    context = findContext(ID, usedContexts);
 
-  if (context != (int*) 0) {
-    usedContexts = deleteContext(context, usedContexts);
+    if (context != (int*) 0) {
+        usedContexts = deleteContext(context, usedContexts);
 
-    if (debug_delete) {
-      print(binaryName);
-      print((int*) ": selfie_delete context ");
-      printInteger(ID);
-      println();
-    }
-  } else if (debug_delete) {
-    print(binaryName);
-    print((int*) ": selfie_delete context ");
-    printInteger(ID);
-    print((int*) " not found");
-    println();
-  }
-}
-
-void implementDelete() {
-  doDelete(*(registers+REG_A0));
-}
-
-void hypster_delete(int ID) {
-  // this procedure is only executed at boot level zero
-  doDelete(ID);
-}
-
-void selfie_delete(int ID) {
-  if (mipster)
-    doDelete(ID);
-  else
-    hypster_delete(ID);
-}
-
-void emitMap() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_map", 0, PROCEDURE, VOID_T, 0, binaryLength);
-
-  emitIFormat(OP_LW, REG_SP, REG_A2, 0); // frame
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
-
-  emitIFormat(OP_LW, REG_SP, REG_A1, 0); // page
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
-
-  emitIFormat(OP_LW, REG_SP, REG_A0, 0); // context ID
-  emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
-
-  emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_MAP);
-  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
-
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
-}
-
-void doMap(int ID, int page, int frame) {
-  int* mapContext;
-  int* parentContext;
-
-  mapContext = findContext(ID, usedContexts);
-
-  if (mapContext != (int*) 0) {
-    if (getParent(mapContext) != MIPSTER_ID) {
-      parentContext = findContext(getParent(mapContext), usedContexts);
-
-      if (parentContext != (int*) 0)
-        // assert: 0 <= frame < VIRTUALMEMORYSIZE
-        frame = getFrameForPage(getPT(parentContext), frame / PAGESIZE);
-      else if (debug_map) {
+        if (debug_delete) {
+            print(binaryName);
+            print((int*) ": selfie_delete context ");
+            printInteger(ID);
+            println();
+        }
+    } else if (debug_delete) {
         print(binaryName);
-        print((int*) ": selfie_map parent context ");
-        printInteger(getParent(mapContext));
-        print((int*) " of context ");
+        print((int*) ": selfie_delete context ");
         printInteger(ID);
         print((int*) " not found");
         println();
-      }
     }
+}
 
-    // on boot level zero frame may be any signed integer
-    mapPage(getPT(mapContext), page, frame);
+void implementDelete() {
+    doDelete(*(registers+REG_A0));
+}
 
-    if (debug_map) {
-      print(binaryName);
-      print((int*) ": selfie_map page ");
-      printHexadecimal(page, 4);
-      print((int*) " to frame ");
-      printHexadecimal(frame, 8);
-      print((int*) " for context ");
-      printInteger(ID);
-      println();
+void hypster_delete(int ID) {
+    // this procedure is only executed at boot level zero
+    doDelete(ID);
+}
+
+void selfie_delete(int ID) {
+    if (mipster)
+        doDelete(ID);
+    else
+        hypster_delete(ID);
+}
+
+void emitMap() {
+    createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_map", 0, PROCEDURE, VOID_T, 0, binaryLength);
+
+    emitIFormat(OP_LW, REG_SP, REG_A2, 0); // frame
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
+
+    emitIFormat(OP_LW, REG_SP, REG_A1, 0); // page
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
+
+    emitIFormat(OP_LW, REG_SP, REG_A0, 0); // context ID
+    emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
+
+    emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_MAP);
+
+
+    emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
+
+
+
+    emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
+}
+
+void doMap(int ID, int page, int frame) {
+    int* mapContext;
+    int* parentContext;
+
+    mapContext = findContext(ID, usedContexts);
+
+    if (mapContext != (int*) 0) {
+        if (getParent(mapContext) != MIPSTER_ID) {
+            parentContext = findContext(getParent(mapContext), usedContexts);
+
+            if (parentContext != (int*) 0)
+                // assert: 0 <= frame < VIRTUALMEMORYSIZE
+                frame = getFrameForPage(getPT(parentContext), frame / PAGESIZE);
+            else if (debug_map) {
+                print(binaryName);
+                print((int*) ": selfie_map parent context ");
+                printInteger(getParent(mapContext));
+                print((int*) " of context ");
+                printInteger(ID);
+                print((int*) " not found");
+                println();
+            }
+        }
+
+        // on boot level zero frame may be any signed integer
+        mapPage(getPT(mapContext), page, frame);
+
+        if (debug_map) {
+            print(binaryName);
+            print((int*) ": selfie_map page ");
+            printHexadecimal(page, 4);
+            print((int*) " to frame ");
+            printHexadecimal(frame, 8);
+            print((int*) " for context ");
+            printInteger(ID);
+            println();
+        }
+    } else if (debug_map) {
+        print(binaryName);
+        print((int*) ": selfie_map context ");
+        printInteger(ID);
+        print((int*) " not found");
+        println();
     }
-  } else if (debug_map) {
-    print(binaryName);
-    print((int*) ": selfie_map context ");
-    printInteger(ID);
-    print((int*) " not found");
-    println();
-  }
 }
 
 void implementMap() {
-  doMap(*(registers+REG_A0), *(registers+REG_A1), *(registers+REG_A2));
+    doMap(*(registers+REG_A0), *(registers+REG_A1), *(registers+REG_A2));
 }
 
 void hypster_map(int ID, int page, int frame) {
-  // this procedure is only executed at boot level zero
-  doMap(ID, page, frame);
+    // this procedure is only executed at boot level zero
+    doMap(ID, page, frame);
 }
 
 void selfie_map(int ID, int page, int frame) {
-  if (mipster)
-    doMap(ID, page, frame);
-  else
-    hypster_map(ID, page, frame);
+    if (mipster)
+        doMap(ID, page, frame);
+    else
+        hypster_map(ID, page, frame);
 }
 
 // *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~ *~*~
@@ -6884,101 +6700,101 @@ void selfie_map(int ID, int page, int frame) {
 // -----------------------------------------------------------------
 
 int loadPhysicalMemory(int* paddr) {
-  return *paddr;
+    return *paddr;
 }
 
 void storePhysicalMemory(int* paddr, int data) {
-  *paddr = data;
+    *paddr = data;
 }
 
 int getFrameForPage(int* table, int page) {
-  return *(table + page);
+    return *(table + page);
 }
 
 int isPageMapped(int* table, int page) {
-  if (getFrameForPage(table, page) != 0)
-    return 1;
-  else
-    return 0;
+    if (getFrameForPage(table, page) != 0)
+        return 1;
+    else
+        return 0;
 }
 
 int isValidVirtualAddress(int vaddr) {
-  if (vaddr >= 0)
-    if (vaddr < VIRTUALMEMORYSIZE)
-      // memory must be word-addressed for lack of byte-sized data type
-      if (vaddr % WORDSIZE == 0)
-        return 1;
+    if (vaddr >= 0)
+        if (vaddr < VIRTUALMEMORYSIZE)
+            // memory must be word-addressed for lack of byte-sized data type
+            if (vaddr % WORDSIZE == 0)
+                return 1;
 
-  return 0;
+    return 0;
 }
 
 int getPageOfVirtualAddress(int vaddr) {
-  return vaddr / PAGESIZE;
+    return vaddr / PAGESIZE;
 }
 
 int isVirtualAddressMapped(int* table, int vaddr) {
-  // assert: isValidVirtualAddress(vaddr) == 1
+    // assert: isValidVirtualAddress(vaddr) == 1
 
-  return isPageMapped(table, getPageOfVirtualAddress(vaddr));
+    return isPageMapped(table, getPageOfVirtualAddress(vaddr));
 }
 
 int* tlb(int* table, int vaddr) {
-  int page;
-  int frame;
-  int paddr;
+    int page;
+    int frame;
+    int paddr;
 
-  // assert: isValidVirtualAddress(vaddr) == 1
-  // assert: isVirtualAddressMapped(table, vaddr) == 1
+    // assert: isValidVirtualAddress(vaddr) == 1
+    // assert: isVirtualAddressMapped(table, vaddr) == 1
 
-  page = getPageOfVirtualAddress(vaddr);
+    page = getPageOfVirtualAddress(vaddr);
 
-  frame = getFrameForPage(table, page);
+    frame = getFrameForPage(table, page);
 
-  // map virtual address to physical address
-  paddr = (vaddr - page * PAGESIZE) + frame;
+    // map virtual address to physical address
+    paddr = (vaddr - page * PAGESIZE) + frame;
 
-  if (debug_tlb) {
-    print(binaryName);
-    print((int*) ": tlb access:");
-    println();
-    print((int*) " vaddr: ");
-    printBinary(vaddr, 32);
-    println();
-    print((int*) " page:  ");
-    printBinary(page * PAGESIZE, 32);
-    println();
-    print((int*) " frame: ");
-    printBinary(frame, 32);
-    println();
-    print((int*) " paddr: ");
-    printBinary(paddr, 32);
-    println();
-  }
+    if (debug_tlb) {
+        print(binaryName);
+        print((int*) ": tlb access:");
+        println();
+        print((int*) " vaddr: ");
+        printBinary(vaddr, 32);
+        println();
+        print((int*) " page:  ");
+        printBinary(page * PAGESIZE, 32);
+        println();
+        print((int*) " frame: ");
+        printBinary(frame, 32);
+        println();
+        print((int*) " paddr: ");
+        printBinary(paddr, 32);
+        println();
+    }
 
-  return (int*) paddr;
+    return (int*) paddr;
 }
 
 int loadVirtualMemory(int* table, int vaddr) {
-  // assert: isValidVirtualAddress(vaddr) == 1
-  // assert: isVirtualAddressMapped(table, vaddr) == 1
+    // assert: isValidVirtualAddress(vaddr) == 1
+    // assert: isVirtualAddressMapped(table, vaddr) == 1
 
-  return loadPhysicalMemory(tlb(table, vaddr));
+    return loadPhysicalMemory(tlb(table, vaddr));
 }
 
 void storeVirtualMemory(int* table, int vaddr, int data) {
-  // assert: isValidVirtualAddress(vaddr) == 1
-  // assert: isVirtualAddressMapped(table, vaddr) == 1
+    // assert: isValidVirtualAddress(vaddr) == 1
+    // assert: isVirtualAddressMapped(table, vaddr) == 1
 
-  storePhysicalMemory(tlb(table, vaddr), data);
+    storePhysicalMemory(tlb(table, vaddr), data);
 }
 
 void mapAndStoreVirtualMemory(int* table, int vaddr, int data) {
-  // assert: isValidVirtualAddress(vaddr) == 1
+    // assert: isValidVirtualAddress(vaddr) == 1
 
-  if (isVirtualAddressMapped(table, vaddr) == 0)
-    mapPage(table, getPageOfVirtualAddress(vaddr), (int) palloc());
+    if (isVirtualAddressMapped(table, vaddr) == 0)
+        mapPage(table, getPageOfVirtualAddress(vaddr), (int) palloc());
 
-  storeVirtualMemory(table, vaddr, data);
+    storeVirtualMemory(table, vaddr, data);
 }
 
 // -----------------------------------------------------------------
@@ -6986,284 +6802,276 @@ void mapAndStoreVirtualMemory(int* table, int vaddr, int data) {
 // -----------------------------------------------------------------
 
 void fct_syscall() {
-  if (debug) {
-    printFunction(function);
-    println();
-  }
-
-  if (interpret) {
-    pc = pc + WORDSIZE;
-
-    if (*(registers+REG_V0) == SYSCALL_EXIT)
-      implementExit();
-    else if (*(registers+REG_V0) == SYSCALL_READ)
-      implementRead();
-    else if (*(registers+REG_V0) == SYSCALL_WRITE)
-      implementWrite();
-    else if (*(registers+REG_V0) == SYSCALL_OPEN)
-      implementOpen();
-    else if (*(registers+REG_V0) == SYSCALL_MALLOC)
-      implementMalloc();
-    else if (*(registers+REG_V0) == SYSCALL_ID)
-      implementID();
-    else if (*(registers+REG_V0) == SYSCALL_CREATE)
-      implementCreate();
-    else if (*(registers+REG_V0) == SYSCALL_SWITCH)
-      implementSwitch();
-    else if (*(registers+REG_V0) == SYSCALL_STATUS)
-      implementStatus();
-    else if (*(registers+REG_V0) == SYSCALL_DELETE)
-      implementDelete();
-    else if (*(registers+REG_V0) == SYSCALL_MAP)
-      implementMap();
-    else {
-      pc = pc - WORDSIZE;
-
-      throwException(EXCEPTION_UNKNOWNSYSCALL, 0);
+    if (debug) {
+        printFunction(function);
+        println();
     }
-  }
+
+    if (interpret) {
+        pc = pc + WORDSIZE;
+
+        if (*(registers+REG_V0) == SYSCALL_EXIT)
+            implementExit();
+        else if (*(registers+REG_V0) == SYSCALL_READ)
+            implementRead();
+        else if (*(registers+REG_V0) == SYSCALL_WRITE)
+            implementWrite();
+        else if (*(registers+REG_V0) == SYSCALL_OPEN)
+            implementOpen();
+        else if (*(registers+REG_V0) == SYSCALL_MALLOC)
+            implementMalloc();
+        else if (*(registers+REG_V0) == SYSCALL_ID)
+            implementID();
+        else if (*(registers+REG_V0) == SYSCALL_CREATE)
+            implementCreate();
+        else if (*(registers+REG_V0) == SYSCALL_SWITCH)
+            implementSwitch();
+        else if (*(registers+REG_V0) == SYSCALL_STATUS)
+            implementStatus();
+        else if (*(registers+REG_V0) == SYSCALL_DELETE)
+            implementDelete();
+        else if (*(registers+REG_V0) == SYSCALL_MAP)
+            implementMap();
+        else {
+            pc = pc - WORDSIZE;
+
+            throwException(EXCEPTION_UNKNOWNSYSCALL, 0);
+        }
+    }
 }
 
 void fct_nop() {
-  if (debug) {
-    print((int*)"nop");
-    println();
-  }
+    if (debug) {
+        print((int*)"nop");
+        println();
+    }
 
-  if (interpret)
-    pc = pc + WORDSIZE;
+    if (interpret)
+        pc = pc + WORDSIZE;
 }
 
+
+
 void op_jal() {
-  if (debug) {
-    printOpcode(opcode);
-    print((int*) " ");
-    printHexadecimal(instr_index, 0);
-    print((int*) "[");
-    printHexadecimal(instr_index * WORDSIZE, 0);
-    print((int*) "]");
-    if (interpret) {
-      print((int*) ": ");
-      printRegister(REG_RA);
-      print((int*) "=");
-      printHexadecimal(*(registers+REG_RA), 0);
+    if (debug) {
+        printOpcode(opcode);
+        print((int*) " ");
+        printHexadecimal(instr_index, 0);
+        print((int*) "[");
+        printHexadecimal(instr_index * WORDSIZE, 0);
+        print((int*) "]");
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(REG_RA);
+            print((int*) "=");
+            printHexadecimal(*(registers+REG_RA), 0);
+        }
     }
-  }
 
-  if (interpret) {
-    // skip over delay slot
-    *(registers+REG_RA) = pc + 8;
-
-    pc = instr_index * WORDSIZE;
-
-    // keep track of number of procedure calls
-    calls = calls + 1;
-
-    *(callsPerAddress + pc / WORDSIZE) = *(callsPerAddress + pc / WORDSIZE) + 1;
-
-    // TODO: execute delay slot
-  }
-
-  if (debug) {
     if (interpret) {
-      print((int*) " -> ");
-      printRegister(REG_RA);
-      print((int*) "=");
-      printHexadecimal(*(registers+REG_RA), 0);
-      print((int*) ",$pc=");
-      printHexadecimal(pc, 0);
+        // skip over delay slot
+        *(registers+REG_RA) = pc + 8;
+
+        pc = instr_index * WORDSIZE;
+
+        // keep track of number of procedure calls
+        calls = calls + 1;
+
+        *(callsPerAddress + pc / WORDSIZE) = *(callsPerAddress + pc / WORDSIZE) + 1;
+
+        // TODO: execute delay slot
     }
-    println();
-  }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(REG_RA);
+            print((int*) "=");
+            printHexadecimal(*(registers+REG_RA), 0);
+            print((int*) ",$pc=");
+            printHexadecimal(pc, 0);
+        }
+        println();
+    }
 }
 
 void op_j() {
-  if (debug) {
-    printOpcode(opcode);
-    print((int*) " ");
-    printHexadecimal(instr_index, 0);
-    print((int*) "[");
-    printHexadecimal(instr_index * WORDSIZE, 0);
-    print((int*) "]");
-  }
-
-  if (interpret) {
-    pc = instr_index * WORDSIZE;
-
-    // TODO: execute delay slot
-  }
-
-  if (debug) {
-    if (interpret) {
-      print((int*) ": -> $pc=");
-      printHexadecimal(pc, 0);
+    if (debug) {
+        printOpcode(opcode);
+        print((int*) " ");
+        printHexadecimal(instr_index, 0);
+        print((int*) "[");
+        printHexadecimal(instr_index * WORDSIZE, 0);
+        print((int*) "]");
     }
-    println();
-  }
+
+    if (interpret) {
+        pc = instr_index * WORDSIZE;
+
+        // TODO: execute delay slot
+    }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) ": -> $pc=");
+            printHexadecimal(pc, 0);
+        }
+        println();
+    }
 }
 
 void op_beq() {
-  if (debug) {
-    printOpcode(opcode);
-    print((int*) " ");
-    printRegister(rs);
-    print((int*) ",");
-    printRegister(rt);
-    print((int*) ",");
-    printInteger(signExtend(immediate));
-    print((int*) "[");
-    printHexadecimal(pc + WORDSIZE + signExtend(immediate) * WORDSIZE, 0);
-    print((int*) "]");
+    if (debug) {
+        printOpcode(opcode);
+        print((int*) " ");
+        printRegister(rs);
+        print((int*) ",");
+        printRegister(rt);
+        print((int*) ",");
+        printInteger(signExtend(immediate));
+        print((int*) "[");
+        printHexadecimal(pc + WORDSIZE + signExtend(immediate) * WORDSIZE, 0);
+        print((int*) "]");
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rs);
+            print((int*) "=");
+            printInteger(*(registers+rs));
+            print((int*) ",");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+        }
+    }
+
     if (interpret) {
-      print((int*) ": ");
-      printRegister(rs);
-      print((int*) "=");
-      printInteger(*(registers+rs));
-      print((int*) ",");
-      printRegister(rt);
-      print((int*) "=");
-      printInteger(*(registers+rt));
+        pc = pc + WORDSIZE;
+
+        if (*(registers+rs) == *(registers+rt)) {
+            pc = pc + signExtend(immediate) * WORDSIZE;
+
+            if (signExtend(immediate) < 0) {
+                // keep track of number of loop iterations
+                loops = loops + 1;
+
+                *(loopsPerAddress + pc / WORDSIZE) = *(loopsPerAddress + pc / WORDSIZE) + 1;
+            }
+
+            // TODO: execute delay slot
+        }
     }
-  }
 
-  if (interpret) {
-    pc = pc + WORDSIZE;
-
-    if (*(registers+rs) == *(registers+rt)) {
-      pc = pc + signExtend(immediate) * WORDSIZE;
-
-      if (signExtend(immediate) < 0) {
-        // keep track of number of loop iterations
-        loops = loops + 1;
-
-        *(loopsPerAddress + pc / WORDSIZE) = *(loopsPerAddress + pc / WORDSIZE) + 1;
-      }
-
-      // TODO: execute delay slot
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> $pc=");
+            printHexadecimal(pc, 0);
+        }
+        println();
     }
-  }
-
-  if (debug) {
-    if (interpret) {
-      print((int*) " -> $pc=");
-      printHexadecimal(pc, 0);
-    }
-    println();
-  }
 }
 
 void op_bne() {
-  if (debug) {
-    printOpcode(opcode);
-    print((int*) " ");
-    printRegister(rs);
-    print((int*) ",");
-    printRegister(rt);
-    print((int*) ",");
-    printInteger(signExtend(immediate));
-    print((int*) "[");
-    printHexadecimal(pc + WORDSIZE + signExtend(immediate) * WORDSIZE, 0);
-    print((int*) "]");
+    if (debug) {
+        printOpcode(opcode);
+        print((int*) " ");
+        printRegister(rs);
+        print((int*) ",");
+        printRegister(rt);
+        print((int*) ",");
+        printInteger(signExtend(immediate));
+        print((int*) "[");
+        printHexadecimal(pc + WORDSIZE + signExtend(immediate) * WORDSIZE, 0);
+        print((int*) "]");
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rs);
+            print((int*) "=");
+            printInteger(*(registers+rs));
+            print((int*) ",");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+        }
+    }
+
     if (interpret) {
-      print((int*) ": ");
-      printRegister(rs);
-      print((int*) "=");
-      printInteger(*(registers+rs));
-      print((int*) ",");
-      printRegister(rt);
-      print((int*) "=");
-      printInteger(*(registers+rt));
+        pc = pc + WORDSIZE;
+
+        if (*(registers+rs) != *(registers+rt)) {
+            pc = pc + signExtend(immediate) * WORDSIZE;
+
+            // TODO: execute delay slot
+        }
     }
-  }
 
-  if (interpret) {
-    pc = pc + WORDSIZE;
-
-    if (*(registers+rs) != *(registers+rt)) {
-      pc = pc + signExtend(immediate) * WORDSIZE;
-
-      // TODO: execute delay slot
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> $pc=");
+            printHexadecimal(pc, 0);
+        }
+        println();
     }
-  }
-
-  if (debug) {
-    if (interpret) {
-      print((int*) " -> $pc=");
-      printHexadecimal(pc, 0);
-    }
-    println();
-  }
 }
 
-
-int isRegNOP(){
-  if(rd == REG_ZR){
-    if(rt == REG_ZR){
-      if(shamt == 0)
-        return 1;
-      else
-        return 0;
+int isRegistersContentZero(){
+    if(rd == REG_ZR){
+        if(rt == REG_ZR){
+            if(immediate == 0)
+                return 1;
+            else
+                return 0;
+        }else
+            return 0;
     }else
-      return 0;
-  }else
-    return 0;
+        return 0;
 }
 
-
-//Assignment3
-//Shift word left logical
-//left-shift a word by a fixed number of bits
 void fct_sll(){
-  if(isRegNOP()){
-    fct_nop();
-  }else{
-    if (debug) {
-        printFunction(function);
-        print((int*) " ");
-        printRegister(rd);
-        print((int*) ",");
-        printRegister(rt);
-        print((int*) ",");
-        printInteger(shamt);
-
-        if (interpret) {
-            print((int*) ": ");
+    if(isRegistersContentZero()){
+        fct_nop();
+    }else{
+        if (debug) {
+            printFunction(function);
+            print((int*) " ");
             printRegister(rd);
-            print((int*) "=");
-            printInteger(*(registers+rd));
             print((int*) ",");
             printRegister(rt);
-            print((int*) "=");
-            printInteger(*(registers+rt));
-			print((int*) ", shamt:");
-			printInteger(shamt);
+            print((int*) ",");
+            printInteger(shamt);
+
+            if (interpret) {
+                print((int*) ": ");
+                printRegister(rd);
+                print((int*) "=");
+                printInteger(*(registers+rd));
+                print((int*) ",");
+                printRegister(rt);
+                print((int*) "=");
+                printInteger(*(registers+rt));
+                print((int*) ",shamt:");
+                printInteger(shamt);
+            }
+        }
+
+        if(interpret){
+            *(registers+rd) = *(registers+rt) << shamt;
+
+            pc = pc + WORDSIZE;
+        }
+
+        if (debug) {
+            if (interpret) {
+                print((int*) " -> ");
+                printRegister(rd);
+                print((int*) "=");
+                printInteger(*(registers+rd));
+            }
+            println();
         }
     }
-
-    if(interpret){
-        //*(registers+rd) = leftShift(*(registers+rt), shamt);
-		//Assignment4
-	   *(registers+rd) = (*(registers+rt) << shamt);
-
-        pc = pc + WORDSIZE;
-    }
-
-    if (debug) {
-        if (interpret) {
-            print((int*) " -> ");
-            printRegister(rd);
-            print((int*) "=");
-            printInteger(*(registers+rd));
-        }
-        println();
-    }
-  }
 }
 
-//shift word right logical
-//to execute a logical right-shift of a word by a fixed number of bits
 void fct_srl(){
-
     if (debug) {
         printFunction(function);
         print((int*) " ");
@@ -7272,6 +7080,7 @@ void fct_srl(){
         printRegister(rt);
         print((int*) ",");
         printInteger(shamt);
+
         if (interpret) {
             print((int*) ": ");
             printRegister(rd);
@@ -7281,13 +7090,13 @@ void fct_srl(){
             printRegister(rt);
             print((int*) "=");
             printInteger(*(registers+rt));
-
+            print((int*) ",shamt:");
+            printInteger(shamt);
         }
-
     }
 
     if(interpret){
-        *(registers+rd) = rightShift(*(registers+rt),shamt);//shamt and should be logical!!!?
+        *(registers+rd) = rightShift(*(registers+rt), shamt);
 
         pc = pc + WORDSIZE;
     }
@@ -7303,8 +7112,6 @@ void fct_srl(){
     }
 }
 
-//Shift Word Left Logical Variable
-//To left-shift a word by a variable number of bits
 void fct_sllv(){
     if (debug) {
         printFunction(function);
@@ -7314,6 +7121,7 @@ void fct_sllv(){
         printRegister(rt);
         print((int*) ",");
         printRegister(rs);
+
         if (interpret) {
             print((int*) ": ");
             printRegister(rd);
@@ -7332,9 +7140,8 @@ void fct_sllv(){
     }
 
     if(interpret){
-        //*(registers+rd) = leftShift(*(registers + rt), *(registers + rs));
-		//Assignment4
-		*(registers+rd) = *(registers+rt) << *(registers+rs);
+        *(registers+rd) = *(registers+rt) << *(registers+rs);
+
         pc = pc + WORDSIZE;
     }
 
@@ -7349,8 +7156,6 @@ void fct_sllv(){
     }
 }
 
-//Shift Word Right Logical Variable
-//To execute a logical right-shift of a word by a variable number of bits
 void fct_srlv(){
 
     if (debug) {
@@ -7361,6 +7166,7 @@ void fct_srlv(){
         printRegister(rt);
         print((int*) ",");
         printRegister(rs);
+
         if (interpret) {
             print((int*) ": ");
             printRegister(rd);
@@ -7379,8 +7185,7 @@ void fct_srlv(){
     }
 
     if(interpret){
-        *(registers+rd) = rightShift(*(registers + rt), *(registers + rs));
-		//srl(*(registers+rt), *(registers+rs));
+        *(registers+rd) = rightShift(*(registers+rt), *(registers+rs));
 
         pc = pc + WORDSIZE;
     }
@@ -7396,7 +7201,6 @@ void fct_srlv(){
     }
 }
 
-//Assignment5
 void fct_and(){
 
     if (debug) {
@@ -7442,11 +7246,10 @@ void fct_and(){
     }
 }
 
-//Assignment5
 void op_andi(){
 
     if (debug) {
-        printOpcode(opcode);
+        printFunction(opcode);
         print((int*) " ");
         printRegister(rt);
         print((int*) ",");
@@ -7472,7 +7275,7 @@ void op_andi(){
     }
 
     if(interpret){
-        *(registers+rt) = *(registers+rs) & signExtend(immediate);
+        *(registers+rt) = *(registers+rs) & immediate;
 
         pc = pc + WORDSIZE;
     }
@@ -7488,7 +7291,6 @@ void op_andi(){
     }
 }
 
-//Assignment5
 void fct_or(){
 
     if (debug) {
@@ -7534,11 +7336,10 @@ void fct_or(){
     }
 }
 
-//Assignment5
 void op_ori(){
 
     if (debug) {
-        printOpcode(opcode);
+        printFunction(opcode);
         print((int*) " ");
         printRegister(rt);
         print((int*) ",");
@@ -7564,7 +7365,7 @@ void op_ori(){
     }
 
     if(interpret){
-        *(registers+rt) = *(registers+rs) | signExtend(immediate);
+        *(registers+rd) = *(registers+rt) | immediate;
 
         pc = pc + WORDSIZE;
     }
@@ -7580,7 +7381,6 @@ void op_ori(){
     }
 }
 
-//Assignment5
 void fct_nor(){
 
     if (debug) {
@@ -7628,450 +7428,450 @@ void fct_nor(){
 
 
 void op_addiu() {
-  if (debug) {
-    printOpcode(opcode);
-    print((int*) " ");
-    printRegister(rt);
-    print((int*) ",");
-    printRegister(rs);
-    print((int*) ",");
-    printInteger(signExtend(immediate));
-    if (interpret) {
-      print((int*) ": ");
-      printRegister(rt);
-      print((int*) "=");
-      printInteger(*(registers+rt));
-      print((int*) ",");
-      printRegister(rs);
-      print((int*) "=");
-      printInteger(*(registers+rs));
+    if (debug) {
+        printOpcode(opcode);
+        print((int*) " ");
+        printRegister(rt);
+        print((int*) ",");
+        printRegister(rs);
+        print((int*) ",");
+        printInteger(signExtend(immediate));
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+            print((int*) ",");
+            printRegister(rs);
+            print((int*) "=");
+            printInteger(*(registers+rs));
+        }
     }
-  }
 
-  if (interpret) {
-    *(registers+rt) = *(registers+rs) + signExtend(immediate);
-
-    // TODO: check for overflow
-
-    pc = pc + WORDSIZE;
-  }
-
-  if (debug) {
     if (interpret) {
-      print((int*) " -> ");
-      printRegister(rt);
-      print((int*) "=");
-      printInteger(*(registers+rt));
+        *(registers+rt) = *(registers+rs) + signExtend(immediate);
+
+        // TODO: check for overflow
+
+        pc = pc + WORDSIZE;
     }
-    println();
-  }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+        }
+        println();
+    }
 }
 
 void fct_jr() {
-  if (debug) {
-    printFunction(function);
-    print((int*) " ");
-    printRegister(rs);
-    if (interpret) {
-      print((int*) ": ");
-      printRegister(rs);
-      print((int*) "=");
-      printHexadecimal(*(registers+rs), 0);
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rs);
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rs);
+            print((int*) "=");
+            printHexadecimal(*(registers+rs), 0);
+        }
     }
-  }
 
-  if (interpret)
-    pc = *(registers+rs);
+    if (interpret)
+        pc = *(registers+rs);
 
-  if (debug) {
-    if (interpret) {
-      print((int*) " -> $pc=");
-      printHexadecimal(pc, 0);
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> $pc=");
+            printHexadecimal(pc, 0);
+        }
+        println();
     }
-    println();
-  }
 }
 
 void fct_mfhi() {
-  if (debug) {
-    printFunction(function);
-    print((int*) " ");
-    printRegister(rd);
-    if (interpret) {
-      print((int*) ":");
-      printRegister(rd);
-      print((int*) "=");
-      printInteger(*(registers+rd));
-      print((int*) ",$hi=");
-      printInteger(reg_hi);
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rd);
+        if (interpret) {
+            print((int*) ":");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+            print((int*) ",$hi=");
+            printInteger(reg_hi);
+        }
     }
-  }
 
-  if (interpret) {
-    *(registers+rd) = reg_hi;
-
-    pc = pc + WORDSIZE;
-  }
-
-  if (debug) {
     if (interpret) {
-      print((int*) " -> ");
-      printRegister(rd);
-      print((int*) "=");
-      printInteger(*(registers+rd));
+        *(registers+rd) = reg_hi;
+
+        pc = pc + WORDSIZE;
     }
-    println();
-  }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+        }
+        println();
+    }
 }
 
 void fct_mflo() {
-  if (debug) {
-    printFunction(function);
-    print((int*) " ");
-    printRegister(rd);
-    if (interpret) {
-      print((int*) ": ");
-      printRegister(rd);
-      print((int*) "=");
-      printInteger(*(registers+rd));
-      print((int*) ",$lo=");
-      printInteger(reg_lo);
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rd);
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+            print((int*) ",$lo=");
+            printInteger(reg_lo);
+        }
     }
-  }
 
-  if (interpret) {
-    *(registers+rd) = reg_lo;
-
-    pc = pc + WORDSIZE;
-  }
-
-  if (debug) {
     if (interpret) {
-      print((int*) " -> ");
-      printRegister(rd);
-      print((int*) "=");
-      printInteger(*(registers+rd));
+        *(registers+rd) = reg_lo;
+
+        pc = pc + WORDSIZE;
     }
-    println();
-  }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+        }
+        println();
+    }
 }
 
 void fct_multu() {
-  if (debug) {
-    printFunction(function);
-    print((int*) " ");
-    printRegister(rs);
-    print((int*) ",");
-    printRegister(rt);
-    if (interpret) {
-      print((int*) ": ");
-      printRegister(rs);
-      print((int*) "=");
-      printInteger(*(registers+rs));
-      print((int*) ",");
-      printRegister(rt);
-      print((int*) "=");
-      printInteger(*(registers+rt));
-      print((int*) ",$lo=");
-      printInteger(reg_lo);
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rs);
+        print((int*) ",");
+        printRegister(rt);
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rs);
+            print((int*) "=");
+            printInteger(*(registers+rs));
+            print((int*) ",");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+            print((int*) ",$lo=");
+            printInteger(reg_lo);
+        }
     }
-  }
 
-  if (interpret) {
-    // TODO: 64-bit resolution currently not supported
-    reg_lo = *(registers+rs) * *(registers+rt);
-
-    pc = pc + WORDSIZE;
-  }
-
-  if (debug) {
     if (interpret) {
-      print((int*) " -> $lo=");
-      printInteger(reg_lo);
+        // TODO: 64-bit resolution currently not supported
+        reg_lo = *(registers+rs) * *(registers+rt);
+
+        pc = pc + WORDSIZE;
     }
-    println();
-  }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> $lo=");
+            printInteger(reg_lo);
+        }
+        println();
+    }
 }
 
 void fct_divu() {
-  if (debug) {
-    printFunction(function);
-    print((int*) " ");
-    printRegister(rs);
-    print((int*) ",");
-    printRegister(rt);
-    if (interpret) {
-      print((int*) ": ");
-      printRegister(rs);
-      print((int*) "=");
-      printInteger(*(registers+rs));
-      print((int*) ",");
-      printRegister(rt);
-      print((int*) "=");
-      printInteger(*(registers+rt));
-      print((int*) ",$lo=");
-      printInteger(reg_lo);
-      print((int*) ",$hi=");
-      printInteger(reg_hi);
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rs);
+        print((int*) ",");
+        printRegister(rt);
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rs);
+            print((int*) "=");
+            printInteger(*(registers+rs));
+            print((int*) ",");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+            print((int*) ",$lo=");
+            printInteger(reg_lo);
+            print((int*) ",$hi=");
+            printInteger(reg_hi);
+        }
     }
-  }
 
-  if (interpret) {
-    reg_lo = *(registers+rs) / *(registers+rt);
-    reg_hi = *(registers+rs) % *(registers+rt);
-
-    pc = pc + WORDSIZE;
-  }
-
-  if (debug) {
     if (interpret) {
-      print((int*) " -> $lo=");
-      printInteger(reg_lo);
-      print((int*) ",$hi=");
-      printInteger(reg_hi);
+        reg_lo = *(registers+rs) / *(registers+rt);
+        reg_hi = *(registers+rs) % *(registers+rt);
+
+        pc = pc + WORDSIZE;
     }
-    println();
-  }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> $lo=");
+            printInteger(reg_lo);
+            print((int*) ",$hi=");
+            printInteger(reg_hi);
+        }
+        println();
+    }
 }
 
 void fct_addu() {
-  if (debug) {
-    printFunction(function);
-    print((int*) " ");
-    printRegister(rd);
-    print((int*) ",");
-    printRegister(rs);
-    print((int*) ",");
-    printRegister(rt);
-    if (interpret) {
-      print((int*) ": ");
-      printRegister(rd);
-      print((int*) "=");
-      printInteger(*(registers+rd));
-      print((int*) ",");
-      printRegister(rs);
-      print((int*) "=");
-      printInteger(*(registers+rs));
-      print((int*) ",");
-      printRegister(rt);
-      print((int*) "=");
-      printInteger(*(registers+rt));
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rd);
+        print((int*) ",");
+        printRegister(rs);
+        print((int*) ",");
+        printRegister(rt);
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+            print((int*) ",");
+            printRegister(rs);
+            print((int*) "=");
+            printInteger(*(registers+rs));
+            print((int*) ",");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+        }
     }
-  }
 
-  if (interpret) {
-    *(registers+rd) = *(registers+rs) + *(registers+rt);
-
-    pc = pc + WORDSIZE;
-  }
-
-  if (debug) {
     if (interpret) {
-      print((int*) " -> ");
-      printRegister(rd);
-      print((int*) "=");
-      printInteger(*(registers+rd));
+        *(registers+rd) = *(registers+rs) + *(registers+rt);
+
+        pc = pc + WORDSIZE;
     }
-    println();
-  }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+        }
+        println();
+    }
 }
 
 void fct_subu() {
-  if (debug) {
-    printFunction(function);
-    print((int*) " ");
-    printRegister(rd);
-    print((int*) ",");
-    printRegister(rs);
-    print((int*) ",");
-    printRegister(rt);
-    if (interpret) {
-      print((int*) ": ");
-      printRegister(rd);
-      print((int*) "=");
-      printInteger(*(registers+rd));
-      print((int*) ",");
-      printRegister(rs);
-      print((int*) "=");
-      printInteger(*(registers+rs));
-      print((int*) ",");
-      printRegister(rt);
-      print((int*) "=");
-      printInteger(*(registers+rt));
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rd);
+        print((int*) ",");
+        printRegister(rs);
+        print((int*) ",");
+        printRegister(rt);
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+            print((int*) ",");
+            printRegister(rs);
+            print((int*) "=");
+            printInteger(*(registers+rs));
+            print((int*) ",");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+        }
     }
-  }
 
-  if (interpret) {
-    *(registers+rd) = *(registers+rs) - *(registers+rt);
-
-    pc = pc + WORDSIZE;
-  }
-
-  if (debug) {
     if (interpret) {
-      print((int*) " -> ");
-      printRegister(rd);
-      print((int*) "=");
-      printInteger(*(registers+rd));
+        *(registers+rd) = *(registers+rs) - *(registers+rt);
+
+        pc = pc + WORDSIZE;
     }
-    println();
-  }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+        }
+        println();
+    }
 }
 
 void op_lw() {
-  int vaddr;
+    int vaddr;
 
-  if (debug) {
-    printOpcode(opcode);
-    print((int*) " ");
-    printRegister(rt);
-    print((int*) ",");
-    printInteger(signExtend(immediate));
-    print((int*) "(");
-    printRegister(rs);
-    print((int*) ")");
-    if (interpret) {
-      print((int*) ": ");
-      printRegister(rt);
-      print((int*) "=");
-      printInteger(*(registers+rt));
-      print((int*) ",");
-      printRegister(rs);
-      print((int*) "=");
-      printHexadecimal(*(registers+rs), 0);
+    if (debug) {
+        printOpcode(opcode);
+        print((int*) " ");
+        printRegister(rt);
+        print((int*) ",");
+        printInteger(signExtend(immediate));
+        print((int*) "(");
+        printRegister(rs);
+        print((int*) ")");
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+            print((int*) ",");
+            printRegister(rs);
+            print((int*) "=");
+            printHexadecimal(*(registers+rs), 0);
+        }
     }
-  }
 
-  if (interpret) {
-    vaddr = *(registers+rs) + signExtend(immediate);
-
-    if (isValidVirtualAddress(vaddr)) {
-      if (isVirtualAddressMapped(pt, vaddr)) {
-        *(registers+rt) = loadVirtualMemory(pt, vaddr);
-
-        // keep track of number of loads
-        loads = loads + 1;
-
-        *(loadsPerAddress + pc / WORDSIZE) = *(loadsPerAddress + pc / WORDSIZE) + 1;
-
-        pc = pc + WORDSIZE;
-      } else
-        throwException(EXCEPTION_PAGEFAULT, vaddr);
-    } else
-      // TODO: pass invalid vaddr
-      throwException(EXCEPTION_ADDRESSERROR, 0);
-  }
-
-  if (debug) {
     if (interpret) {
-      print((int*) " -> ");
-      printRegister(rt);
-      print((int*) "=");
-      printInteger(*(registers+rt));
-      print((int*) "=memory[");
-      printHexadecimal(vaddr, 0);
-      print((int*) "]");
+        vaddr = *(registers+rs) + signExtend(immediate);
+
+        if (isValidVirtualAddress(vaddr)) {
+            if (isVirtualAddressMapped(pt, vaddr)) {
+                *(registers+rt) = loadVirtualMemory(pt, vaddr);
+
+                // keep track of number of loads
+                loads = loads + 1;
+
+                *(loadsPerAddress + pc / WORDSIZE) = *(loadsPerAddress + pc / WORDSIZE) + 1;
+
+                pc = pc + WORDSIZE;
+            } else
+                throwException(EXCEPTION_PAGEFAULT, vaddr);
+        } else
+            // TODO: pass invalid vaddr
+            throwException(EXCEPTION_ADDRESSERROR, 0);
     }
-    println();
-  }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+            print((int*) "=memory[");
+            printHexadecimal(vaddr, 0);
+            print((int*) "]");
+        }
+        println();
+    }
 }
 
 void fct_slt() {
-  if (debug) {
-    printFunction(function);
-    print((int*) " ");
-    printRegister(rd);
-    print((int*) ",");
-    printRegister(rs);
-    print((int*) ",");
-    printRegister(rt);
-    if (interpret) {
-      print((int*) ": ");
-      printRegister(rs);
-      print((int*) "=");
-      printInteger(*(registers+rs));
-      print((int*) ",");
-      printRegister(rt);
-      print((int*) "=");
-      printInteger(*(registers+rt));
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rd);
+        print((int*) ",");
+        printRegister(rs);
+        print((int*) ",");
+        printRegister(rt);
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rs);
+            print((int*) "=");
+            printInteger(*(registers+rs));
+            print((int*) ",");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+        }
     }
-  }
 
-  if (interpret) {
-    if (*(registers+rs) < *(registers+rt))
-      *(registers+rd) = 1;
-    else
-      *(registers+rd) = 0;
-
-    pc = pc + WORDSIZE;
-  }
-
-  if (debug) {
     if (interpret) {
-      print((int*) " -> ");
-      printRegister(rd);
-      print((int*) "=");
-      printInteger(*(registers+rd));
+        if (*(registers+rs) < *(registers+rt))
+            *(registers+rd) = 1;
+        else
+            *(registers+rd) = 0;
+
+        pc = pc + WORDSIZE;
     }
-    println();
-  }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+        }
+        println();
+    }
 }
 
 void op_sw() {
-  int vaddr;
+    int vaddr;
 
-  if (debug) {
-    printOpcode(opcode);
-    print((int*) " ");
-    printRegister(rt);
-    print((int*) ",");
-    printInteger(signExtend(immediate));
-    print((int*) "(");
-    printRegister(rs);
-    print((int*) ")");
-    if (interpret) {
-      print((int*) ": ");
-      printRegister(rt);
-      print((int*) "=");
-      printInteger(*(registers+rt));
-      print((int*) ",");
-      printRegister(rs);
-      print((int*) "=");
-      printHexadecimal(*(registers+rs), 0);
+    if (debug) {
+        printOpcode(opcode);
+        print((int*) " ");
+        printRegister(rt);
+        print((int*) ",");
+        printInteger(signExtend(immediate));
+        print((int*) "(");
+        printRegister(rs);
+        print((int*) ")");
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+            print((int*) ",");
+            printRegister(rs);
+            print((int*) "=");
+            printHexadecimal(*(registers+rs), 0);
+        }
     }
-  }
 
-  if (interpret) {
-    vaddr = *(registers+rs) + signExtend(immediate);
-
-    if (isValidVirtualAddress(vaddr)) {
-      if (isVirtualAddressMapped(pt, vaddr)) {
-        storeVirtualMemory(pt, vaddr, *(registers+rt));
-
-        // keep track of number of stores
-        stores = stores + 1;
-
-        *(storesPerAddress + pc / WORDSIZE) = *(storesPerAddress + pc / WORDSIZE) + 1;
-
-        pc = pc + WORDSIZE;
-      } else
-        throwException(EXCEPTION_PAGEFAULT, vaddr);
-    } else
-      // TODO: pass invalid vaddr
-      throwException(EXCEPTION_ADDRESSERROR, 0);
-  }
-
-  if (debug) {
     if (interpret) {
-      print((int*) " -> memory[");
-      printHexadecimal(vaddr, 0);
-      print((int*) "]=");
-      printInteger(*(registers+rt));
-      print((int*) "=");
-      printRegister(rt);
+        vaddr = *(registers+rs) + signExtend(immediate);
+
+        if (isValidVirtualAddress(vaddr)) {
+            if (isVirtualAddressMapped(pt, vaddr)) {
+                storeVirtualMemory(pt, vaddr, *(registers+rt));
+
+                // keep track of number of stores
+                stores = stores + 1;
+
+                *(storesPerAddress + pc / WORDSIZE) = *(storesPerAddress + pc / WORDSIZE) + 1;
+
+                pc = pc + WORDSIZE;
+            } else
+                throwException(EXCEPTION_PAGEFAULT, vaddr);
+        } else
+            // TODO: pass invalid vaddr
+            throwException(EXCEPTION_ADDRESSERROR, 0);
     }
-    println();
-  }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> memory[");
+            printHexadecimal(vaddr, 0);
+            print((int*) "]=");
+            printInteger(*(registers+rt));
+            print((int*) "=");
+            printRegister(rt);
+        }
+        println();
+    }
 }
 
 // -----------------------------------------------------------------
@@ -8079,306 +7879,297 @@ void op_sw() {
 // -----------------------------------------------------------------
 
 void printException(int exception) {
-  print((int*) *(EXCEPTIONS + exception));
+    print((int*) *(EXCEPTIONS + exception));
 }
 
 int encodeException(int exception, int parameter) {
-  // assert: 0 <= exception < 2^16
-  // assert: -2^15 <= parameter < 2^15
+    // assert: 0 <= exception < 2^16
+    // assert: -2^15 <= parameter < 2^15
 
-  if (parameter < 0)
-    // convert from 32-bit to 16-bit two's complement
-    parameter = parameter + twoToThePowerOf(16);
+    if (parameter < 0)
+        // convert from 32-bit to 16-bit two's complement
+        parameter = parameter + twoToThePowerOf(16);
 
-  //return leftShift(exception, 16) + parameter;
-  //Assignment4
-  return (exception << 16) + parameter;
-
-  
+    return (exception << 16) + parameter;
 }
 
 int decodeExceptionNumber(int status) {
-  return rightShift(status, 16);
+    return rightShift(status, 16);
 }
 
 int decodeExceptionParameter(int status) {
-  //return signExtend(rightShift(leftShift(status, 16), 16));
     return signExtend(rightShift((status << 16), 16));
 }
 
 void printStatus(int status) {
-  int exception;
-  int parameter;
+    int exception;
+    int parameter;
 
-  exception = decodeExceptionNumber(status);
-  parameter = decodeExceptionParameter(status);
+    exception = decodeExceptionNumber(status);
+    parameter = decodeExceptionParameter(status);
 
-  printException(exception);
+    printException(exception);
 
-  if (exception == EXCEPTION_PAGEFAULT) {
-    print((int*) " at ");
-    printHexadecimal(parameter, 8);
-  }
+    if (exception == EXCEPTION_PAGEFAULT) {
+        print((int*) " at ");
+        printHexadecimal(parameter, 8);
+    }
 }
 
 void throwException(int exception, int parameter) {
-  if (exception == EXCEPTION_PAGEFAULT)
-    status = encodeException(exception, parameter / PAGESIZE);
-  else
-    status = encodeException(exception, parameter);
 
-  trap = 1;
+    if (exception == EXCEPTION_PAGEFAULT)
+        status = encodeException(exception, parameter / PAGESIZE);
+    else
+        status = encodeException(exception, parameter);
 
-  if (debug_exception) {
-    print(binaryName);
-    print((int*) ": context ");
-    printInteger(getID(currentContext));
-    print((int*) " throws ");
-    printStatus(status);
-    print((int*) " exception");
-    println();
-  }
+    trap = 1;
+
+    if (debug_exception) {
+        print(binaryName);
+        print((int*) ": context ");
+        printInteger(getID(currentContext));
+        print((int*) " throws ");
+        printStatus(status);
+        print((int*) " exception");
+        println();
+    }
 }
 
 void fetch() {
-  // assert: isValidVirtualAddress(pc) == 1
-  // assert: isVirtualAddressMapped(pt, pc) == 1
+    // assert: isValidVirtualAddress(pc) == 1
+    // assert: isVirtualAddressMapped(pt, pc) == 1
 
-  ir = loadVirtualMemory(pt, pc);
+    ir = loadVirtualMemory(pt, pc);
 }
 
 void execute() {
-  if (debug) {
-    if (interpret) {
-      print(binaryName);
-      print((int*) ": $pc=");
+    if (debug) {
+        if (interpret) {
+            print(binaryName);
+            print((int*) ": $pc=");
+        }
+        printHexadecimal(pc, 0);
+        if (sourceLineNumber != (int*) 0) {
+            print((int*) "(~");
+            printInteger(*(sourceLineNumber + pc / WORDSIZE));
+            print((int*) ")");
+        }
+        print((int*) ": ");
+        printHexadecimal(ir, 8);
+        print((int*) ": ");
     }
-    printHexadecimal(pc, 0);
-    if (sourceLineNumber != (int*) 0) {
-      print((int*) "(~");
-      printInteger(*(sourceLineNumber + pc / WORDSIZE));
-      print((int*) ")");
-    }
-    print((int*) ": ");
-    printHexadecimal(ir, 8);
-    print((int*) ": ");
-  }
-	
-  if (opcode == OP_SPECIAL) {
-    //if (function == FCT_NOP)
-      //fct_nop();
-    if (function == FCT_ADDU)
-      fct_addu();
-    else if (function == FCT_SUBU)
-      fct_subu();
-    else if (function == FCT_MULTU)
-      fct_multu();
-    else if (function == FCT_DIVU)
-      fct_divu();
-    else if (function == FCT_MFHI)
-      fct_mfhi();
-    else if (function == FCT_MFLO)
-      fct_mflo();
-    else if (function == FCT_SLT)
-      fct_slt();
-    else if (function == FCT_JR)
-      fct_jr();
-    else if (function == FCT_SYSCALL)
-      fct_syscall();
-	//Assignment3
-	else if (function == FCT_SLLV)
-		fct_sllv();
-	else if (function == FCT_SRL)
-		fct_srl();
-	else if (function == FCT_SRLV)
-		fct_srlv();
-	else if (function == FCT_SLL)
-		fct_sll();
-	//Assignment5
-	else if (function == FCT_AND)
-      fct_and();
-    else if (function == FCT_OR)
-      fct_or();
-    else if (function == FCT_NOR)
-      fct_nor();
+
+    if (opcode == OP_SPECIAL) {
+        if (function == FCT_ADDU)
+            fct_addu();
+        else if (function == FCT_SUBU)
+            fct_subu();
+        else if (function == FCT_MULTU)
+            fct_multu();
+        else if (function == FCT_DIVU)
+            fct_divu();
+        else if (function == FCT_MFHI)
+            fct_mfhi();
+        else if (function == FCT_MFLO)
+            fct_mflo();
+        else if (function == FCT_SLT)
+            fct_slt();
+        else if (function == FCT_JR)
+            fct_jr();
+        else if (function == FCT_SYSCALL){
+            fct_syscall();
+        }else if (function == FCT_SLL)
+            fct_sll();
+        else if (function == FCT_SRL)
+            fct_srl();
+        else if (function == FCT_SLLV)
+            fct_sllv();
+        else if (function == FCT_SRLV)
+            fct_srlv();
+        else if (function == FCT_AND)
+            fct_and();
+        else if (function == FCT_OR)
+            fct_or();
+        else if (function == FCT_NOR)
+            fct_nor();
+        else
+            throwException(EXCEPTION_UNKNOWNINSTRUCTION, 0);
+
+    } else if (opcode == OP_ADDIU)
+        op_addiu();
+    else if (opcode == OP_LW)
+        op_lw();
+    else if (opcode == OP_SW)
+        op_sw();
+    else if (opcode == OP_BEQ)
+        op_beq();
+    else if (opcode == OP_BNE)
+        op_bne();
+    else if (opcode == OP_JAL)
+        op_jal();
+    else if (opcode == OP_J)
+        op_j();
+    else if (opcode == OP_ANDI)
+        op_andi();
+    else if (opcode == OP_ORI)
+        op_ori();
     else
-      throwException(EXCEPTION_UNKNOWNINSTRUCTION, 0);
-  
-  }else if (opcode == OP_ADDIU)
-    op_addiu();
-  else if (opcode == OP_LW)
-    op_lw();
-  else if (opcode == OP_SW)
-    op_sw();
-  else if (opcode == OP_BEQ)
-    op_beq();
-  else if (opcode == OP_BNE)
-    op_bne();
-  else if (opcode == OP_JAL)
-    op_jal();
-  else if (opcode == OP_J)
-    op_j();
-  //Assignment5
-  else if (opcode == OP_ANDI)
-    op_andi();
-  else if (opcode == OP_ORI)
-    op_ori();
-  else
-    throwException(EXCEPTION_UNKNOWNINSTRUCTION, 0);
+        throwException(EXCEPTION_UNKNOWNINSTRUCTION, 0);
 }
 
 void interrupt() {
-  cycles = cycles + 1;
+    cycles = cycles + 1;
 
-  if (timer > 0)
-    if (cycles == timer) {
-      cycles = 0;
+    if (timer > 0)
+        if (cycles == timer) {
+            cycles = 0;
 
-      if (status == 0)
-        // only throw exception if no other is pending
-        // TODO: handle multiple pending exceptions
-        throwException(EXCEPTION_TIMER, 0);
-    }
+            if (status == 0)
+                // only throw exception if no other is pending
+                // TODO: handle multiple pending exceptions
+                throwException(EXCEPTION_TIMER, 0);
+        }
 }
 
 void runUntilException() {
-  trap = 0;
+    trap = 0;
 
-  while (trap == 0) {
-    fetch();
-    decode();
-    execute();
-    interrupt();
-  }
+    while (trap == 0) {
+        fetch();
+        decode();
+        execute();
+        interrupt();
+    }
 
-  trap = 0;
+    trap = 0;
 }
 
 int addressWithMaxCounter(int* counters, int max) {
-  int a;
-  int n;
-  int i;
-  int c;
+    int a;
+    int n;
+    int i;
+    int c;
 
-  a = -1;
+    a = -1;
 
-  n = 0;
+    n = 0;
 
-  i = 0;
+    i = 0;
 
-  while (i < maxBinaryLength / WORDSIZE) {
-    c = *(counters + i);
+    while (i < maxBinaryLength / WORDSIZE) {
+        c = *(counters + i);
 
-    if (n < c)
-      if (c < max) {
-        n = c;
-        a = i * WORDSIZE;
-      }
+        if (n < c)
+            if (c < max) {
+                n = c;
+                a = i * WORDSIZE;
+            }
 
-    i = i + 1;
-  }
+        i = i + 1;
+    }
 
-  return a;
+    return a;
 }
 
 int printCounters(int total, int* counters, int max) {
-  int a;
+    int a;
 
-  a = addressWithMaxCounter(counters, max);
+    a = addressWithMaxCounter(counters, max);
 
-  printInteger(*(counters + a / WORDSIZE));
+    printInteger(*(counters + a / WORDSIZE));
 
-  print((int*) "(");
-  printFixedPointPercentage(total, *(counters + a / WORDSIZE));
-  print((int*) "%)");
+    print((int*) "(");
+    printFixedPointPercentage(total, *(counters + a / WORDSIZE));
+    print((int*) "%)");
 
-  if (*(counters + a / WORDSIZE) != 0) {
-    print((int*) "@");
-    printHexadecimal(a, 0);
-    if (sourceLineNumber != (int*) 0) {
-      print((int*) "(~");
-      printInteger(*(sourceLineNumber + a / WORDSIZE));
-      print((int*) ")");
+    if (*(counters + a / WORDSIZE) != 0) {
+        print((int*) "@");
+        printHexadecimal(a, 0);
+        if (sourceLineNumber != (int*) 0) {
+            print((int*) "(~");
+            printInteger(*(sourceLineNumber + a / WORDSIZE));
+            print((int*) ")");
+        }
     }
-  }
 
-  return a;
+    return a;
 }
 
 void printProfile(int* message, int total, int* counters) {
-  int a;
+    int a;
 
-  if (total > 0) {
-    print(selfieName);
-    print(message);
-    printInteger(total);
-    print((int*) ",");
-    a = printCounters(total, counters, INT_MAX); // max counter
-    print((int*) ",");
-    a = printCounters(total, counters, *(counters + a / WORDSIZE)); // 2nd max
-    print((int*) ",");
-    a = printCounters(total, counters, *(counters + a / WORDSIZE)); // 3rd max
-    println();
-  }
+    if (total > 0) {
+        print(selfieName);
+        print(message);
+        printInteger(total);
+        print((int*) ",");
+        a = printCounters(total, counters, INT_MAX); // max counter
+        print((int*) ",");
+        a = printCounters(total, counters, *(counters + a / WORDSIZE)); // 2nd max
+        print((int*) ",");
+        a = printCounters(total, counters, *(counters + a / WORDSIZE)); // 3rd max
+        println();
+    }
 }
 
 void selfie_disassemble() {
-  assemblyName = getArgument();
+    assemblyName = getArgument();
 
-  if (codeLength == 0) {
+    if (codeLength == 0) {
+        print(selfieName);
+        print((int*) ": nothing to disassemble to output file ");
+        print(assemblyName);
+        println();
+
+        return;
+    }
+
+    // assert: assemblyName is mapped and not longer than maxFilenameLength
+
+    assemblyFD = openWriteOnly(assemblyName);
+
+    if (assemblyFD < 0) {
+        print(selfieName);
+        print((int*) ": could not create assembly output file ");
+        print(assemblyName);
+        println();
+
+        exit(-1);
+    }
+
+    outputName = assemblyName;
+    outputFD   = assemblyFD;
+
+    interpret = 0;
+
+    resetLibrary();
+    resetInterpreter();
+
+    debug = 1;
+
+    while(pc < codeLength) {
+        ir = loadBinary(pc);
+
+        decode();
+        execute();
+
+        pc = pc + WORDSIZE;
+    }
+
+    debug = 0;
+
+    outputName = (int*) 0;
+    outputFD   = 1;
+
     print(selfieName);
-    print((int*) ": nothing to disassemble to output file ");
+    print((int*) ": ");
+    printInteger(numberOfWrittenCharacters);
+    print((int*) " characters of assembly with ");
+    printInteger(codeLength / WORDSIZE);
+    print((int*) " instructions written into ");
     print(assemblyName);
     println();
-
-    return;
-  }
-
-  // assert: assemblyName is mapped and not longer than maxFilenameLength
-
-  assemblyFD = openWriteOnly(assemblyName);
-
-  if (assemblyFD < 0) {
-    print(selfieName);
-    print((int*) ": could not create assembly output file ");
-    print(assemblyName);
-    println();
-
-    exit(-1);
-  }
-
-  outputName = assemblyName;
-  outputFD   = assemblyFD;
-
-  interpret = 0;
-
-  resetLibrary();
-  resetInterpreter();
-
-  debug = 1;
-
-  while(pc < codeLength) {
-    ir = loadBinary(pc);
-
-    decode();
-    execute();
-
-    pc = pc + WORDSIZE;
-  }
-
-  debug = 0;
-
-  outputName = (int*) 0;
-  outputFD   = 1;
-
-  print(selfieName);
-  print((int*) ": ");
-  printInteger(numberOfWrittenCharacters);
-  print((int*) " characters of assembly with ");
-  printInteger(codeLength / WORDSIZE);
-  print((int*) " instructions written into ");
-  print(assemblyName);
-  println();
 }
 
 // -----------------------------------------------------------------
@@ -8386,115 +8177,115 @@ void selfie_disassemble() {
 // -----------------------------------------------------------------
 
 int createID(int seed) {
-  // assert: seed < INT_MAX
-  return seed + 1;
+    // assert: seed < INT_MAX
+    return seed + 1;
 }
 
 int* allocateContext(int ID, int parentID) {
-  int* context;
+    int* context;
 
-  if (freeContexts == (int*) 0)
-    context = malloc(4 * SIZEOFINTSTAR + 6 * SIZEOFINT);
-  else {
-    context = freeContexts;
+    if (freeContexts == (int*) 0)
+        context = malloc(4 * SIZEOFINTSTAR + 6 * SIZEOFINT);
+    else {
+        context = freeContexts;
 
-    freeContexts = getNextContext(freeContexts);
-  }
+        freeContexts = getNextContext(freeContexts);
+    }
 
-  setNextContext(context, (int*) 0);
-  setPrevContext(context, (int*) 0);
+    setNextContext(context, (int*) 0);
+    setPrevContext(context, (int*) 0);
 
-  setID(context, ID);
+    setID(context, ID);
 
-  setPC(context, 0);
+    setPC(context, 0);
 
-  // allocate zeroed memory for general purpose registers
-  // TODO: reuse memory
-  setRegs(context, zalloc(NUMBEROFREGISTERS * WORDSIZE));
+    // allocate zeroed memory for general purpose registers
+    // TODO: reuse memory
+    setRegs(context, zalloc(NUMBEROFREGISTERS * WORDSIZE));
 
-  setRegHi(context, 0);
-  setRegLo(context, 0);
+    setRegHi(context, 0);
+    setRegLo(context, 0);
 
-  // allocate zeroed memory for page table
-  // TODO: save and reuse memory for page table
-  setPT(context, zalloc(VIRTUALMEMORYSIZE / PAGESIZE * WORDSIZE));
+    // allocate zeroed memory for page table
+    // TODO: save and reuse memory for page table
+    setPT(context, zalloc(VIRTUALMEMORYSIZE / PAGESIZE * WORDSIZE));
 
-  // heap starts where it is safe to start
-  setBreak(context, maxBinaryLength);
+    // heap starts where it is safe to start
+    setBreak(context, maxBinaryLength);
 
-  setParent(context, parentID);
+    setParent(context, parentID);
 
-  return context;
+    return context;
 }
 
 int* createContext(int ID, int parentID, int* in) {
-  int* context;
+    int* context;
 
-  context = allocateContext(ID, parentID);
+    context = allocateContext(ID, parentID);
 
-  setNextContext(context, in);
+    setNextContext(context, in);
 
-  if (in != (int*) 0)
-    setPrevContext(in, context);
+    if (in != (int*) 0)
+        setPrevContext(in, context);
 
-  return context;
+    return context;
 }
 
 int* findContext(int ID, int* in) {
-  int* context;
+    int* context;
 
-  context = in;
+    context = in;
 
-  while (context != (int*) 0) {
-    if (getID(context) == ID)
-      return context;
+    while (context != (int*) 0) {
+        if (getID(context) == ID)
+            return context;
 
-    context = getNextContext(context);
-  }
+        context = getNextContext(context);
+    }
 
-  return (int*) 0;
+    return (int*) 0;
 }
 
 void switchContext(int* from, int* to) {
-  // save machine state
-  setPC(from, pc);
-  setRegHi(from, reg_hi);
-  setRegLo(from, reg_lo);
-  setBreak(from, brk);
+    // save machine state
+    setPC(from, pc);
+    setRegHi(from, reg_hi);
+    setRegLo(from, reg_lo);
+    setBreak(from, brk);
 
-  // restore machine state
-  pc        = getPC(to);
-  registers = getRegs(to);
-  reg_hi    = getRegHi(to);
-  reg_lo    = getRegLo(to);
-  pt        = getPT(to);
-  brk       = getBreak(to);
+    // restore machine state
+    pc        = getPC(to);
+    registers = getRegs(to);
+    reg_hi    = getRegHi(to);
+    reg_lo    = getRegLo(to);
+    pt        = getPT(to);
+    brk       = getBreak(to);
 }
 
 void freeContext(int* context) {
-  setNextContext(context, freeContexts);
+    setNextContext(context, freeContexts);
 
-  freeContexts = context;
+    freeContexts = context;
 }
 
 int* deleteContext(int* context, int* from) {
-  if (getNextContext(context) != (int*) 0)
-    setPrevContext(getNextContext(context), getPrevContext(context));
+    if (getNextContext(context) != (int*) 0)
+        setPrevContext(getNextContext(context), getPrevContext(context));
 
-  if (getPrevContext(context) != (int*) 0) {
-    setNextContext(getPrevContext(context), getNextContext(context));
-    setPrevContext(context, (int*) 0);
-  } else
-    from = getNextContext(context);
+    if (getPrevContext(context) != (int*) 0) {
+        setNextContext(getPrevContext(context), getNextContext(context));
+        setPrevContext(context, (int*) 0);
+    } else
+        from = getNextContext(context);
 
-  freeContext(context);
+    freeContext(context);
 
-  return from;
+    return from;
 }
 
 void mapPage(int* table, int page, int frame) {
-  // assert: 0 <= page < VIRTUALMEMORYSIZE / PAGESIZE
-  *(table + page) = frame;
+    // assert: 0 <= page < VIRTUALMEMORYSIZE / PAGESIZE
+    *(table + page) = frame;
 }
 
 // -----------------------------------------------------------------
@@ -8502,444 +8293,444 @@ void mapPage(int* table, int page, int frame) {
 // -----------------------------------------------------------------
 
 int pavailable() {
-  if (freePageFrameMemory > 0)
-    return 1;
-  else if (usedPageFrameMemory + MEGABYTE <= pageFrameMemory)
-    return 1;
-  else
-    return 0;
+    if (freePageFrameMemory > 0)
+        return 1;
+    else if (usedPageFrameMemory + MEGABYTE <= pageFrameMemory)
+        return 1;
+    else
+        return 0;
 }
 
 int pused() {
-  return usedPageFrameMemory - freePageFrameMemory;
+    return usedPageFrameMemory - freePageFrameMemory;
 }
 
 int* palloc() {
-  // CAUTION: on boot level zero palloc may return frame addresses < 0
-  int block;
-  int frame;
+    // CAUTION: on boot level zero palloc may return frame addresses < 0
+    int block;
+    int frame;
 
-  // assert: pageFrameMemory is equal to or a multiple of MEGABYTE
-  // assert: PAGESIZE is a factor of MEGABYTE strictly less than MEGABYTE
+    // assert: pageFrameMemory is equal to or a multiple of MEGABYTE
+    // assert: PAGESIZE is a factor of MEGABYTE strictly less than MEGABYTE
 
-  if (freePageFrameMemory == 0) {
-    freePageFrameMemory = MEGABYTE;
+    if (freePageFrameMemory == 0) {
+        freePageFrameMemory = MEGABYTE;
 
-    if (usedPageFrameMemory + freePageFrameMemory <= pageFrameMemory) {
-      // on boot level zero allocate zeroed memory
-      block = (int) zalloc(freePageFrameMemory);
+        if (usedPageFrameMemory + freePageFrameMemory <= pageFrameMemory) {
+            // on boot level zero allocate zeroed memory
+            block = (int) zalloc(freePageFrameMemory);
 
-      usedPageFrameMemory = usedPageFrameMemory + freePageFrameMemory;
+            usedPageFrameMemory = usedPageFrameMemory + freePageFrameMemory;
 
-      // page frames must be page-aligned to work as page table index
-      nextPageFrame = roundUp(block, PAGESIZE);
+            // page frames must be page-aligned to work as page table index
+            nextPageFrame = roundUp(block, PAGESIZE);
 
-      if (nextPageFrame > block)
-        // losing one page frame to fragmentation
-        freePageFrameMemory = freePageFrameMemory - PAGESIZE;
-    } else {
-      print(selfieName);
-      print((int*) ": palloc out of physical memory");
-      println();
+            if (nextPageFrame > block)
+                // losing one page frame to fragmentation
+                freePageFrameMemory = freePageFrameMemory - PAGESIZE;
+        } else {
+            print(selfieName);
+            print((int*) ": palloc out of physical memory");
+            println();
 
-      exit(-1);
+            exit(-1);
+        }
     }
-  }
 
-  frame = nextPageFrame;
+    frame = nextPageFrame;
 
-  nextPageFrame = nextPageFrame + PAGESIZE;
+    nextPageFrame = nextPageFrame + PAGESIZE;
 
-  freePageFrameMemory = freePageFrameMemory - PAGESIZE;
+    freePageFrameMemory = freePageFrameMemory - PAGESIZE;
 
-  // strictly, touching is only necessary on boot levels higher than zero
-  return touch((int*) frame, PAGESIZE);
+    // strictly, touching is only necessary on boot levels higher than zero
+    return touch((int*) frame, PAGESIZE);
 }
 
 void pfree(int* frame) {
-  // TODO: implement free list of page frames
+    // TODO: implement free list of page frames
 }
 
 void up_loadBinary(int* table) {
-  int vaddr;
+    int vaddr;
 
-  // binaries start at lowest virtual address
-  vaddr = 0;
+    // binaries start at lowest virtual address
+    vaddr = 0;
 
-  while (vaddr < binaryLength) {
-    mapAndStoreVirtualMemory(table, vaddr, loadBinary(vaddr));
+    while (vaddr < binaryLength) {
+        mapAndStoreVirtualMemory(table, vaddr, loadBinary(vaddr));
 
-    vaddr = vaddr + WORDSIZE;
-  }
+        vaddr = vaddr + WORDSIZE;
+    }
 }
 
 int up_loadString(int* table, int* s, int SP) {
-  int bytes;
-  int i;
+    int bytes;
+    int i;
 
-  bytes = roundUp(stringLength(s) + 1, WORDSIZE);
+    bytes = roundUp(stringLength(s) + 1, WORDSIZE);
 
-  // allocate memory for storing string
-  SP = SP - bytes;
+    // allocate memory for storing string
+    SP = SP - bytes;
 
-  i = 0;
+    i = 0;
 
-  while (i < bytes) {
-    mapAndStoreVirtualMemory(table, SP + i, *s);
+    while (i < bytes) {
+        mapAndStoreVirtualMemory(table, SP + i, *s);
 
-    s = s + 1;
+        s = s + 1;
 
-    i = i + WORDSIZE;
-  }
+        i = i + WORDSIZE;
+    }
 
-  return SP;
+    return SP;
 }
 
 void up_loadArguments(int* table, int argc, int* argv) {
-  int SP;
-  int vargv;
-  int i_argc;
-  int i_vargv;
+    int SP;
+    int vargv;
+    int i_argc;
+    int i_vargv;
 
-  // arguments are pushed onto stack which starts at highest virtual address
-  SP = VIRTUALMEMORYSIZE - WORDSIZE;
+    // arguments are pushed onto stack which starts at highest virtual address
+    SP = VIRTUALMEMORYSIZE - WORDSIZE;
 
-  // allocate memory for storing stack pointer later
-  SP = SP - WORDSIZE;
+    // allocate memory for storing stack pointer later
+    SP = SP - WORDSIZE;
 
-  // allocate memory for storing *argv array
-  SP = SP - argc * WORDSIZE;
+    // allocate memory for storing *argv array
+    SP = SP - argc * WORDSIZE;
 
-  // vargv invalid if argc == 0
-  vargv = SP + WORDSIZE;
+    // vargv invalid if argc == 0
+    vargv = SP + WORDSIZE;
 
-  i_vargv = vargv;
-  i_argc  = argc;
+    i_vargv = vargv;
+    i_argc  = argc;
 
-  while (i_argc > 0) {
-    SP = up_loadString(table, (int*) *argv, SP);
+    while (i_argc > 0) {
+        SP = up_loadString(table, (int*) *argv, SP);
 
-    // store pointer to string in virtual *argv
-    mapAndStoreVirtualMemory(table, i_vargv, SP);
+        // store pointer to string in virtual *argv
+        mapAndStoreVirtualMemory(table, i_vargv, SP);
 
-    argv = argv + 1;
+        argv = argv + 1;
 
-    i_vargv = i_vargv + WORDSIZE;
+        i_vargv = i_vargv + WORDSIZE;
 
-    i_argc = i_argc - 1;
-  }
+        i_argc = i_argc - 1;
+    }
 
-  // allocate memory for one word on the stack
-  SP = SP - WORDSIZE;
+    // allocate memory for one word on the stack
+    SP = SP - WORDSIZE;
 
-  // push argc
-  mapAndStoreVirtualMemory(table, SP, argc);
+    // push argc
+    mapAndStoreVirtualMemory(table, SP, argc);
 
-  // allocate memory for one word on the stack
-  SP = SP - WORDSIZE;
+    // allocate memory for one word on the stack
+    SP = SP - WORDSIZE;
 
-  // push virtual argv
-  mapAndStoreVirtualMemory(table, SP, vargv);
+    // push virtual argv
+    mapAndStoreVirtualMemory(table, SP, vargv);
 
-  // store stack pointer at highest virtual address for binary to retrieve
-  mapAndStoreVirtualMemory(table, VIRTUALMEMORYSIZE - WORDSIZE, SP);
+    // store stack pointer at highest virtual address for binary to retrieve
+    mapAndStoreVirtualMemory(table, VIRTUALMEMORYSIZE - WORDSIZE, SP);
 }
 
 void mapUnmappedPages(int* table) {
-  int page;
-  // assert: page table is only mapped from beginning up and end down
+    int page;
+    // assert: page table is only mapped from beginning up and end down
 
-  page = 0;
+    page = 0;
 
-  while (isPageMapped(table, page))
-    page = page + 1;
+    while (isPageMapped(table, page))
+        page = page + 1;
 
-  while (pavailable()) {
-    mapPage(table, page, (int) palloc());
+    while (pavailable()) {
+        mapPage(table, page, (int) palloc());
 
-    page = page + 1;
-  }
+        page = page + 1;
+    }
 }
 
 void down_mapPageTable(int* context) {
-  int page;
+    int page;
 
-  // assert: context page table is only mapped from beginning up and end down
+    // assert: context page table is only mapped from beginning up and end down
 
-  page = 0;
+    page = 0;
 
-  while (isPageMapped(getPT(context), page)) {
-    selfie_map(getID(context), page, getFrameForPage(getPT(context), page));
+    while (isPageMapped(getPT(context), page)) {
+        selfie_map(getID(context), page, getFrameForPage(getPT(context), page));
 
-    page = page + 1;
-  }
+        page = page + 1;
+    }
 
-  page = (VIRTUALMEMORYSIZE - WORDSIZE) / PAGESIZE;
+    page = (VIRTUALMEMORYSIZE - WORDSIZE) / PAGESIZE;
 
-  while (isPageMapped(getPT(context), page)) {
-    selfie_map(getID(context), page, getFrameForPage(getPT(context), page));
+    while (isPageMapped(getPT(context), page)) {
+        selfie_map(getID(context), page, getFrameForPage(getPT(context), page));
 
-    page = page - 1;
-  }
+        page = page - 1;
+    }
 }
 
 int runUntilExitWithoutExceptionHandling(int toID) {
-  // works only with mipsters
-  int fromID;
-  int* fromContext;
-  int savedStatus;
-  int exceptionNumber;
+    // works only with mipsters
+    int fromID;
+    int* fromContext;
+    int savedStatus;
+    int exceptionNumber;
 
-  while (1) {
-    fromID = mipster_switch(toID);
+    while (1) {
+        fromID = mipster_switch(toID);
 
-    fromContext = findContext(fromID, usedContexts);
+        fromContext = findContext(fromID, usedContexts);
 
-    // assert: fromContext must be in usedContexts (created here)
+        // assert: fromContext must be in usedContexts (created here)
 
-    if (getParent(fromContext) != MIPSTER_ID)
-      // switch to parent which is in charge of handling exceptions
-      toID = getParent(fromContext);
-    else {
-      // we are the parent in charge of handling exit exceptions
-      savedStatus = doStatus();
+        if (getParent(fromContext) != MIPSTER_ID)
+            // switch to parent which is in charge of handling exceptions
+            toID = getParent(fromContext);
+        else {
+            // we are the parent in charge of handling exit exceptions
+            savedStatus = doStatus();
 
-      exceptionNumber = decodeExceptionNumber(savedStatus);
+            exceptionNumber = decodeExceptionNumber(savedStatus);
 
-      if (exceptionNumber == EXCEPTION_EXIT)
-        // TODO: only return if all contexts have exited
-        return decodeExceptionParameter(savedStatus);
-      else if (exceptionNumber != EXCEPTION_TIMER) {
-        print(binaryName);
-        print((int*) ": context ");
-        printInteger(getID(fromContext));
-        print((int*) " throws uncaught ");
-        printStatus(savedStatus);
-        println();
+            if (exceptionNumber == EXCEPTION_EXIT)
+                // TODO: only return if all contexts have exited
+                return decodeExceptionParameter(savedStatus);
+            else if (exceptionNumber != EXCEPTION_TIMER) {
+                print(binaryName);
+                print((int*) ": context ");
+                printInteger(getID(fromContext));
+                print((int*) " throws uncaught ");
+                printStatus(savedStatus);
+                println();
 
-        return -1;
-      } else
-        toID = fromID;
+                return -1;
+            } else
+                toID = fromID;
+        }
     }
-  }
 }
 
 int runOrHostUntilExitWithPageFaultHandling(int toID) {
-  // works with mipsters and hypsters
-  int fromID;
-  int* fromContext;
-  int savedStatus;
-  int exceptionNumber;
-  int exceptionParameter;
-  int frame;
+    // works with mipsters and hypsters
+    int fromID;
+    int* fromContext;
+    int savedStatus;
+    int exceptionNumber;
+    int exceptionParameter;
+    int frame;
 
-  while (1) {
-    fromID = selfie_switch(toID);
+    while (1) {
+        fromID = selfie_switch(toID);
 
-    fromContext = findContext(fromID, usedContexts);
+        fromContext = findContext(fromID, usedContexts);
 
-    // assert: fromContext must be in usedContexts (created here)
+        // assert: fromContext must be in usedContexts (created here)
 
-    if (getParent(fromContext) != selfie_ID())
-      // switch to parent which is in charge of handling exceptions
-      toID = getParent(fromContext);
-    else {
-      // we are the parent in charge of handling exceptions
-      savedStatus = selfie_status();
+        if (getParent(fromContext) != selfie_ID())
+            // switch to parent which is in charge of handling exceptions
+            toID = getParent(fromContext);
+        else {
+            // we are the parent in charge of handling exceptions
+            savedStatus = selfie_status();
 
-      exceptionNumber    = decodeExceptionNumber(savedStatus);
-      exceptionParameter = decodeExceptionParameter(savedStatus);
+            exceptionNumber    = decodeExceptionNumber(savedStatus);
+            exceptionParameter = decodeExceptionParameter(savedStatus);
 
-      if (exceptionNumber == EXCEPTION_PAGEFAULT) {
-        frame = (int) palloc();
+            if (exceptionNumber == EXCEPTION_PAGEFAULT) {
+                frame = (int) palloc();
 
-        // TODO: use this table to unmap and reuse frames
-        mapPage(getPT(fromContext), exceptionParameter, frame);
+                // TODO: use this table to unmap and reuse frames
+                mapPage(getPT(fromContext), exceptionParameter, frame);
 
-        // page table on microkernel boot level
-        selfie_map(fromID, exceptionParameter, frame);
-      } else if (exceptionNumber == EXCEPTION_EXIT)
-        // TODO: only return if all contexts have exited
-        return exceptionParameter;
-      else if (exceptionNumber != EXCEPTION_TIMER) {
-        print(binaryName);
-        print((int*) ": context ");
-        printInteger(getID(fromContext));
-        print((int*) " throws uncaught ");
-        printStatus(savedStatus);
-        println();
+                // page table on microkernel boot level
+                selfie_map(fromID, exceptionParameter, frame);
+            } else if (exceptionNumber == EXCEPTION_EXIT)
+                // TODO: only return if all contexts have exited
+                return exceptionParameter;
+            else if (exceptionNumber != EXCEPTION_TIMER) {
+                print(binaryName);
+                print((int*) ": context ");
+                printInteger(getID(fromContext));
+                print((int*) " throws uncaught ");
+                printStatus(savedStatus);
+                println();
 
-        return -1;
-      }
+                return -1;
+            }
 
-      // TODO: scheduler should go here
-      toID = fromID;
+            // TODO: scheduler should go here
+            toID = fromID;
+        }
     }
-  }
 }
 
 int bootminmob(int argc, int* argv, int machine) {
-  // works only with mipsters
-  int initID;
-  int exitCode;
+    // works only with mipsters
+    int initID;
+    int exitCode;
 
-  print(selfieName);
-  print((int*) ": this is selfie's ");
-  if (machine == MINSTER)
-    print((int*) "minster");
-  else
-    print((int*) "mobster");
-  print((int*) " executing ");
-  print(binaryName);
-  print((int*) " with ");
-  printInteger(pageFrameMemory / MEGABYTE);
-  print((int*) "MB of physical memory");
-  println();
+    print(selfieName);
+    print((int*) ": this is selfie's ");
+    if (machine == MINSTER)
+        print((int*) "minster");
+    else
+        print((int*) "mobster");
+    print((int*) " executing ");
+    print(binaryName);
+    print((int*) " with ");
+    printInteger(pageFrameMemory / MEGABYTE);
+    print((int*) "MB of physical memory");
+    println();
 
-  resetInterpreter();
-  resetMicrokernel();
+    resetInterpreter();
+    resetMicrokernel();
 
-  // create initial context on our boot level
-  initID = doCreate(MIPSTER_ID);
+    // create initial context on our boot level
+    initID = doCreate(MIPSTER_ID);
 
-  up_loadBinary(getPT(usedContexts));
+    up_loadBinary(getPT(usedContexts));
 
-  up_loadArguments(getPT(usedContexts), argc, argv);
+    up_loadArguments(getPT(usedContexts), argc, argv);
 
-  if (machine == MINSTER)
-    // virtual is like physical memory in initial context up to memory size
-    // by mapping unmapped pages (for the heap) to all available page frames
-    // CAUTION: consumes memory even when not used
-    mapUnmappedPages(getPT(usedContexts));
+    if (machine == MINSTER)
+        // virtual is like physical memory in initial context up to memory size
+        // by mapping unmapped pages (for the heap) to all available page frames
+        // CAUTION: consumes memory even when not used
+        mapUnmappedPages(getPT(usedContexts));
 
-  exitCode = runUntilExitWithoutExceptionHandling(initID);
+    exitCode = runUntilExitWithoutExceptionHandling(initID);
 
-  print(selfieName);
-  print((int*) ": this is selfie's ");
-  if (machine == MINSTER)
-    print((int*) "minster");
-  else
-    print((int*) "mobster");
-  print((int*) " terminating ");
-  print(binaryName);
-  print((int*) " with exit code ");
-  printInteger(exitCode);
-  print((int*) " and ");
-  printFixedPointRatio(pused(), MEGABYTE);
-  print((int*) "MB of mapped memory");
-  println();
+    print(selfieName);
+    print((int*) ": this is selfie's ");
+    if (machine == MINSTER)
+        print((int*) "minster");
+    else
+        print((int*) "mobster");
+    print((int*) " terminating ");
+    print(binaryName);
+    print((int*) " with exit code ");
+    printInteger(exitCode);
+    print((int*) " and ");
+    printFixedPointRatio(pused(), MEGABYTE);
+    print((int*) "MB of mapped memory");
+    println();
 
-  return exitCode;
+    return exitCode;
 }
 
 int boot(int argc, int* argv) {
-  // works with mipsters and hypsters
-  int initID;
-  int exitCode;
+    // works with mipsters and hypsters
+    int initID;
+    int exitCode;
 
-  print(selfieName);
-  print((int*) ": this is selfie's ");
-  if (mipster)
-    print((int*) "mipster");
-  else
-    print((int*) "hypster");
-  print((int*) " executing ");
-  print(binaryName);
-  print((int*) " with ");
-  printInteger(pageFrameMemory / MEGABYTE);
-  print((int*) "MB of physical memory");
-  println();
+    print(selfieName);
+    print((int*) ": this is selfie's ");
+    if (mipster)
+        print((int*) "mipster");
+    else
+        print((int*) "hypster");
+    print((int*) " executing ");
+    print(binaryName);
+    print((int*) " with ");
+    printInteger(pageFrameMemory / MEGABYTE);
+    print((int*) "MB of physical memory");
+    println();
 
-  // resetting interpreter is only necessary for mipsters
-  resetInterpreter();
+    // resetting interpreter is only necessary for mipsters
+    resetInterpreter();
 
-  resetMicrokernel();
+    resetMicrokernel();
 
-  // create initial context on microkernel boot level
-  initID = selfie_create();
+    // create initial context on microkernel boot level
+    initID = selfie_create();
 
-  if (usedContexts == (int*) 0)
-    // create duplicate of the initial context on our boot level
-    usedContexts = createContext(initID, selfie_ID(), (int*) 0);
+    if (usedContexts == (int*) 0)
+        // create duplicate of the initial context on our boot level
+        usedContexts = createContext(initID, selfie_ID(), (int*) 0);
 
-  up_loadBinary(getPT(usedContexts));
+    up_loadBinary(getPT(usedContexts));
 
-  up_loadArguments(getPT(usedContexts), argc, argv);
+    up_loadArguments(getPT(usedContexts), argc, argv);
 
-  // propagate page table of initial context to microkernel boot level
-  down_mapPageTable(usedContexts);
+    // propagate page table of initial context to microkernel boot level
+    down_mapPageTable(usedContexts);
 
-  // mipsters and hypsters handle page faults
-  exitCode = runOrHostUntilExitWithPageFaultHandling(initID);
+    // mipsters and hypsters handle page faults
+    exitCode = runOrHostUntilExitWithPageFaultHandling(initID);
 
-  print(selfieName);
-  print((int*) ": this is selfie's ");
-  if (mipster)
-    print((int*) "mipster");
-  else
-    print((int*) "hypster");
-  print((int*) " terminating ");
-  print(binaryName);
-  print((int*) " with exit code ");
-  printInteger(exitCode);
-  print((int*) " and ");
-  printFixedPointRatio(pused(), MEGABYTE);
-  print((int*) "MB of mapped memory");
-  println();
+    print(selfieName);
+    print((int*) ": this is selfie's ");
+    if (mipster)
+        print((int*) "mipster");
+    else
+        print((int*) "hypster");
+    print((int*) " terminating ");
+    print(binaryName);
+    print((int*) " with exit code ");
+    printInteger(exitCode);
+    print((int*) " and ");
+    printFixedPointRatio(pused(), MEGABYTE);
+    print((int*) "MB of mapped memory");
+    println();
 
-  return exitCode;
+    return exitCode;
 }
 
 int selfie_run(int engine, int machine, int debugger) {
-  int exitCode;
+    int exitCode;
 
-  if (binaryLength == 0) {
-    print(selfieName);
-    print((int*) ": nothing to run, debug, or host");
-    println();
+    if (binaryLength == 0) {
+        print(selfieName);
+        print((int*) ": nothing to run, debug, or host");
+        println();
 
-    exit(-1);
-  }
+        exit(-1);
+    }
 
-  initMemory(atoi(peekArgument(), 10));
+    initMemory(atoi(peekArgument(), 10));
 
-  // pass binary name as first argument by replacing memory size
-  setArgument(binaryName);
+    // pass binary name as first argument by replacing memory size
+    setArgument(binaryName);
 
-  interpret = 1;
+    interpret = 1;
 
-  if (engine == MIPSTER) {
-    // boot mipster
-    mipster = 1;
+    if (engine == MIPSTER) {
+        // boot mipster
+        mipster = 1;
 
-    if (debugger)
-      debug = 1;
+        if (debugger)
+            debug = 1;
 
-    if (machine == MIPSTER)
-      exitCode = boot(numberOfRemainingArguments(), remainingArguments());
-    else
-      exitCode = bootminmob(numberOfRemainingArguments(), remainingArguments(), machine);
+        if (machine == MIPSTER)
+            exitCode = boot(numberOfRemainingArguments(), remainingArguments());
+        else
+            exitCode = bootminmob(numberOfRemainingArguments(), remainingArguments(), machine);
 
-    debug   = 0;
-    mipster = 0;
+        debug   = 0;
+        mipster = 0;
 
-    print(selfieName);
-    if (sourceLineNumber != (int*) 0)
-      print((int*) ": profile: total,max(ratio%)@addr(line#),2max(ratio%)@addr(line#),3max(ratio%)@addr(line#)");
-    else
-      print((int*) ": profile: total,max(ratio%)@addr,2max(ratio%)@addr,3max(ratio%)@addr");
-    println();
-    printProfile((int*) ": calls: ", calls, callsPerAddress);
-    printProfile((int*) ": loops: ", loops, loopsPerAddress);
-    printProfile((int*) ": loads: ", loads, loadsPerAddress);
-    printProfile((int*) ": stores: ", stores, storesPerAddress);
-  } else
-    // boot hypster
-    exitCode = boot(numberOfRemainingArguments(), remainingArguments());
+        print(selfieName);
+        if (sourceLineNumber != (int*) 0)
+            print((int*) ": profile: total,max(ratio%)@addr(line#),2max(ratio%)@addr(line#),3max(ratio%)@addr(line#)");
+        else
+            print((int*) ": profile: total,max(ratio%)@addr,2max(ratio%)@addr,3max(ratio%)@addr");
+        println();
+        printProfile((int*) ": calls: ", calls, callsPerAddress);
+        printProfile((int*) ": loops: ", loops, loopsPerAddress);
+        printProfile((int*) ": loads: ", loads, loadsPerAddress);
+        printProfile((int*) ": stores: ", stores, storesPerAddress);
+    } else
+        // boot hypster
+        exitCode = boot(numberOfRemainingArguments(), remainingArguments());
 
-  interpret = 0;
+    interpret = 0;
 
-  return exitCode;
+    return exitCode;
 }
 
 // -----------------------------------------------------------------
@@ -8947,99 +8738,100 @@ int selfie_run(int engine, int machine, int debugger) {
 // -----------------------------------------------------------------
 
 int numberOfRemainingArguments() {
-  return selfie_argc;
+    return selfie_argc;
 }
 
 int* remainingArguments() {
-  return selfie_argv;
+    return selfie_argv;
 }
 
 int* peekArgument() {
-  if (numberOfRemainingArguments() > 0)
-    return (int*) *selfie_argv;
-  else
-    return (int*) 0;
+    if (numberOfRemainingArguments() > 0)
+        return (int*) *selfie_argv;
+    else
+        return (int*) 0;
 }
 
 int* getArgument() {
-  int* argument;
+    int* argument;
 
-  argument = peekArgument();
+    argument = peekArgument();
 
-  if (numberOfRemainingArguments() > 0) {
-    selfie_argc = selfie_argc - 1;
-    selfie_argv = selfie_argv + 1;
-  }
+    if (numberOfRemainingArguments() > 0) {
+        selfie_argc = selfie_argc - 1;
+        selfie_argv = selfie_argv + 1;
+    }
 
-  return argument;
+    return argument;
 }
 
 void setArgument(int* argv) {
-  *selfie_argv = (int) argv;
+    *selfie_argv = (int) argv;
 }
 
 void printUsage() {
-  print(selfieName);
-  print((int*) ": usage: selfie { -c { source } | -o binary | -s assembly | -l binary } [ ( -m | -d | -y | -min | -mob ) size ... ] ");
-  println();
+    print(selfieName);
+    print((int*) ": usage: selfie { -c { source } | -o binary | -s assembly | -l binary } [ ( -m | -d | -y | -min | -mob ) size ... ] ");
+    println();
 }
 
 int selfie() {
-  int* option;
+    int* option;
 
-  print((int*)"This is Katharina Reiter's Selfie");
-  println();
+    print ((int*) "This is Vivien Wallner's Selfie");
+    println();
 
-  
-  if (numberOfRemainingArguments() == 0)
-    printUsage();
-  else {
-    initScanner();
-    initRegister();
-    initDecoder();
-    initInterpreter();
 
-    while (numberOfRemainingArguments() > 0) {
-      option = getArgument();
 
-      if (stringCompare(option, (int*) "-c"))
-        selfie_compile();
-      else if (numberOfRemainingArguments() == 0) {
-        // remaining options have at least one argument
+    if (numberOfRemainingArguments() == 0)
         printUsage();
+    else {
+        initScanner();
+        initRegister();
+        initDecoder();
+        initInterpreter();
 
-        return -1;
-      } else if (stringCompare(option, (int*) "-o"))
-        selfie_output();
-      else if (stringCompare(option, (int*) "-s"))
-        selfie_disassemble();
-      else if (stringCompare(option, (int*) "-l"))
-        selfie_load();
-      else if (stringCompare(option, (int*) "-m"))
-        return selfie_run(MIPSTER, MIPSTER, 0);
-      else if (stringCompare(option, (int*) "-d"))
-        return selfie_run(MIPSTER, MIPSTER, 1);
-      else if (stringCompare(option, (int*) "-y"))
-        return selfie_run(HYPSTER, MIPSTER, 0);
-      else if (stringCompare(option, (int*) "-min"))
-        return selfie_run(MIPSTER, MINSTER, 0);
-      else if (stringCompare(option, (int*) "-mob"))
-        return selfie_run(MIPSTER, MOBSTER, 0);
-      else {
-        printUsage();
+        while (numberOfRemainingArguments() > 0) {
+            option = getArgument();
 
-        return -1;
-      }
+            if (stringCompare(option, (int*) "-c"))
+                selfie_compile();
+            else if (numberOfRemainingArguments() == 0) {
+                // remaining options have at least one argument
+                printUsage();
+
+                return -1;
+            } else if (stringCompare(option, (int*) "-o"))
+                selfie_output();
+            else if (stringCompare(option, (int*) "-s"))
+                selfie_disassemble();
+            else if (stringCompare(option, (int*) "-l"))
+                selfie_load();
+            else if (stringCompare(option, (int*) "-m"))
+                return selfie_run(MIPSTER, MIPSTER, 0);
+            else if (stringCompare(option, (int*) "-d"))
+                return selfie_run(MIPSTER, MIPSTER, 1);
+            else if (stringCompare(option, (int*) "-y"))
+                return selfie_run(HYPSTER, MIPSTER, 0);
+            else if (stringCompare(option, (int*) "-min"))
+                return selfie_run(MIPSTER, MINSTER, 0);
+            else if (stringCompare(option, (int*) "-mob"))
+                return selfie_run(MIPSTER, MOBSTER, 0);
+            else {
+                printUsage();
+
+                return -1;
+            }
+        }
     }
-  }
 
-  return 0;
+    return 0;
 }
 
 int main(int argc, int* argv) {
-  initSelfie(argc, (int*) argv);
+    initSelfie(argc, (int*) argv);
 
-  initLibrary();
+    initLibrary();
 
-  return selfie();
+    return selfie();
 }
