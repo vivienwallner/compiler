@@ -96,6 +96,7 @@ void initLibrary();
 void resetLibrary();
 
 int twoToThePowerOf(int p);
+//int leftShift(int n, int b);
 int rightShift(int n, int b);
 
 int  loadCharacter(int* s, int i);
@@ -105,7 +106,7 @@ int  stringLength(int* s);
 void stringReverse(int* s);
 int  stringCompare(int* s, int* t);
 
-int  atoi(int* s, int b);
+int  atoi(int* s, int base);
 int* itoa(int n, int* s, int b, int a, int p);
 
 int fixedPointRatio(int a, int b);
@@ -159,7 +160,8 @@ int CHAR_OR           = '|';
 int CHAR_NOT          = '~';
 //Assignment7
 int CHAR_LBRACKET     = '[';
-int CHAR_RBRACKET     = ']';
+int CHAR_RBRACKET  = ']';
+
 
 int SIZEOFINT     = 4; // must be the same as WORDSIZE
 int SIZEOFINTSTAR = 4; // must be the same as WORDSIZE
@@ -167,11 +169,11 @@ int SIZEOFINTSTAR = 4; // must be the same as WORDSIZE
 //Assignment7
 int power_of_two_table[31];
 
-int INT_MAX; // maximum numerical currentValue of a signed 32-bit integer
-int INT_MIN; // minimum numerical currentValue of a signed 32-bit integer
+int INT_MAX; // maximum numerical value of a signed 32-bit integer
+int INT_MIN; // minimum numerical value of a signed 32-bit integer
 
-int INT16_MAX; // maximum numerical currentValue of a signed 16-bit integer
-int INT16_MIN; // minimum numerical currentValue of a signed 16-bit integer
+int INT16_MAX; // maximum numerical value of a signed 16-bit integer
+int INT16_MIN; // minimum numerical value of a signed 16-bit integer
 
 int maxFilenameLength = 128;
 
@@ -186,22 +188,22 @@ int* binary_buffer;    // buffer for binary I/O
 // WINDOWS: 32768 = 0x8000 = _O_BINARY (0x8000) | _O_RDONLY (0x0000)
 // since LINUX/MAC do not seem to mind about _O_BINARY set
 // we use the WINDOWS flags as default
-int O_RDONLY = 0b1000000000000000;
+int O_RDONLY = 0b1000000000000000;//binary representation of 32768
 
 // flags for opening write-only files
 // MAC: 1537 = 0x0601 = O_CREAT (0x0200) | O_TRUNC (0x0400) | O_WRONLY (0x0001)
-int MAC_O_CREAT_TRUNC_WRONLY = 0x0601;
+int MAC_O_CREAT_TRUNC_WRONLY = 0x0601;//hexadezimal representation of 1537
 
 // LINUX: 577 = 0x0241 = O_CREAT (0x0040) | O_TRUNC (0x0200) | O_WRONLY (0x0001)
-int LINUX_O_CREAT_TRUNC_WRONLY = 0x0241;
+int LINUX_O_CREAT_TRUNC_WRONLY = 0x0241;//headezimal representation of 577
 
 // WINDOWS: 33537 = 0x8301 = _O_BINARY (0x8000) | _O_CREAT (0x0100) | _O_TRUNC (0x0200) | _O_WRONLY (0x0001)
-int WINDOWS_O_BINARY_CREAT_TRUNC_WRONLY = 0x8301;
+int WINDOWS_O_BINARY_CREAT_TRUNC_WRONLY = 0x8301;//hexadezimal representation of 33537
 
 // flags for rw-r--r-- file permissions
 // 420 = 00644 = S_IRUSR (00400) | S_IWUSR (00200) | S_IRGRP (00040) | S_IROTH (00004)
 // these flags seem to be working for LINUX, MAC, and WINDOWS
-int S_IRUSR_IWUSR_IRGRP_IROTH = 00644;
+int S_IRUSR_IWUSR_IRGRP_IROTH = 00644;//octal representaation of 428
 
 // ------------------------ GLOBAL VARIABLES -----------------------
 
@@ -209,6 +211,7 @@ int numberOfWrittenCharacters = 0;
 
 int* outputName = (int*) 0;
 int  outputFD   = 1;
+
 
 // ------------------------- INITIALIZATION ------------------------
 
@@ -341,7 +344,7 @@ int SYM_STRUCT       = 35; //"STRUCT"
 
 int* SYMBOLS; // strings representing symbols
 
-int maxIdentifierLength = 64; // maximum number of characters in an identifier
+int maxIdentifierLength = 64; // maximum number of characters in an identifier with base 10
 int maxIntegerLength    = 32; // maximum number of characters in an integer
 int maxStringLength     = 128; // maximum number of characters in a string
 
@@ -353,7 +356,7 @@ int* identifier = (int*) 0; // stores scanned identifier as string
 int* integer    = (int*) 0; // stores scanned integer as string
 int* string     = (int*) 0; // stores scanned string
 
-int literal = 0; // stores numerical currentValue of scanned integer or character
+int literal = 0; // stores numerical value of scanned integer or character
 
 int mayBeINTMIN = 0; // allow INT_MIN if '-' was scanned before
 int isINTMIN    = 0; // flag to indicate that INT_MIN was scanned
@@ -374,7 +377,6 @@ int  sourceFD   = 0;        // file descriptor of open source file
 // ------------------------- INITIALIZATION ------------------------
 
 void initScanner () {
-  //Assignment 4 5 7 8
   SYMBOLS = malloc(36 * SIZEOFINTSTAR);
 
   *(SYMBOLS + SYM_IDENTIFIER)   = (int) "identifier";
@@ -405,7 +407,7 @@ void initScanner () {
   *(SYMBOLS + SYM_MOD)          = (int) "%";
   *(SYMBOLS + SYM_CHARACTER)    = (int) "character";
   *(SYMBOLS + SYM_STRING)       = (int) "string";
-   //Assignment4
+  //Assignment4
   *(SYMBOLS + SYM_LEFTSHIFT)    = (int) "<<";
   *(SYMBOLS + SYM_RIGHTSHIFT)   = (int) ">>";
   //Assignment5
@@ -456,42 +458,45 @@ void resetScanner() {
 // +----+------------+
 
 //Assignment8
-struct symbol_table_t {
-  struct symbol_table_t * next;   //0
-  int* string;                    //1
-  int line;                       //2
-  int class;                      //3
-  struct type_t * typeStruct;     //4
-  int currentValue;               //5
-  int address;                    //6
-  int scope;                      //7
-  int numberOfDimensions;         //8
-  int totalSize;                  //9
-};
+struct symbol_table_t {  
+  struct symbol_table_t * next;  
+  int* string;  
+  int line;  
+  int class;  
+  struct type_t * type;  
+  int value;  
+  int address;  
+  int scope;  
+  int numberOfDimensions;
+  int totalSize;
+}; 
 
 int* getNextEntry(int* entry)  { return (int*) *entry; }
 int* getString(int* entry)     { return (int*) *(entry + 1); }
 int  getLineNumber(int* entry) { return        *(entry + 2); }
 int  getClass(int* entry)      { return        *(entry + 3); }
 int* getTypeStruct(int* entry) { return (int*) *(entry + 4); }
-int  getcurrentValue(int* entry)      { return        *(entry + 5); }
+int  getValue(int* entry)      { return        *(entry + 5); }
 int  getAddress(int* entry)    { return        *(entry + 6); }
 int  getScope(int* entry)      { return        *(entry + 7); }
-int  getDimNumb(int* entry)  { return        *(entry + 8); }
+//Assignment7
+int  getDimNumb(int* entry)    { return        *(entry + 8); }
 int  getTotalSize(int* entry)  { return        *(entry + 9); }
+
 
 void setNextEntry(int* entry, int* next)    { *entry       = (int) next; }
 void setString(int* entry, int* identifier) { *(entry + 1) = (int) identifier; }
 void setLineNumber(int* entry, int line)    { *(entry + 2) = line; }
 void setClass(int* entry, int class)        { *(entry + 3) = class; }
 void setTypeStruct(int* entry, int type)    { *(entry + 4) = type; }
-void setcurrentValue(int* entry, int currentValue)        { *(entry + 5) = currentValue; }
+void setValue(int* entry, int value)        { *(entry + 5) = value; }
 void setAddress(int* entry, int address)    { *(entry + 6) = address; }
 void setScope(int* entry, int scope)        { *(entry + 7) = scope; }
-void setDimNumb(int* entry, int dim)      { *(entry + 8)  = dim; }
-void setTotalSize(int* entry, int size)     { *(entry + 9) = size; }
+//Assignment7
+void setDimNumb(int* entry, int dim)        { *(entry + 8)  = dim; }
+void setTotalSize(int* entry, int size)     { *(entry + 9 ) = size; }
 
-
+//Assignment8
 struct type_t {
   int type;
   struct symbol_table_t * definition;
@@ -501,13 +506,13 @@ struct type_t {
 };
 
 int  getType(int* entry)        { return        *entry; }
-int* getDefinition(int* entry)   { return (int*) *(entry + 1); }
+int* getDefintion(int* entry)   { return (int*) *(entry + 1); }
 int* getStructName(int* entry)  { return (int*) *(entry + 2); }
 int* getDimensions(int* entry)  { return (int*) *(entry + 3); }
 int* getFields(int* entry)      { return (int*) *(entry + 4); }
 
 void setType(int* entry, int type)           { *entry       = type; }
-void setDefinition(int* entry, int* def)      { *(entry + 1) = (int) def; }
+void setDefiniton(int* entry, int* def)      { *(entry + 1) = (int) def; }
 void setStructName(int* entry, int* name)    { *(entry + 2) = (int) name; }
 void setDimensions(int* entry, int* dim)     { *(entry + 3) = (int) dim; }
 void setFields(int* entry, int* fields)      { *(entry + 4) = (int) fields; }
@@ -538,7 +543,7 @@ void setFieldOffset(int* entry, int offset){ *(entry + 3) =       offset; }
 void resetSymbolTables();
 
 //Assignment7
-int* createSymbolTableEntry(int which, int* string, int line, int class, int type, int currentValue, int address);
+int* createSymbolTableEntry(int which, int* string, int line, int class, int type, int value, int address);
 
 int* searchSymbolTable(int* entry, int* string, int class);
 int* getScopedSymbolTableEntry(int* string, int class);
@@ -546,10 +551,12 @@ int* getScopedSymbolTableEntry(int* string, int class);
 int isUndefinedProcedure(int* entry);
 int reportUndefinedProcedures();
 
+//Assignment8
 int getVariableType(int* entry){ 
   entry = getTypeStruct(entry); 
   return getType(entry);
 }
+
 
 //gets the size for dimension dimNub....dimNumb starts with 1
 int  getDimSize(int* entry, int dimNumb){
@@ -602,7 +609,7 @@ void addDimension(int* entry, int size){
 
   setDimNumb(entry, getDimNumb(entry) + 1);
   setTotalSize(entry, getTotalSize(entry) * size);
-
+  
   entry = getTypeStruct(entry);
   
   new = malloc(SIZEOFINT + SIZEOFINTSTAR);
@@ -636,7 +643,7 @@ void addStructElement(int* entry, int* name, int* type, int* def, int offset){
   setFieldOffset(new, offset);
   setFields(entry, new);
 
-  setDefinition(ptr, def);
+  setDefiniton(ptr, def);
   setStructName(ptr, type);
 }
 
@@ -708,10 +715,7 @@ int isLiteral();
 int isStarOrDivOrModulo();
 int isPlusOrMinus();
 int isComparison();
-//Assignment4
-int isShiftSymbol();
-//Assignment5
-int isAndOrOr();
+int isBitwiseAndOr();
 
 int lookForFactor();
 int lookForStatement();
@@ -727,7 +731,7 @@ void typeWarning(int expected, int found);
 
 int* getVariable(int* variable);
 int  load_variable(int* variable);
-void load_integer(int currentValue);
+void load_integer(int value);
 void load_string(int* string);
 
 int  help_call_codegen(int* entry, int* procedure);
@@ -738,9 +742,10 @@ int  gr_call(int* procedure);
 int  gr_factor();
 int  gr_term();
 int  gr_simpleExpression();
-int  gr_expression();
 //Assignment5
+int  gr_shiftExpression();
 int  gr_comparisonExpression();
+int  gr_expression();
 void gr_while();
 void gr_if();
 void gr_return();
@@ -750,8 +755,6 @@ void gr_variable(int offset);
 int  gr_initialization(int type);
 void gr_procedure(int* procedure, int type);
 void gr_cstar();
-//Assignment4
-int gr_shiftExpression();
 //Assignment7
 int gr_selector(int selectorNum, int* entry);
 //Assignment8
@@ -760,8 +763,8 @@ void gr_struct(int* structName);
 // ------------------------ GLOBAL VARIABLES -----------------------
 
 //Assignment6
-int currentValue = 0;
-int currentConstant = 0;
+int currentValue;
+int currentConstant;
 
 int allocatedTemporaries = 0; // number of allocated temporaries
 
@@ -789,9 +792,6 @@ void resetParser() {
   numberOfWhile       = 0;
   numberOfIf          = 0;
   numberOfReturn      = 0;
-  //Assignment6
-  currentValue        = 0;
-  currentConstant     = 0;
 }
 
 // -----------------------------------------------------------------
@@ -862,12 +862,12 @@ int REG_RA = 31;
 int ABBR   = 0;
 int NAME   = 1;
 
-//Assignment7
 int REGISTERS[2][32]; // strings representing registers
 
 // ------------------------- INITIALIZATION ------------------------
 
 void initRegister() {
+
   //Assignment7
   REGISTERS[ABBR][REG_ZR] = (int)"$zero";
   REGISTERS[ABBR][REG_AT] = (int)"$at";
@@ -904,8 +904,8 @@ void initRegister() {
 
   REGISTERS[NAME][REG_ZR] = (int) "hardwired zero";
   REGISTERS[NAME][REG_AT] = (int) "assembler temporary";
-  REGISTERS[NAME][REG_V0] = (int) "currentValue 0";
-  REGISTERS[NAME][REG_V1] = (int) "currentValue 1";
+  REGISTERS[NAME][REG_V0] = (int) "value 0";
+  REGISTERS[NAME][REG_V1] = (int) "value 1";
   REGISTERS[NAME][REG_A0] = (int) "argument 0";
   REGISTERS[NAME][REG_A1] = (int) "argument 1";
   REGISTERS[NAME][REG_A2] = (int) "argument 2";
@@ -918,14 +918,14 @@ void initRegister() {
   REGISTERS[NAME][REG_T5] = (int) "temporary 5";
   REGISTERS[NAME][REG_T6] = (int) "temporary 6";
   REGISTERS[NAME][REG_T7] = (int) "temporary 7";
-  REGISTERS[NAME][REG_S0] = (int) "saved currentValue 0";
-  REGISTERS[NAME][REG_S1] = (int) "saved currentValue 1";
-  REGISTERS[NAME][REG_S2] = (int) "saved currentValue 2";
-  REGISTERS[NAME][REG_S3] = (int) "saved currentValue 3";
-  REGISTERS[NAME][REG_S4] = (int) "saved currentValue 4";
-  REGISTERS[NAME][REG_S5] = (int) "saved currentValue 5";
-  REGISTERS[NAME][REG_S6] = (int) "saved currentValue 6";
-  REGISTERS[NAME][REG_S7] = (int) "saved currentValue 7";
+  REGISTERS[NAME][REG_S0] = (int) "saved value 0";
+  REGISTERS[NAME][REG_S1] = (int) "saved value 1";
+  REGISTERS[NAME][REG_S2] = (int) "saved value 2";
+  REGISTERS[NAME][REG_S3] = (int) "saved value 3";
+  REGISTERS[NAME][REG_S4] = (int) "saved value 4";
+  REGISTERS[NAME][REG_S5] = (int) "saved value 5";
+  REGISTERS[NAME][REG_S6] = (int) "saved value 6";
+  REGISTERS[NAME][REG_S7] = (int) "saved value 7";
   REGISTERS[NAME][REG_T8] = (int) "temporary 8";
   REGISTERS[NAME][REG_T9] = (int) "temporary 9";
   REGISTERS[NAME][REG_K0] = (int) "trap 0";
@@ -934,7 +934,6 @@ void initRegister() {
   REGISTERS[NAME][REG_SP] = (int) "stack pointer";
   REGISTERS[NAME][REG_FP] = (int) "frame pointer";
   REGISTERS[NAME][REG_RA] = (int) "return address";
- 
 }
 
 // -----------------------------------------------------------------
@@ -955,7 +954,6 @@ int getOpcode(int instruction);
 int getRS(int instruction);
 int getRT(int instruction);
 int getRD(int instruction);
-//Assignment3
 int getShamt(int instruction);
 int getFunction(int instruction);
 int getImmediate(int instruction);
@@ -973,14 +971,14 @@ void printFunction(int function);
 
 // ------------------------ GLOBAL CONSTANTS -----------------------
 
-int OP_SPECIAL = 0x0;//hexadezimal representation of 0
-int OP_J       = 0x2;//hexadezimal representation of 2
-int OP_JAL     = 0x3;//hexadezimal representation of 3
-int OP_BEQ     = 0x4;//hexadezimal representation of 4
-int OP_BNE     = 0x5;//hexadezimal representation of 5
-int OP_ADDIU   = 0x9;//hexadezimal representation of 9
-int OP_LW      = 0x23;//hexadezimal representation of 35
-int OP_SW      = 0x2B;//hexadezimal representation of 43
+int OP_SPECIAL = 0x0;//hexadeziml representation of 0
+int OP_J       = 0x2;//hexadeziml representation of 2
+int OP_JAL     = 0x3;//hexadeziml representation of 3
+int OP_BEQ     = 0x4;//hexadeziml representation of 4
+int OP_BNE     = 0x5;//hexadeziml representation of 5
+int OP_ADDIU   = 0x9;//hexadeziml representation of 9
+int OP_LW      = 0x23;//hexadeziml representation of 35
+int OP_SW      = 0x2B;//hexadeziml representation of 43
 //Assignment5
 int OP_ANDI    = 0b001100;//12 
 int OP_ORI     = 0b001101;//13
@@ -988,15 +986,15 @@ int OP_ORI     = 0b001101;//13
 int* OPCODES; // strings representing MIPS opcodes
 
 int FCT_NOP     = 0x0;//hexadezimal representation of 0
-int FCT_JR      = 0x8;//hexadezimal representation of 8
-int FCT_SYSCALL = 0xC;//hexadezimal representation of 12
-int FCT_MFHI    = 0x10;//hexadezimal representation of 16
-int FCT_MFLO    = 0x12;//hexadezimal representation of 18
-int FCT_MULTU   = 0x19;//hexadezimal representation of 25
-int FCT_DIVU    = 0x1B;//hexadezimal representation of 27
-int FCT_ADDU    = 0x21;//hexadezimal representation of 33
-int FCT_SUBU    = 0x23;//hexadezimal representation of 35
-int FCT_SLT     = 0x2A;//hexadezimal representation of 42
+int FCT_JR      = 0x8;//hexadeziml representation of 8
+int FCT_SYSCALL = 0xC;//hexadeziml representation of 12
+int FCT_MFHI    = 0x10;//hexadeziml representation of 16
+int FCT_MFLO    = 0x12;//hexadeziml representation of 18
+int FCT_MULTU   = 0x19;//hexadeziml representation of 25
+int FCT_DIVU    = 0x1B;//hexadeziml representation of 27
+int FCT_ADDU    = 0x21;//hexadeziml representation of 33
+int FCT_SUBU    = 0x23;//hexadeziml representation of 35
+int FCT_SLT     = 0x2A;//hexadeziml representation of 42
 //Assignment3
 int FCT_SLL     = 0x0;
 int FCT_SRL     = 0x2;
@@ -1015,11 +1013,10 @@ int opcode      = 0;
 int rs          = 0;
 int rt          = 0;
 int rd          = 0;
-//Assignment3
-int shamt		= 0;
 int immediate   = 0;
 int function    = 0;
 int instr_index = 0;
+int shamt       = 0;
 
 // ------------------------- INITIALIZATION ------------------------
 
@@ -1040,6 +1037,7 @@ void initDecoder() {
   
   FUNCTIONS = malloc(43 * SIZEOFINTSTAR);
 
+  //*(FUNCTIONS + FCT_NOP)     = (int) "nop";
   *(FUNCTIONS + FCT_JR)      = (int) "jr";
   *(FUNCTIONS + FCT_SYSCALL) = (int) "syscall";
   *(FUNCTIONS + FCT_MFHI)    = (int) "mfhi";
@@ -1056,7 +1054,7 @@ void initDecoder() {
   *(FUNCTIONS + FCT_SRLV)    = (int) "srlv";
   //Assignment5
   *(FUNCTIONS + FCT_AND)     = (int) "and";
-  *(FUNCTIONS + FCT_OR)      = (int) "or";
+  *(FUNCTIONS + FCT_OR)     = (int) "or";
   *(FUNCTIONS + FCT_NOR)     = (int) "nor";
 }
 
@@ -1091,7 +1089,7 @@ void selfie_load();
 // ------------------------ GLOBAL CONSTANTS -----------------------
 
 //Assignment6
-int maxBinaryLength = 262144; // 128KB
+int maxBinaryLength = 262144; //131072; // 128KB
 
 // ------------------------ GLOBAL VARIABLES -----------------------
 
@@ -1259,6 +1257,7 @@ void initMemory(int megabytes) {
 // -----------------------------------------------------------------
 
 void fct_syscall();
+void fct_nop();
 void op_jal();
 void op_j();
 void op_beq();
@@ -1596,7 +1595,6 @@ void initSelfie(int argc, int* argv) {
 
 int twoToThePowerOf(int p) {
   // assert: 0 <= p < 31
-  // return *(power_of_two_table + p);
   //Assignment7
   return power_of_two_table[p];
 }
@@ -1653,9 +1651,8 @@ int loadCharacter(int* s, int i) {
   b = 0xFF << (i % SIZEOFINT) * 8;
   // shift to-be-loaded character to the left resetting all bits to the left
   // then shift to-be-loaded character all the way to the right and return
-  //return rightShift(*(s + a) & b , (i % SIZEOFINT) * 8);
-  return (*(s + a) & b ) >> ((i % SIZEOFINT) * 8);
-}
+  return rightShift(*(s + a) & b , (i % SIZEOFINT) * 8);
+ }
 
 int* storeCharacter(int* s, int i, int c) {
   // assert: i >= 0, all characters are 7-bit
@@ -1718,53 +1715,72 @@ int stringCompare(int* s, int* t) {
       return 0;
 }
 
-int atoi(int* s, int b) {
+int atoi(int* s, int base) {
   int i;
   int n;
   int c;
-  
-  // the conversion of the ASCII string in s to its numerical currentValue n
+
+  // the conversion of the ASCII string in s to its numerical value n
   // begins with the leftmost digit in s
   i = 0;
 
-  // and the numerical currentValue 0 for n
+  // and the numerical value 0 for n
   n = 0;
 
   c = loadCharacter(s, i);
 
   // loop until s is terminated
   while (c != 0) {
-    // the numerical currentValue of ASCII-encoded decimal digits
+
+    // the numerical value of ASCII-encoded decimal digits
     // is offset by the ASCII code of '0' (which is 48)
     c = c - '0';
 
-    if (c < 0)
-      // c was not a digit
-      return -1;
-	
-	if(c>9){
-		//letters 'A' till 'F'
-		if(c>=49){
-			if(c<=54) c=c-39;
-		}else{
-			//letters 'a' till 'f'
-			if (c>=17){
-				if(c<=22) c=c-7;
-			}else{
-				//other chars
-				c=16;
-			}
-		}
-	} 
-	
-    if (c >= b)
-      // c was not a digit of the used base
-      return -1;
+    if(base == 2){
+      if (c < 0)
+        // c was not a binary, octal, dezimal or hexadezimal digit
+        return -1;
+      else if (c > 1)
+        // c was not a binary digit
+        return -1;
 
-    // assert: s contains a decimal number, that is, with base b
-    n = n * b + c;
+    }else if (base == 8){
+      if (c < 0)
+        // c was not a binary, octal, dezimal or hexadezimal digit
+        return -1;
+      else if (c > 7)
+        // c was not an octal digit
+        return -1;
 
-    // go to next digit
+    }else if(base == 10){
+      if (c < 0)
+        // c was not a binary, octal, dezimal or hexadezimal digit
+        return -1;
+      else if (c > 9)
+        // c was not a decimal digit
+        return -1;
+
+    }else if(base == 16){
+      //The value of ASCII-encoded 'A' is 65: c = c - '0' = c - 48 = 65 - 48 = 17.
+      //but we need 10 for A, so 17 - 7 = 10
+      if(c >= 'A'-'0'){
+        if(c <= 'F'-'0'){
+          c = c - 7;
+
+        }
+      }
+        //  print((int*)itoa(c,integer_buffer,10,0,0));print((int*)" - LOOK HERE\n");
+      if (c < 0)
+        // c was not a binary, octal, dezimal or hexadezimal digit
+        return -1;
+      else if (c > 15)
+        // c was not a hexadezimal digit
+        return -1;
+    }
+    // assert: s contains a decimal number, that is, with base 10
+    n = n * base + c; //replaced  10 in n = n * 10 + c; with the base
+
+    // go to the next digit
     i = i + 1;
 
     c = loadCharacter(s, i);
@@ -2268,19 +2284,6 @@ int isCharacterDigit() {
     return 0;
 }
 
-int isHexadecimalDigit(){
-	int is;
-	is=isCharacterDigit();
-	if(is==1) return 1;
-	if(character>='a'){
-		if(character<='f') return 1;
-	}
-	if(character>='A'){
-		if(character<='F') return 1;
-	}
-	return 0;
-}
-
 int isCharacterLetterOrDigitOrUnderscore() {
   if (isCharacterLetter())
     return 1;
@@ -2664,28 +2667,28 @@ void getSymbol() {
 // ------------------------- SYMBOL TABLE --------------------------
 // -----------------------------------------------------------------
 
-//Assignment7 int*
-int* createSymbolTableEntry(int whichTable, int* string, int line, int class, int type, int currentValue, int address) {
+int* createSymbolTableEntry(int whichTable, int* string, int line, int class, int type, int value, int address) {
   int* newEntry;
   //Assignment8
   int* typeStruct;
+
   //Assignment7
   newEntry = malloc(3 * SIZEOFINTSTAR + 7 * SIZEOFINT);
   
   //Assignment8
   typeStruct = malloc(4 * SIZEOFINTSTAR + SIZEOFINT);
   setType(typeStruct, type);
-  setDefinition(typeStruct, (int*) 0);
+  setDefiniton(typeStruct, (int*) 0);
   setStructName(typeStruct, (int*) 0);
   setDimensions(typeStruct, (int*) 0);
   setFields(typeStruct, (int*) 0);
-
+ 
   setString(newEntry, string);
   setLineNumber(newEntry, line);
   setClass(newEntry, class);
   //Assignment8
   setTypeStruct(newEntry, typeStruct);
-  setcurrentValue(newEntry, currentValue);
+  setValue(newEntry, value);
   setAddress(newEntry, address);
   
   //Assignment8
@@ -2694,6 +2697,7 @@ int* createSymbolTableEntry(int whichTable, int* string, int line, int class, in
   }else if(class == STRUCT){
     setTotalSize(newEntry, 0);
   }
+  
   setDimNumb(newEntry, 0);
 
   // create entry at head of symbol table
@@ -2702,18 +2706,18 @@ int* createSymbolTableEntry(int whichTable, int* string, int line, int class, in
     setNextEntry(newEntry, global_symbol_table);
     global_symbol_table = newEntry;
 
-    if (class == VARIABLE)
-      //Assignment8
+    if (class == VARIABLE){
+	  //Assignment8
       if(type == STRUCT_T)
         numberOfStructInst = numberOfStructInst + 1;
       else
         numberOfGlobalVariables = numberOfGlobalVariables + 1;
-    else if (class == PROCEDURE)
+    } else if (class == PROCEDURE)
       numberOfProcedures = numberOfProcedures + 1;
     else if (class == STRING)
       numberOfStrings = numberOfStrings + 1;
     //Assignment7
-    else if(class == ARRAY)
+	else if(class == ARRAY)
       numberOfArrays = numberOfArrays +1;
     //Assignment8
     else if(class == STRUCT)
@@ -2728,7 +2732,7 @@ int* createSymbolTableEntry(int whichTable, int* string, int line, int class, in
     setNextEntry(newEntry, library_symbol_table);
     library_symbol_table = newEntry;
   }
-
+  
   //Assignment7
   return newEntry;
 }
@@ -2829,6 +2833,9 @@ int isExpression() {
     return 1;
   else if (symbol == SYM_LPARENTHESIS)
     return 1;
+  //Assignment5
+  else if (symbol == SYM_BITWISE_NOT)
+	return 1;
   else if (symbol == SYM_IDENTIFIER)
     return 1;
   else if (symbol == SYM_INTEGER)
@@ -2872,16 +2879,6 @@ int isPlusOrMinus() {
     return 0;
 }
 
-//Assignment5
-int isAndOrOr(){
-  if (symbol == SYM_BITWISE_AND)
-    return 1;
-  else if (symbol == SYM_BITWISE_OR)
-    return 1;
-  else
-    return 0;
-}
-
 int isComparison() {
   if (symbol == SYM_EQUALITY)
     return 1;
@@ -2897,13 +2894,6 @@ int isComparison() {
     return 1;
   else
     return 0;
-}
-
-//Assignment4
-int isShiftSymbol(){
-	if(symbol == SYM_LEFTSHIFT) return 1;
-	else if(symbol == SYM_RIGHTSHIFT) return 1;
-	else return 0;
 }
 
 int lookForFactor() {
@@ -2974,8 +2964,8 @@ int currentTemporary() {
   if (allocatedTemporaries > 0)
     return allocatedTemporaries + REG_A3;
   else {
-    syntaxErrorMessage((int*) "illegal register access");
-    
+    syntaxErrorMessage((int*) "illegal register access 1");
+
     exit(-1);
   }
 }
@@ -2984,12 +2974,11 @@ int previousTemporary() {
   if (allocatedTemporaries > 1)
     return currentTemporary() - 1;
   else {
-    syntaxErrorMessage((int*) "illegal register access");
-  
+    syntaxErrorMessage((int*) "illegal register access 2");
+
     exit(-1);
   }
 }
-
 
 int nextTemporary() {
   if (allocatedTemporaries < REG_T7 - REG_A3)
@@ -3109,51 +3098,52 @@ int load_variable(int* variable) {
   return getVariableType(entry);
 }
 
-void load_integer(int currentValue) {
-  // assert: currentValue >= 0 or currentValue == INT_MIN
-  //Assignment6
+void load_integer(int value) {
+  // assert: value >= 0 or value == INT_MIN
+  //hw6
   int signChanged;
 
   talloc();
 
-  //Assignment6
-  if(currentValue<0){
-    if(currentValue!=INT_MIN){
-      currentValue=-currentValue;
+  //hw6 start
+  if(value<0){
+    if(value!=INT_MIN){
+      value=-value;
       signChanged=1;
     }else
       signChanged=0;
   }else
     signChanged=0;
+  //hw6 end
 
-  if (currentValue >= 0) {
-    if (currentValue < twoToThePowerOf(15))
+  if (value >= 0) {
+    if (value < twoToThePowerOf(15))
       // ADDIU can only load numbers < 2^15 without sign extension
-      emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), currentValue);
-    else if (currentValue < twoToThePowerOf(28)) {
+      emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), value);
+    else if (value < twoToThePowerOf(28)) {
       // load 14 msbs of a 28-bit number first
-      emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), rightShift(currentValue, 14));
+      emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), rightShift(value, 14));
 
       // shift left by 14 bits
       emitLeftShiftBy(14);
 
       // and finally add 14 lsbs
-      emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift((currentValue << 18), 18));
+      emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift((value << 18), 18));
     } else {
       // load 14 msbs of a 31-bit number first
-      emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), rightShift(currentValue, 17));
+      emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), rightShift(value, 17));
 
       emitLeftShiftBy(14);
 
       // then add the next 14 msbs
-      emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift((currentValue << 15), 18));
+      emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift((value << 15), 18));
 
       emitLeftShiftBy(3);
 
       // and finally add the remaining 3 lsbs
-      emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift((currentValue << 29), 29));
+      emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(), rightShift((value << 29), 29));
     }
-  } else if (currentValue == INT_MIN) {
+  } else if (value == INT_MIN) {
     // load largest positive 16-bit number with a single bit set: 2^14
     emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), twoToThePowerOf(14));
 
@@ -3162,11 +3152,13 @@ void load_integer(int currentValue) {
     emitLeftShiftBy(3);
   } 
 
-  //Assignment6
+  //hw6 start
   if(signChanged){
     emitRFormat(OP_SPECIAL, REG_ZR, currentTemporary(), currentTemporary(), 0, FCT_SUBU);
   }
+  //hw6 end
 }
+    
 
 void load_string(int* string) {
   int length;
@@ -3524,7 +3516,7 @@ int gr_factor() {
         type = load_variable(identifier);
 
 
-    // * "(" expression ")"
+    // ~ "(" expression ")"
     } else if (symbol == SYM_LPARENTHESIS) {
       getSymbol();
 
@@ -3543,7 +3535,9 @@ int gr_factor() {
       syntaxErrorUnexpected();
 
     // nor
-    emitRFormat(OP_SPECIAL, currentTemporary(), 0 , currentTemporary(), 0, FCT_NOR);
+    emitRFormat(OP_SPECIAL, currentTemporary(), REG_ZR, currentTemporary(), 0, FCT_NOR);
+	
+    type = INT_T;
 
   // identifier?
   } else if (symbol == SYM_IDENTIFIER) {
@@ -3659,15 +3653,17 @@ int gr_factor() {
     return type;
 }
 
+
+
 int gr_term() {
   int ltype;
   int operatorSymbol;
   int rtype;
   
   //Assignment6
-  int leftcurrentValue;
+  int leftValue;
   int leftConstant;
-  leftcurrentValue = 0;
+  leftValue = 0;
   leftConstant = 0;
 
   // assert: n = allocatedTemporaries
@@ -3675,7 +3671,7 @@ int gr_term() {
   ltype = gr_factor();
   
   if(currentConstant){
-    leftcurrentValue = currentValue;
+    leftValue = currentValue;
     leftConstant = currentConstant;
   }
   
@@ -3703,15 +3699,15 @@ int gr_term() {
       if (currentConstant) { //int*int => int
         if (operatorSymbol == SYM_ASTERISK) { 
           //const * const
-          leftcurrentValue = leftcurrentValue * currentValue;
+          leftValue = leftValue * currentValue;
         } else if (operatorSymbol == SYM_DIV) { 
           //const / const
-          leftcurrentValue = leftcurrentValue / currentValue;
+          leftValue = leftValue / currentValue;
         } else if (operatorSymbol == SYM_MOD) { 
 		  //const % const
-		  load_integer(leftcurrentValue);
+		  load_integer(leftValue);
 		  load_integer(currentValue);
-		  leftcurrentValue = 0;
+		  leftValue = 0;
 		  leftConstant = 0;
 		  currentValue = 0;
 		  currentConstant = 0;
@@ -3720,20 +3716,20 @@ int gr_term() {
       } else { 
 	    //const * var _
         if (operatorSymbol == SYM_ASTERISK) { 
-          load_integer(leftcurrentValue);
+          load_integer(leftValue);
           emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), 0,0, FCT_MULTU);
-          emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(), 0, FCT_MFLO);
+          emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(), 0,FCT_MFLO);
 
         //const / var
 		} else if (operatorSymbol == SYM_DIV) { 
-          load_integer(leftcurrentValue);
-          emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), 0, 0, FCT_DIVU);
+          load_integer(leftValue);
+          emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), 0,0, FCT_DIVU);
           emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(),0, FCT_MFLO);
 		  
 		// const % var 
         } else if (operatorSymbol == SYM_MOD) { 
-          load_integer(leftcurrentValue);
-          emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), 0, 0,FCT_DIVU);
+          load_integer(leftValue);
+          emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), 0,0,FCT_DIVU);
           emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(), 0,FCT_MFHI);
         }
         tfree(1);
@@ -3793,7 +3789,7 @@ int gr_term() {
 
   if (leftConstant) { //int
     currentConstant = 1;
-    currentValue = leftcurrentValue;
+    currentValue = leftValue;
   } else { //var
     currentValue = 0;
     currentConstant = 0;
@@ -3802,73 +3798,6 @@ int gr_term() {
   return ltype;
 }
 
-
-//Assignment4
-//shiftExpression  = simpleExpression [ ("<<"|">>")  simpleExpression ] .
-int  gr_shiftExpression(){
-
-  int ltype;
-  int operatorSymbol;
-  int rtype;
-
-  // assert: n = allocatedTemporaries
-  //Assignment6
-  int leftConstant;
-  int leftValue;
-  leftConstant = 0;
-  leftValue = 0;
-
-
-  ltype = gr_simpleExpression();
-  
-  if(currentConstant){
-	  leftConstant = currentConstant;
-	  leftValue = currentValue;
-	  load_integer(leftValue);
-  }
-  currentConstant = 0;
-  currentValue = 0;
-
-  // assert: allocatedTemporaries == n + 1
-
-  // << or >>
-  while(isShiftSymbol()){
-    operatorSymbol = symbol;
-
-    getSymbol();
-
-    rtype = gr_simpleExpression();
-	
-	//Assignment6
-	leftValue = 0;
-	leftConstant = 0;
-	
-	if(currentConstant){
-		leftValue = currentValue;
-		leftConstant = currentConstant;
-		load_integer(leftValue);
-	}
-	currentConstant = 0;
-	currentValue = 0;
-
-    if (operatorSymbol == SYM_LEFTSHIFT) {
-
-      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_SLLV);
-	  
-    } else if (operatorSymbol == SYM_RIGHTSHIFT) {
-
-      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_SRLV);
-	
-	}
-	
-	tfree(1);
-   
-  }
-
-  // assert: allocatedTemporaries == n + 1
-
-  return ltype;
-}
 
 int gr_simpleExpression() {
   int sign;
@@ -3879,46 +3808,41 @@ int gr_simpleExpression() {
   //Assignment6
   int leftValue;
   int leftConstant;
-  int variableFound;
+  leftValue = 0;
+  leftConstant = 0;
+
 
   // assert: n = allocatedTemporaries
 
   // optional: -
   if (symbol == SYM_MINUS) {
-      sign = 1;
+    sign = 1;
 
-      mayBeINTMIN = 1;
-      isINTMIN    = 0;
+    mayBeINTMIN = 1;
+    isINTMIN    = 0;
 
-      getSymbol();
+    getSymbol();
 
-      mayBeINTMIN = 0;
+    mayBeINTMIN = 0;
 
-      if (isINTMIN) {
-        isINTMIN = 0;
+    if (isINTMIN) {
+      isINTMIN = 0;
 
-        // avoids 0-INT_MIN overflow when bootstrapping
-        // even though 0-INT_MIN == INT_MIN
-        sign = 0;
-      }
-  }else{
-    sign=0;
+      // avoids 0-INT_MIN overflow when bootstrapping
+      // even though 0-INT_MIN == INT_MIN
+      sign = 0;
+    }
+  } else{
+    sign = 0;
   }
-
   ltype = gr_term();
 
   //Assignment6
-  if(currentConstant){
-    variableFound=0;
-    leftConstant=1;
-    leftValue=currentValue;
-    currentConstant=0;
-  }else{
-    variableFound=1;
-    leftValue=0;
-    leftConstant=0;
+  if (currentConstant) { //int
+    leftValue = currentValue;
+    leftConstant = currentConstant;
   }
-
+  
   // assert: allocatedTemporaries == n + 1
 
   if (sign) {
@@ -3927,26 +3851,26 @@ int gr_simpleExpression() {
 
       ltype = INT_T;
     }
-    //Assignment6
+	
+	//Assignment6
     if(leftConstant){
-      leftValue=-leftValue;
+      leftValue = 0 - leftValue;
     }else{
       emitRFormat(OP_SPECIAL, REG_ZR, currentTemporary(), currentTemporary(), 0, FCT_SUBU);
     }
-  
+
   }
-  
-  
-  // + or -?
+   
+
+    // + or -?
   while (isPlusOrMinus()) {
     operatorSymbol = symbol;
 
     getSymbol();
+
     rtype = gr_term();
 
-    // assert: allocatedTemporaries == n + 2
-
-   //Assignment6
+    //Assignment6
     if (leftConstant) { //int
       if(currentConstant) { 
           //const + const 
@@ -4055,48 +3979,83 @@ int gr_simpleExpression() {
 }
 
 
-int gr_expression() {
+//Assignment4
+int isShiftSymbol(){
+  if(symbol == SYM_LEFTSHIFT){
+    return 1;
+  }else if(symbol == SYM_RIGHTSHIFT){
+    return 1;
+  }else{
+    return 0;
+  }
+}
+
+//Assignment4
+//shiftExpression  = simpleExpression [ ("<<"|">>")  simpleExpression ] .
+int  gr_shiftExpression(){
+
   int ltype;
   int operatorSymbol;
   int rtype;
 
   // assert: n = allocatedTemporaries
+  //Assignment6
+  int leftConstant;
+  int leftValue;
+  leftConstant = 0;
+  leftValue = 0;
 
-  ltype = gr_comparisonExpression();
+
+  ltype = gr_simpleExpression();
+  
+  if(currentConstant){
+	  leftConstant = currentConstant;
+	  leftValue = currentValue;
+	  load_integer(leftValue);
+  }
+  currentConstant = 0;
+  currentValue = 0;
 
   // assert: allocatedTemporaries == n + 1
 
-  //optional: ==, !=, <, >, <=, >= simpleExpression
-  while (isAndOrOr()) { //davor if
+  // << or >>
+  while(isShiftSymbol()){
     operatorSymbol = symbol;
 
     getSymbol();
 
-    rtype = gr_comparisonExpression();
+    rtype = gr_simpleExpression();
+	
+	//Assignment6
+	leftValue = 0;
+	leftConstant = 0;
+	
+	if(currentConstant){
+		leftValue = currentValue;
+		leftConstant = currentConstant;
+		load_integer(leftValue);
+	}
+	currentConstant = 0;
+	currentValue = 0;
 
-    // assert: allocatedTemporaries == n + 2
+    if (operatorSymbol == SYM_LEFTSHIFT) {
 
-    //Assignment5
-    if (operatorSymbol == SYM_BITWISE_AND) {
-
-      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_AND);
-      
-  
-    } else if (operatorSymbol == SYM_BITWISE_OR) {
-
-      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_OR);
+      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_SLLV);
 	  
-    }
+    } else if (operatorSymbol == SYM_RIGHTSHIFT) {
+
+      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_SRLV);
+	
+	}
 	
 	tfree(1);
-	
- }
+   
+  }
 
   // assert: allocatedTemporaries == n + 1
 
   return ltype;
 }
-
 
 //Assignment5
 int gr_comparisonExpression() {
@@ -4193,6 +4152,61 @@ int gr_comparisonExpression() {
   return ltype;
 }
 
+int isBitwiseAndOr(){
+  if(symbol == SYM_BITWISE_AND){
+    return 1;
+  }else if(symbol == SYM_BITWISE_OR){
+    return 1;
+  //}else if(symbol == SYM_BITWISE_NOT){
+    //return 1;
+  }else{
+    return 0;
+  }
+}
+
+
+int gr_expression() {
+  int ltype;
+  int operatorSymbol;
+  int rtype;
+
+  // assert: n = allocatedTemporaries
+
+  ltype = gr_comparisonExpression();
+
+  // assert: allocatedTemporaries == n + 1
+
+  //optional: ==, !=, <, >, <=, >= simpleExpression
+  while (isBitwiseAndOr()) { //davor if
+    operatorSymbol = symbol;
+
+    getSymbol();
+
+    rtype = gr_comparisonExpression();
+
+    // assert: allocatedTemporaries == n + 2
+
+    //Assignment5
+    if (operatorSymbol == SYM_BITWISE_AND) {
+
+      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_AND);
+      
+  
+    } else if (operatorSymbol == SYM_BITWISE_OR) {
+
+      emitRFormat(OP_SPECIAL, currentTemporary(), previousTemporary(), previousTemporary(), 0, FCT_OR);
+	  
+    }
+	
+	tfree(1);
+	
+ }
+
+  // assert: allocatedTemporaries == n + 1
+
+  return ltype;
+}
+
 void gr_while() {
   int brBackToWhile;
   int brForwardToEnd;
@@ -4211,6 +4225,7 @@ void gr_while() {
       getSymbol();
 
       gr_expression();
+
       //Assignment6
       if(currentConstant){
         load_integer(currentValue);
@@ -4280,12 +4295,11 @@ void gr_if() {
 
       gr_expression();
 
-      //Assignment6
+      //hw6 start
       if(currentConstant){
         load_integer(currentValue);
         currentConstant=0;
       }
-
       // if the "if" case is not true, we branch to "else" (if provided)
       brForwardToElseOrEnd = binaryLength;
 
@@ -4376,19 +4390,18 @@ void gr_return() {
   if (symbol != SYM_SEMICOLON) {
     type = gr_expression();
 
-    //Assignment6
+    //hw6 start
     if(currentConstant){
       load_integer(currentValue);
       currentConstant=0;
     }
-
     if (type != returnType)
       typeWarning(returnType, type);
 
-    // save currentValue of expression in return register
-    emitRFormat(OP_SPECIAL, REG_ZR, currentTemporary(), REG_V0,  0,FCT_ADDU);
+    // save value of expression in return register
+    emitRFormat(OP_SPECIAL, REG_ZR, currentTemporary(), REG_V0, 0, FCT_ADDU);
+	tfree(1);
 
-    tfree(1);
   } else if (returnType != VOID_T)
     typeWarning(returnType, VOID_T);
 
@@ -4753,12 +4766,12 @@ void gr_variable(int offset) {
 }
 
 int gr_initialization(int type) {
-  int initialcurrentValue;
+  int initialValue;
   int hasCast;
   int cast;
   int sign;
 
-  initialcurrentValue = 0;
+  initialValue = 0;
 
   hasCast = 0;
 
@@ -4801,12 +4814,12 @@ int gr_initialization(int type) {
       sign = 0;
 
     if (isLiteral()) {
-      initialcurrentValue = literal;
+      initialValue = literal;
 
       getSymbol();
 
       if (sign)
-        initialcurrentValue = -initialcurrentValue;
+        initialValue = -initialValue;
     } else
       syntaxErrorUnexpected();
 
@@ -4823,7 +4836,7 @@ int gr_initialization(int type) {
   } else if (type != INT_T)
     typeWarning(type, INT_T);
 
-  return initialcurrentValue;
+  return initialValue;
 }
 
 void gr_procedure(int* procedure, int type) {
@@ -5001,7 +5014,7 @@ int gr_selector(int selectorNum, int* entry){
   }else{
     type = gr_simpleExpression();
 
-    //indices must ba integers
+    //indices must be integers
     if(type != INT_T){
       typeWarning(INT_T, type);
     }
@@ -5016,14 +5029,16 @@ int gr_selector(int selectorNum, int* entry){
     }
     
     if(currentConstant){
-      currentValue = currentValue * multiplier;
+	  currentValue = currentValue * multiplier;
       load_integer(currentValue);
       currentConstant = 0;
+	  
     }else{
-      load_integer(multiplier);
-
-      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0, 0, FCT_MULTU);
-      emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(),  0,FCT_MFLO);
+		
+	  load_integer(multiplier);  
+   	  
+      emitRFormat(OP_SPECIAL, previousTemporary(), currentTemporary(), 0, 0,  FCT_MULTU);
+      emitRFormat(OP_SPECIAL, 0, 0, previousTemporary(), 0,  FCT_MFLO);
       tfree(1);
     }
 
@@ -5042,6 +5057,9 @@ int gr_selector(int selectorNum, int* entry){
   return size;
 }
 
+//struct =  "{"
+//{ type identifier  ( selector | [ "=" [ cast ] [ "-" ] literal ] ) ";"  |
+//structDeclaration }  "}" ";" .
 //Assignment8
 void gr_struct(int* structName){
   int type;
@@ -5062,7 +5080,7 @@ void gr_struct(int* structName){
     return;
   }
 
-  entry = createSymbolTableEntry(GLOBAL_TABLE, structName, lineNumber, STRUCT, 0, 0, 0);
+  entry = createSymbolTableEntry(GLOBAL_TABLE, structName, lineNumber, STRUCT, 0, 0, -allocatedMemory);
 
   if(symbol != SYM_LBRACE)
     syntaxErrorSymbol(SYM_LBRACE);
@@ -5104,6 +5122,7 @@ void gr_struct(int* structName){
         syntaxErrorSymbol(SYM_IDENTIFIER);
       }
 
+
       addStructElement(entry, variableName, type, (int*) 0, offset);
     }
 
@@ -5126,18 +5145,19 @@ void gr_struct(int* structName){
   getSymbol();
 }
 
+
 void gr_cstar() {
   int type;
   int* variableOrProcedureName;
   int currentLineNumber;
-  int initialcurrentValue;
+  int initialValue;
   int* entry;
   //Assignment7
   int dimSize;
   int totalSize;
   //Assignment8
   int* structName;
-  
+
   while (symbol != SYM_EOF) {
     while (lookForType()) {
       syntaxErrorUnexpected();
@@ -5164,9 +5184,9 @@ void gr_cstar() {
         gr_procedure(variableOrProcedureName, type);
       } else
         syntaxErrorSymbol(SYM_IDENTIFIER);
-
-    //Assignment8
-    } else if(symbol == SYM_STRUCT){
+	
+	//Assignment8
+	} else if(symbol == SYM_STRUCT){
       getSymbol();
 
       if(symbol == SYM_IDENTIFIER){
@@ -5207,12 +5227,13 @@ void gr_cstar() {
         getSymbol();
         
       }else{
-
+		  
         gr_struct(structName);
-
-      }
-
+		
+	  }
+	
     } else {
+		
       type = gr_type();
 
       if (symbol == SYM_IDENTIFIER) {
@@ -5224,9 +5245,9 @@ void gr_cstar() {
           // type identifier "(" ...
           // procedure declaration or definition
           gr_procedure(variableOrProcedureName, type);
-      
+		  
+        //Assignment7
         // type identifier "["
-		//Assignment7
         else if(symbol == SYM_LBRACKET){
           totalSize = 1;
           dimSize = 0;
@@ -5252,8 +5273,8 @@ void gr_cstar() {
             exit(-1);
           }
           getSymbol();
-          
-        }else {
+
+        } else {
           currentLineNumber = lineNumber;
 
           if (symbol == SYM_SEMICOLON) {
@@ -5261,19 +5282,18 @@ void gr_cstar() {
             // global variable declaration
             getSymbol();
 
-            initialcurrentValue = 0;
-
+            initialValue = 0;
           } else
             // type identifier "=" ...
             // global variable definition
-            initialcurrentValue = gr_initialization(type);
+            initialValue = gr_initialization(type);
 
           entry = searchSymbolTable(global_symbol_table, variableOrProcedureName, VARIABLE);
 
           if (entry == (int*) 0) {
             allocatedMemory = allocatedMemory + WORDSIZE;
 
-            createSymbolTableEntry(GLOBAL_TABLE, variableOrProcedureName, currentLineNumber, VARIABLE, type, initialcurrentValue, -allocatedMemory);
+            createSymbolTableEntry(GLOBAL_TABLE, variableOrProcedureName, currentLineNumber, VARIABLE, type, initialValue, -allocatedMemory);
           } else {
             // global variable already declared or defined
             printLineNumber((int*) "warning", currentLineNumber);
@@ -5322,7 +5342,7 @@ void emitMainEntry() {
   // since we load positive integers < 2^28 which take
   // no more than 8 instructions each, see load_integer
   while (i < 16) {
-    emitRFormat(OP_SPECIAL, 0, 0, 0, 0,FCT_NOP);
+    emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_NOP);
 
     i = i + 1;
   }
@@ -5489,15 +5509,15 @@ void selfie_compile() {
       print((int*) ": ");
       printInteger(numberOfGlobalVariables);
       print((int*) " global variables, ");
-      //Assignment7
-      printInteger(numberOfArrays);
+	  //Assignment7
+	  printInteger(numberOfArrays);
       print((int*) " arrays, ");
-      //Assignment8
+	  //Assignment8
       printInteger(numberOfStructDef);
       print((int*) " structs defined, ");
       printInteger(numberOfStructInst);
       print((int*) " global struct pointers, ");
-      
+	  
       printInteger(numberOfProcedures);
       print((int*) " procedures, ");
       printInteger(numberOfStrings);
@@ -5566,7 +5586,7 @@ void printRegister(int reg) {
 // 32 bit
 //
 // +------+-----+-----+-----+-----+------+
-// |opcode| rs  | rt  | rd  |shamt|fction|
+// |opcode| rs  | rt  | rd  |00000|fction|
 // +------+-----+-----+-----+-----+------+
 //    6      5     5     5     5     6
 int encodeRFormat(int opcode, int rs, int rt, int rd, int shamt, int function) {
@@ -5574,20 +5594,13 @@ int encodeRFormat(int opcode, int rs, int rt, int rd, int shamt, int function) {
   // assert: 0 <= rs < 2^5
   // assert: 0 <= rt < 2^5
   // assert: 0 <= rd < 2^5
-  // assert: 0 <= shamt < 2^5
   // assert: 0 <= function < 2^6
 
-  int code;
-  code=opcode << 26;
-  code=code|(rs << 21);
-  code=code|(rt << 16);
-  code=code|(rd << 11);
-  code=code|(shamt << 6);
-  code=code|function;
-  return code;
+
   //return leftShift(leftShift(leftShift(leftShift(leftShift(opcode, 5) + rs, 5) + rt, 5) + rd, 5) + shamt, 6) + function;
   //return (((((opcode << 5) + rs << 5) + rt << 5) + rd << 5) + shamt << 6) + function;
-  
+  return ((((opcode << 5 | rs) << 5 | rt) << 5 | rd) << 5 | shamt) << 6 | function;
+
 }
 
 // -----------------------------------------------------------------
@@ -5598,8 +5611,6 @@ int encodeRFormat(int opcode, int rs, int rt, int rd, int shamt, int function) {
 // +------+-----+-----+----------------+
 //    6      5     5          16
 int encodeIFormat(int opcode, int rs, int rt, int immediate) {
- 
-  int code;
   // assert: 0 <= opcode < 2^6
   // assert: 0 <= rs < 2^5
   // assert: 0 <= rt < 2^5
@@ -5608,16 +5619,10 @@ int encodeIFormat(int opcode, int rs, int rt, int immediate) {
     // convert from 32-bit to 16-bit two's complement
     immediate = immediate + twoToThePowerOf(16);
 
-  code=opcode << 26;
-  code=code|(rs << 21);
-  code=code|(rt << 16);
-  code=code|immediate;
-  return code;
-  
   //return leftShift(leftShift(leftShift(opcode, 5) + rs, 5) + rt, 16) + immediate;
   //return (((opcode << 5) + rs << 5) + rt << 16) + immediate;
-  //return ((opcode << 5 | rs) << 5 | rt) << 16 | immediate;
-  
+  return ((opcode << 5 | rs) << 5 | rt) << 16 | immediate;
+
 }
 
 // --------------------------------------------------------------
@@ -5630,11 +5635,12 @@ int encodeIFormat(int opcode, int rs, int rt, int immediate) {
 int encodeJFormat(int opcode, int instr_index) {
   // assert: 0 <= opcode < 2^6
   // assert: 0 <= instr_index < 2^26
-
+  
   //return leftShift(opcode, 26) + instr_index;
-  //Assignment4
-  //return (opcode << 26) + instr_index;
-  return (opcode << 26) | instr_index;
+    //Assignment4
+	//return (opcode << 26) + instr_index;
+	return (opcode << 26) | instr_index;
+
 }
 
 // -----------------------------------------------------------------
@@ -5654,32 +5660,28 @@ int getRS(int instruction) {
   //return rightShift((instruction & 3E00000), 21) ;
   //rightshift um 27-6, & mit 0b11111 (rs sind 5 Stellen) 
   //return rightShift(instruction, 21) & 0b11111;
-  //return rightShift( instruction & 0x3E00000, 32-(6+5));
-  return rightShift(instruction, 32-(6+5)) & 0b11111;
+  return rightShift( instruction & 0x3E00000, 32-(6+5));
 }
 
 int getRT(int instruction) {
   //return rightShift((instruction << 11), 27);
   //return rightShift(instruction, 16) & 0b11111;
   //1F0000 == 111110000000000000000
-  //return rightShift(instruction & 0x1F0000, 32-(6+5+5));
-  return rightShift(instruction, 32-(6+5+5)) & 0b11111;
+  return rightShift(instruction & 0x1F0000, 32-(6+5+5));
 }
 
 int getRD(int instruction) {
   //return rightShift((instruction << 16), 27);
   //return rightShift(instruction, 11) & 0b11111;
   //F800 == 1111100000000000
-  //return rightShift(instruction & 0xF800, 32-(6+5+5+5));
-  return rightShift(instruction, 32-(6+5+5+5)) & 0b11111;
+  return rightShift(instruction & 0xF800, 32-(6+5+5+5));
 }
 
 int getShamt(int instruction) {
   //return rightShift((instruction << 21), 27);
   //return rightShift(instruction, 6) & 0b11111;
   //7C0 == 11111000000
-  //return rightShift(instruction & 0x7C0, 32-(6+5+5+5+5));
-  return rightShift(instruction, 32-(6+5+5+5+5)) & 0b11111;
+  return rightShift(instruction & 0x7C0, 32-(6+5+5+5+5));
 }
 
 int getFunction(int instruction) {
@@ -5710,16 +5712,15 @@ int signExtend(int immediate) {
 // --------------------------------------------------------------
 // 32 bit
 //
-// +------+-----+-----+-----+-----+------+
-// |opcode| rs  | rt  | rd  |shamt|fction|
-// +------+-----+-----+-----+-----+------+
+// +------+-----+-----+-----+-----+--------+
+// |opcode| rs  | rt  | rd  |00000|function|
+// +------+-----+-----+-----+-----+--------+
 //    6      5     5     5     5     6
 void decodeRFormat() {
   rs          = getRS(ir);
   rt          = getRT(ir);
   rd          = getRD(ir);
-  //Assignment3
-  shamt		    = getShamt(ir);
+  shamt       = getShamt(ir);
   immediate   = 0;
   function    = getFunction(ir);
   instr_index = 0;
@@ -5836,7 +5837,7 @@ void emitIFormat(int opcode, int rs, int rt, int immediate) {
 void emitJFormat(int opcode, int instr_index) {
   emitInstruction(encodeJFormat(opcode, instr_index));
 
-  emitRFormat(OP_SPECIAL, 0, 0, 0, 0,FCT_NOP); // delay slot
+  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_NOP); // delay slot
 }
 
 void fixup_relative(int fromAddress) {
@@ -5886,6 +5887,7 @@ int copyStringToBinary(int* s, int baddr) {
 
 void emitGlobalsStrings() {
   int* entry;
+  //Assignment7
   int i;
   int totalSize;
 
@@ -5896,13 +5898,14 @@ void emitGlobalsStrings() {
   // allocate space for global variables and copy strings
   while ((int) entry != 0) {
     if (getClass(entry) == VARIABLE) {
-      storeBinary(binaryLength, getcurrentValue(entry));
+      storeBinary(binaryLength, getValue(entry));
 
       binaryLength = binaryLength + WORDSIZE;
-    } else if (getClass(entry) == STRING){
+    } else if (getClass(entry) == STRING) {
       binaryLength = copyStringToBinary(getString(entry), binaryLength);
-      //Assignment7
-      //allocate space for arrays and initialize it with 0
+ 
+    //Assignment7
+	//allocate space for arrays and initialize it with 0
     } else if (getClass(entry) == ARRAY){
       i = 0;
       totalSize = getTotalSize(entry);
@@ -5913,7 +5916,7 @@ void emitGlobalsStrings() {
         i = i +1;
       }
     }
-
+  
     entry = getNextEntry(entry);
   }
 
@@ -6155,7 +6158,7 @@ void emitRead() {
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_READ);
   emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
 
-  // jump back to caller, return currentValue is in REG_V0
+  // jump back to caller, return value is in REG_V0
   emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
@@ -6616,7 +6619,7 @@ void emitSwitch() {
   emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
 
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_SWITCH);
-  emitRFormat(OP_SPECIAL, 0, 0, 0,  0,FCT_SYSCALL);
+  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
 
   // save ID of context from which we are switching here in return register
   emitRFormat(OP_SPECIAL, REG_ZR, REG_V1, REG_V0, 0, FCT_ADDU);
@@ -6660,8 +6663,8 @@ void implementSwitch() {
   int fromID;
 
   // CAUTION: doSwitch() modifies the global variable registers
-  // but some compilers dereference the lcurrentValue *(registers+REG_V1)
-  // before evaluating the rcurrentValue doSwitch()
+  // but some compilers dereference the lvalue *(registers+REG_V1)
+  // before evaluating the rvalue doSwitch()
 
   fromID = doSwitch(*(registers+REG_A0));
 
@@ -6673,8 +6676,8 @@ int mipster_switch(int toID) {
   int fromID;
 
   // CAUTION: doSwitch() modifies the global variable registers
-  // but some compilers dereference the lcurrentValue *(registers+REG_V1)
-  // before evaluating the rcurrentValue doSwitch()
+  // but some compilers dereference the lvalue *(registers+REG_V1)
+  // before evaluating the rvalue doSwitch()
 
   fromID = doSwitch(toID);
 
@@ -6702,7 +6705,7 @@ void emitStatus() {
   createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_status", 0, PROCEDURE, INT_T, 0, binaryLength);
 
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_STATUS);
-  emitRFormat(OP_SPECIAL, 0, 0, 0,  0,FCT_SYSCALL);
+  emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
 
   emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
@@ -6749,7 +6752,7 @@ void emitDelete() {
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_DELETE);
   emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0,  0,FCT_JR);
+  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 void doDelete(int ID) {
@@ -6806,7 +6809,7 @@ void emitMap() {
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_MAP);
   emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
 
-  emitRFormat(OP_SPECIAL, REG_RA, 0, 0,  0,FCT_JR);
+  emitRFormat(OP_SPECIAL, REG_RA, 0, 0, 0, FCT_JR);
 }
 
 void doMap(int ID, int page, int frame) {
@@ -7022,200 +7025,14 @@ void fct_syscall() {
   }
 }
 
-//Assignment3
-//Shift word left logical
-//left-shift a word by a fixed number of bits
-void fct_sll(){
-	int noNop;
-	noNop=1;
-	if(debug){
-		if(rd==0){
-			if(rt==0){
-				if(shamt==0) noNop=0;
-			}
-		}
-		if(noNop){
-	      printFunction(function);
-          print((int*) " ");
-          printRegister(rd);
-          print((int*) ",");
-          printRegister(rt);
-          print((int*) ",");
-          printInteger(shamt);
+void fct_nop() {
+  if (debug) {
+    print((int*)"nop");
+    println();
+  }
 
-        if (interpret) {
-            print((int*) ": ");
-            printRegister(rd);
-            print((int*) "=");
-            printInteger(*(registers+rd));
-            print((int*) ",");
-            printRegister(rt);
-            print((int*) "=");
-            printInteger(*(registers+rt));
-			print((int*) ", shamt:");
-			printInteger(shamt);
-        }
-		}else{
-			print((int*) "nop");
-		}
-	}
-
-	if(interpret){
-	  //*(registers+rd) = leftShift(*(registers+rt), shamt);
-	  //Assignment4
-	  *(registers+rd) = (*(registers+rt) << shamt);
-
-       pc = pc + WORDSIZE;
-	}
-
-	if (debug) {
-	    if (interpret) {
-	      	if(noNop){
-		    	print((int*) " -> ");
-		    	printRegister(rd);
-		    	print((int*) "=");
-		    	printBinary(*(registers+rd), 0);
-		    }
-	 	}
-	 	println();
-    }
-}
-
-//shift word right logical
-//to execute a logical right-shift of a word by a fixed number of bits
-void fct_srl(){
-
-    if (debug) {
-        printFunction(function);
-        print((int*) " ");
-        printRegister(rd);
-        print((int*) ",");
-        printRegister(rt);
-        print((int*) ",");
-        printInteger(shamt);
-        if (interpret) {
-            print((int*) ": ");
-            printRegister(rd);
-            print((int*) "=");
-            printInteger(*(registers+rd));
-            print((int*) ",");
-            printRegister(rt);
-            print((int*) "=");
-            printInteger(*(registers+rt));
-
-        }
-
-    }
-
-    if(interpret){
-        *(registers+rd) = rightShift(*(registers+rt),shamt);//shamt and should be logical!!!?
-
-        pc = pc + WORDSIZE;
-    }
-
-    if (debug) {
-        if (interpret) {
-            print((int*) " -> ");
-            printRegister(rd);
-            print((int*) "=");
-            printInteger(*(registers+rd));
-        }
-        println();
-    }
-}
-
-
-//Shift Word Left Logical Variable
-//To left-shift a word by a variable number of bits
-void fct_sllv(){
-    if (debug) {
-        printFunction(function);
-        print((int*) " ");
-        printRegister(rd);
-        print((int*) ",");
-        printRegister(rt);
-        print((int*) ",");
-        printRegister(rs);
-        if (interpret) {
-            print((int*) ": ");
-            printRegister(rd);
-            print((int*) "=");
-            printInteger(*(registers+rd));
-            print((int*) ",");
-            printRegister(rt);
-            print((int*) "=");
-            printInteger(*(registers+rt));
-            print((int*) ",");
-            printRegister(rs);
-            print((int*) "=");
-            printInteger(*(registers+rs));
-        }
-
-    }
-
-    if(interpret){
-        //*(registers+rd) = leftShift(*(registers + rt), *(registers + rs));
-		//Assignment4
-		*(registers+rd) = *(registers+rt) << *(registers+rs);
-        pc = pc + WORDSIZE;
-    }
-
-    if (debug) {
-        if (interpret) {
-            print((int*) " -> ");
-            printRegister(rd);
-            print((int*) "=");
-            printInteger(*(registers+rd));
-        }
-        println();
-    }
-}
-
-//Shift Word Right Logical Variable
-//To execute a logical right-shift of a word by a variable number of bits
-void fct_srlv(){
-
-    if (debug) {
-        printFunction(function);
-        print((int*) " ");
-        printRegister(rd);
-        print((int*) ",");
-        printRegister(rt);
-        print((int*) ",");
-        printRegister(rs);
-        if (interpret) {
-            print((int*) ": ");
-            printRegister(rd);
-            print((int*) "=");
-            printInteger(*(registers+rd));
-            print((int*) ",");
-            printRegister(rt);
-            print((int*) "=");
-            printInteger(*(registers+rt));
-            print((int*) ",");
-            printRegister(rs);
-            print((int*) "=");
-            printInteger(*(registers+rs));
-        }
-
-    }
-
-    if(interpret){
-        *(registers+rd) = rightShift(*(registers + rt), *(registers + rs));
-		//srl(*(registers+rt), *(registers+rs));
-
-        pc = pc + WORDSIZE;
-    }
-
-    if (debug) {
-        if (interpret) {
-            print((int*) " -> ");
-            printRegister(rd);
-            print((int*) "=");
-            printInteger(*(registers+rd));
-        }
-        println();
-    }
+  if (interpret)
+    pc = pc + WORDSIZE;
 }
 
 void op_jal() {
@@ -7378,6 +7195,438 @@ void op_bne() {
     println();
   }
 }
+
+
+int isRegNOP(){
+  if(rd == REG_ZR){
+    if(rt == REG_ZR){
+      if(shamt == 0)
+        return 1;
+      else
+        return 0;
+    }else
+      return 0;
+  }else
+    return 0;
+}
+
+
+//Assignment3
+//Shift word left logical
+//left-shift a word by a fixed number of bits
+void fct_sll(){
+  if(isRegNOP()){
+    fct_nop();
+  }else{
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rd);
+        print((int*) ",");
+        printRegister(rt);
+        print((int*) ",");
+        printInteger(shamt);
+
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+            print((int*) ",");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+			print((int*) ", shamt:");
+			printInteger(shamt);
+        }
+    }
+
+    if(interpret){
+        //*(registers+rd) = leftShift(*(registers+rt), shamt);
+		//Assignment4
+	   *(registers+rd) = (*(registers+rt) << shamt);
+
+        pc = pc + WORDSIZE;
+    }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+        }
+        println();
+    }
+  }
+}
+
+//shift word right logical
+//to execute a logical right-shift of a word by a fixed number of bits
+void fct_srl(){
+
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rd);
+        print((int*) ",");
+        printRegister(rt);
+        print((int*) ",");
+        printInteger(shamt);
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+            print((int*) ",");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+
+        }
+
+    }
+
+    if(interpret){
+        *(registers+rd) = rightShift(*(registers+rt),shamt);//shamt and should be logical!!!?
+
+        pc = pc + WORDSIZE;
+    }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+        }
+        println();
+    }
+}
+
+//Shift Word Left Logical Variable
+//To left-shift a word by a variable number of bits
+void fct_sllv(){
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rd);
+        print((int*) ",");
+        printRegister(rt);
+        print((int*) ",");
+        printRegister(rs);
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+            print((int*) ",");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+            print((int*) ",");
+            printRegister(rs);
+            print((int*) "=");
+            printInteger(*(registers+rs));
+        }
+
+    }
+
+    if(interpret){
+        //*(registers+rd) = leftShift(*(registers + rt), *(registers + rs));
+		//Assignment4
+		*(registers+rd) = *(registers+rt) << *(registers+rs);
+        pc = pc + WORDSIZE;
+    }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+        }
+        println();
+    }
+}
+
+//Shift Word Right Logical Variable
+//To execute a logical right-shift of a word by a variable number of bits
+void fct_srlv(){
+
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rd);
+        print((int*) ",");
+        printRegister(rt);
+        print((int*) ",");
+        printRegister(rs);
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+            print((int*) ",");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+            print((int*) ",");
+            printRegister(rs);
+            print((int*) "=");
+            printInteger(*(registers+rs));
+        }
+
+    }
+
+    if(interpret){
+        *(registers+rd) = rightShift(*(registers + rt), *(registers + rs));
+		//srl(*(registers+rt), *(registers+rs));
+
+        pc = pc + WORDSIZE;
+    }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+        }
+        println();
+    }
+}
+
+//Assignment5
+void fct_and(){
+
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rd);
+        print((int*) ",");
+        printRegister(rs);
+        print((int*) ",");
+        printRegister(rt);
+
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+            print((int*) ",");
+            printRegister(rs);
+            print((int*) "=");
+            printInteger(*(registers+rs));
+            print((int*) ",");
+            printRegister(rs);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+        }
+
+    }
+
+    if(interpret){
+        *(registers+rd) = *(registers+rs) & *(registers+rt);
+
+        pc = pc + WORDSIZE;
+    }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+        }
+        println();
+    }
+}
+
+//Assignment5
+void op_andi(){
+
+    if (debug) {
+        printOpcode(opcode);
+        print((int*) " ");
+        printRegister(rt);
+        print((int*) ",");
+        printRegister(rs);
+        print((int*) ",");
+        printInteger(immediate);
+
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+            print((int*) ",");
+            printRegister(rs);
+            print((int*) "=");
+            printInteger(*(registers+rs));
+            print((int*) ",");
+            print((int*)"immediate:");
+            print((int*) "=");
+            printInteger(immediate);
+        }
+
+    }
+
+    if(interpret){
+        *(registers+rt) = *(registers+rs) & signExtend(immediate);
+
+        pc = pc + WORDSIZE;
+    }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+        }
+        println();
+    }
+}
+
+//Assignment5
+void fct_or(){
+
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rd);
+        print((int*) ",");
+        printRegister(rs);
+        print((int*) ",");
+        printRegister(rt);
+
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+            print((int*) ",");
+            printRegister(rs);
+            print((int*) "=");
+            printInteger(*(registers+rs));
+            print((int*) ",");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+        }
+
+    }
+
+    if(interpret){
+        *(registers+rd) = *(registers+rs) | *(registers+rt);
+
+        pc = pc + WORDSIZE;
+    }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+        }
+        println();
+    }
+}
+
+//Assignment5
+void op_ori(){
+
+    if (debug) {
+        printOpcode(opcode);
+        print((int*) " ");
+        printRegister(rt);
+        print((int*) ",");
+        printRegister(rs);
+        print((int*) ",");
+        printInteger(immediate);
+
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+            print((int*) ",");
+            printRegister(rs);
+            print((int*) "=");
+            printInteger(*(registers+rs));
+            print((int*) ",");
+            print((int*)"immediate:");
+            print((int*) "=");
+            printInteger(immediate);
+        }
+
+    }
+
+    if(interpret){
+        *(registers+rt) = *(registers+rs) | signExtend(immediate);
+
+        pc = pc + WORDSIZE;
+    }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+        }
+        println();
+    }
+}
+
+//Assignment5
+void fct_nor(){
+
+    if (debug) {
+        printFunction(function);
+        print((int*) " ");
+        printRegister(rd);
+        print((int*) ",");
+        printRegister(rs);
+        print((int*) ",");
+        printRegister(rt);
+
+        if (interpret) {
+            print((int*) ": ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+            print((int*) ",");
+            printRegister(rs);
+            print((int*) "=");
+            printInteger(*(registers+rs));
+            print((int*) ",");
+            printRegister(rt);
+            print((int*) "=");
+            printInteger(*(registers+rt));
+        }
+
+    }
+
+    if(interpret){
+        *(registers+rd) = ~(*(registers+rs) | *(registers+rt));
+
+        pc = pc + WORDSIZE;
+    }
+
+    if (debug) {
+        if (interpret) {
+            print((int*) " -> ");
+            printRegister(rd);
+            print((int*) "=");
+            printInteger(*(registers+rd));
+        }
+        println();
+    }
+}
+
 
 void op_addiu() {
   if (debug) {
@@ -7826,232 +8075,6 @@ void op_sw() {
   }
 }
 
-//Assignment5
-void fct_and(){
-
-    if (debug) {
-        printFunction(function);
-        print((int*) " ");
-        printRegister(rd);
-        print((int*) ",");
-        printRegister(rs);
-        print((int*) ",");
-        printRegister(rt);
-
-        if (interpret) {
-            print((int*) ": ");
-            printRegister(rd);
-            print((int*) "=");
-            printInteger(*(registers+rd));
-            print((int*) ",");
-            printRegister(rs);
-            print((int*) "=");
-            printInteger(*(registers+rs));
-            print((int*) ",");
-            printRegister(rs);
-            print((int*) "=");
-            printInteger(*(registers+rt));
-        }
-
-    }
-
-    if(interpret){
-        *(registers+rd) = *(registers+rs) & *(registers+rt);
-
-        pc = pc + WORDSIZE;
-    }
-
-    if (debug) {
-        if (interpret) {
-            print((int*) " -> ");
-            printRegister(rd);
-            print((int*) "=");
-            printInteger(*(registers+rd));
-        }
-        println();
-    }
-}
-
-//Assignment5
-void fct_or(){
-
-    if (debug) {
-        printFunction(function);
-        print((int*) " ");
-        printRegister(rd);
-        print((int*) ",");
-        printRegister(rs);
-        print((int*) ",");
-        printRegister(rt);
-
-        if (interpret) {
-            print((int*) ": ");
-            printRegister(rd);
-            print((int*) "=");
-            printInteger(*(registers+rd));
-            print((int*) ",");
-            printRegister(rs);
-            print((int*) "=");
-            printInteger(*(registers+rs));
-            print((int*) ",");
-            printRegister(rt);
-            print((int*) "=");
-            printInteger(*(registers+rt));
-        }
-
-    }
-
-    if(interpret){
-        *(registers+rd) = *(registers+rs) | *(registers+rt);
-
-        pc = pc + WORDSIZE;
-    }
-
-    if (debug) {
-        if (interpret) {
-            print((int*) " -> ");
-            printRegister(rt);
-            print((int*) "=");
-            printInteger(*(registers+rt));
-        }
-        println();
-    }
-}
-
-//Assignment5
-void fct_nor(){
-	
-  if(debug){
-    printFunction(function);
-    print((int*) " ");
-    printRegister(rd);
-    print((int*) ",");
-    printRegister(rs);
-    print((int*) ",");
-    printRegister(rt);
-	
-    if (interpret) {
-            print((int*) ": ");
-            printRegister(rd);
-            print((int*) "=");
-            printInteger(*(registers+rd));
-            print((int*) ",");
-            printRegister(rs);
-            print((int*) "=");
-            printInteger(*(registers+rs));
-            print((int*) ",");
-            printRegister(rt);
-            print((int*) "=");
-            printInteger(*(registers+rt));
-        }
-  }
-
-  if(interpret){
-    *(registers+rd) = ~(*(registers+rt) | *(registers+rs));
-
-      pc = pc + WORDSIZE;
-  }
-
-  if (debug) {
-    if (interpret) {
-      print((int*) " -> ");
-      printRegister(rd);
-      print((int*) "=");
-      printBinary(*(registers+rd), 0);
-    }
-    println();
-  }
-}
-
-//Assignment5
-void op_andi(){
-
-    if (debug) {
-        printOpcode(opcode);
-        print((int*) " ");
-        printRegister(rt);
-        print((int*) ",");
-        printRegister(rs);
-        print((int*) ",");
-        printInteger(immediate);
-
-        if (interpret) {
-            print((int*) ": ");
-            printRegister(rt);
-            print((int*) "=");
-            printInteger(*(registers+rt));
-            print((int*) ",");
-            printRegister(rs);
-            print((int*) "=");
-            printInteger(*(registers+rs));
-            print((int*) ",");
-            print((int*)"immediate:");
-            print((int*) "=");
-            printInteger(immediate);
-        }
-
-    }
-
-    if(interpret){
-        *(registers+rt) = *(registers+rs) & signExtend(immediate);
-
-        pc = pc + WORDSIZE;
-    }
-
-    if (debug) {
-        if (interpret) {
-            print((int*) " -> ");
-            printRegister(rt);
-            print((int*) "=");
-            printInteger(*(registers+rt));
-        }
-        println();
-    }
-}
-
-//Assignment5
-void op_ori(){
-	
-  if (debug) {
-    printOpcode(opcode);
-    print((int*) " ");
-    printRegister(rt);
-    print((int*) ",");
-    printRegister(rs);
-    print((int*) ",");
-    printInteger(signExtend(immediate));
-	
-    if (interpret) {
-      print((int*) ": ");
-      printRegister(rt);
-      print((int*) "=");
-      printInteger(*(registers+rt));
-      print((int*) ",");
-      printRegister(rs);
-      print((int*) "=");
-      printInteger(*(registers+rs));
-    }
-  }
-
-  if (interpret) {
-    *(registers+rt) = *(registers+rs) | signExtend(immediate);
-
-    // TODO: check for overflow
-
-    pc = pc + WORDSIZE;
-  }
-
-  if (debug) {
-    if (interpret) {
-      print((int*) " -> ");
-      printRegister(rt);
-      print((int*) "=");
-      printInteger(*(registers+rt));
-    }
-    println();
-  }
-}
-
 // -----------------------------------------------------------------
 // -------------------------- INTERPRETER --------------------------
 // -----------------------------------------------------------------
@@ -8067,9 +8090,11 @@ int encodeException(int exception, int parameter) {
   if (parameter < 0)
     // convert from 32-bit to 16-bit two's complement
     parameter = parameter + twoToThePowerOf(16);
-  
+
+  //return leftShift(exception, 16) + parameter;
   //Assignment4
   return (exception << 16) + parameter;
+
   
 }
 
@@ -8079,8 +8104,7 @@ int decodeExceptionNumber(int status) {
 
 int decodeExceptionParameter(int status) {
   //return signExtend(rightShift(leftShift(status, 16), 16));
-  //Assignment4
-  return signExtend(rightShift((status << 16), 16));
+    return signExtend(rightShift((status << 16), 16));
 }
 
 void printStatus(int status) {
@@ -8140,8 +8164,10 @@ void execute() {
     printHexadecimal(ir, 8);
     print((int*) ": ");
   }
-
+	
   if (opcode == OP_SPECIAL) {
+    //if (function == FCT_NOP)
+      //fct_nop();
     if (function == FCT_ADDU)
       fct_addu();
     else if (function == FCT_SUBU)
@@ -8961,9 +8987,10 @@ void printUsage() {
 
 int selfie() {
   int* option;
-  
-  print((int*)"This is Vivien Wallner's Selfie");
+
+  print((int*)"This is TEST's Selfie");
   println();
+
   
   if (numberOfRemainingArguments() == 0)
     printUsage();
@@ -9009,6 +9036,10 @@ int selfie() {
 
   return 0;
 }
+
+struct hallo{
+  int* a;
+ struct name * name1;};
 
 int main(int argc, int* argv) {
   initSelfie(argc, (int*) argv);

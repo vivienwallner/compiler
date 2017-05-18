@@ -44,7 +44,7 @@ C\* Grammar:
 ```
 cstar            = { type identifier [ "=" [ cast ] [ "-" ] literal ]  ";" |        
                    ( "void" | type ) identifier procedure | type identifier { selector } ";" |
-                      "struct" identifier ( "*" identifier | structDef ) ";" } .
+                      "struct" identifier ( "*" identifier | struct ) ";" } .
 
 type             = ( "int" [ "*" ] ) .
 
