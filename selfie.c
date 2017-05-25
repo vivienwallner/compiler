@@ -635,7 +635,7 @@ void addStructElement(int* entry, int* name, int* type, int* def, int offset){
 
   new = malloc(SIZEOFINT + 3*SIZEOFINTSTAR);
   setNextEntry(new, ptr);
-  setFieldName(new, name); print((int*) getFieldName(new));println();
+  setFieldName(new, name); 
 
   ptr = malloc(4 * SIZEOFINTSTAR + SIZEOFINT);
   setFieldType(new, ptr);
@@ -2707,7 +2707,7 @@ int* createSymbolTableEntry(int whichTable, int* string, int* structTypeEntry, i
   //Assignment8
   typeStruct = malloc(4 * SIZEOFINTSTAR + SIZEOFINT);
 
-
+  //fields = malloc(4 * SIZEOFINTSTAR + SIZEOFINT);
 
   setType(typeStruct, type);
   setDefinition(typeStruct, (int*) 0);
@@ -2715,7 +2715,7 @@ int* createSymbolTableEntry(int whichTable, int* string, int* structTypeEntry, i
   setDimensions(typeStruct, (int*) 0);
 
   setStructName(typeStruct, (int*) 0);  //structName is the type of struct variable
-  setFields(typeStruct, (int*) 0);//set pointer to fields of the variable+allocated space
+  setFields(typeStruct,(int*) 0);//set pointer to fields of the variable+allocated space
 
   setString(newEntry, string);
   setLineNumber(newEntry, line);
@@ -3445,9 +3445,8 @@ int gr_factor() {
       getSymbol();
 
       //["*"] identifier "->"
-      if(symbol == SYM_STRUCT_POINTER){//TODO STRUCT ACCESS
-        println();print((int*)"gr_factor: = [*] identifier ->");println();
-
+      if(symbol == SYM_STRUCT_POINTER){
+          gr_struct(identifier, 1);
 
       //["*"] identifier [ selector ]
       }else if(symbol == SYM_LBRACKET){
@@ -3532,9 +3531,9 @@ int gr_factor() {
       getSymbol();
 
       //["~"] identifier "->"
-      if(symbol == SYM_STRUCT_POINTER){//TODO
-          println();print((int*)"gr_factor: = [~] identifier ->");println();
+      if(symbol == SYM_STRUCT_POINTER){
 
+          gr_struct(identifier, 1);
 
       //["~"] identifier [ selector ]
       }else if(symbol == SYM_LBRACKET){
@@ -4504,39 +4503,8 @@ void gr_statement() {
         numberOfAssignments = numberOfAssignments + 1;
 
         //"*" identifier "->"
-      }else if(symbol == SYM_STRUCT_POINTER){//TODO STRUCT ACCESS
-        println();print((int*)"gr_statement: * identifier -> =");println();
-        entry = global_symbol_table;
-
-        entry = searchSymbolTable(entry, variableOrProcedureName, STRUCT);
-
-        if((int) entry == 0){
-          printLineNumber((int*) "error", lineNumber);
-          print(variableOrProcedureName);
-          print((int*) " undeclared");
-          println();
-
-          exit(-1);
-        }
-
-        ltype = getVariableType(entry);
-        if(ltype != INTSTAR_T){
-          typeWarning(INTSTAR_T, ltype);
-        }
-
-        //initialize address register with startaddress of array
-        load_integer(getAddress(entry));
-        emitRFormat(OP_SPECIAL, getScope(entry), currentTemporary(), currentTemporary(), 0, FCT_ADDU);
-
-
-        selectorNum = 1;
-        while(symbol == SYM_STRUCT_POINTER){
-          getSymbol();
-
-        //  gr_selector(selectorNum, entry);
-
-          //selectorNum = selectorNum +1;
-        }
+      }else if(symbol == SYM_STRUCT_POINTER){
+          gr_struct(variableOrProcedureName, 1);
 
         if(symbol != SYM_ASSIGN){
           syntaxErrorSymbol(SYM_ASSIGN);
@@ -4720,36 +4688,8 @@ void gr_statement() {
         syntaxErrorSymbol(SYM_SEMICOLON);
 
       //identifier "->"
-    }else if(symbol == SYM_STRUCT_POINTER){//TODO STRUCT ACCESS
-      println();print((int*)"gr_statement: identifier -> =");println();
-      entry = global_symbol_table;
-
-      entry = searchSymbolTable(entry, variableOrProcedureName, ARRAY);
-
-      if((int) entry == 0){
-        printLineNumber((int*) "error", lineNumber);
-        print(variableOrProcedureName);
-        print((int*) " undeclared");
-        println();
-
-        exit(-1);
-      }
-
-      ltype = getVariableType(entry);
-
-      //initialize address register with startaddress of array
-      load_integer(getAddress(entry));
-      emitRFormat(OP_SPECIAL, getScope(entry), currentTemporary(), currentTemporary(), 0, FCT_ADDU);
-
-      //iterate through found selectors
-      selectorNum = 1;
-      while(symbol == SYM_STRUCT_POINTER){
-        getSymbol();
-
-        //gr_selector(selectorNum, entry);
-
-        //selectorNum = selectorNum +1;
-      }
+    }else if(symbol == SYM_STRUCT_POINTER){
+      gr_struct(variableOrProcedureName,1);
 
       //search for assignment
       if(symbol != SYM_ASSIGN){
@@ -5266,6 +5206,7 @@ void gr_struct(int* structName, int isStructAccess){
         }else{
           type = gr_type();
 
+
           if(symbol == SYM_IDENTIFIER){
             variableName = identifier;
           }else{
@@ -5296,7 +5237,10 @@ void gr_struct(int* structName, int isStructAccess){
 
       //isStructAccess == 1
     }else{
+
       structEntry = searchSymbolTable(global_symbol_table, structName, VARIABLE);
+
+
 
       if(structEntry == (int*) 0){
         // global struct variable not declared or defined
@@ -5309,16 +5253,22 @@ void gr_struct(int* structName, int isStructAccess){
 
       }else{
 
+        type = getVariableType(structEntry);
+
+        //initialize address register with startaddress of struct
+        load_integer(getAddress(structEntry));
+        emitRFormat(OP_SPECIAL, getScope(structEntry), currentTemporary(), currentTemporary(), 0, FCT_ADDU);
 
             getSymbol();
 
-            if(symbol == SYM_IDENTIFIER){  print((int*)"gr_struct: identifier->search(");print((int*)identifier);print((int*)") ");println();
-
+            while(symbol == SYM_IDENTIFIER){
               fieldEntry = searchStructField(structEntry, identifier);
 
-              if(fieldEntry != (int*) 0){ print((int*)"gr_struct: identifier -> identifier");println();println();
+              if(fieldEntry != (int*) 0){
+                //load data from specified array position
+                emitIFormat(OP_LW, currentTemporary(), currentTemporary(), 0);
 
-              }else{    print((int*)"gr_struct: st -> identifier-fields*-NULL");println();println();
+              }else{
                 printLineNumber((int*) "error", lineNumber);
                 print((int*) "no field name ");
                 print(identifier);
@@ -5328,14 +5278,20 @@ void gr_struct(int* structName, int isStructAccess){
                 println();
                 exit(-1);
               }
-            }else{
-              syntaxErrorSymbol(SYM_IDENTIFIER);
+
+
+
+              getSymbol();
+
+              if(symbol==SYM_STRUCT_POINTER){
+                getSymbol();
+              }else{
+                syntaxErrorSymbol(SYM_STRUCT_POINTER);
+              }
+
             }
 
-
-
       }
-      getSymbol();
     }
 }
 
@@ -5402,22 +5358,22 @@ void gr_cstar() {
         }else
           syntaxErrorSymbol(SYM_IDENTIFIER);
 
-        entry = searchSymbolTable(global_symbol_table, variableOrProcedureName, VARIABLE);
-
-        if (entry == (int*) 0) {
-          allocatedMemory = allocatedMemory + SIZEOFINTSTAR;
-
           structEntry = searchSymbolTable(global_symbol_table, structName, STRUCT);
 
-          if((int) structEntry != 0){
+          if((int) structEntry == 0){
             // global variable already declared or defined
             printLineNumber((int*) "warning", lineNumber);
             print((int*) "no definition of struct type ");
             print(structName);
             println();
-            entry = createSymbolTableEntry(GLOBAL_TABLE, structName, (int*)0, lineNumber, STRUCT, 0, 0, 0);
+            structEntry = createSymbolTableEntry(GLOBAL_TABLE, structName, (int*)0, lineNumber, STRUCT, 0, 0, 0);
             return;
           }
+
+        entry = searchSymbolTable(global_symbol_table, variableOrProcedureName, VARIABLE);
+
+        if (entry == (int*) 0) {
+          allocatedMemory = allocatedMemory + SIZEOFINTSTAR;
 
            createSymbolTableEntry(GLOBAL_TABLE, variableOrProcedureName,  structEntry, lineNumber, VARIABLE, STRUCT_T, 0, -allocatedMemory);
 
@@ -9203,7 +9159,7 @@ int selfie() {
 
 
 
-  print((int*)"This is Vivien Wallenr's Selfie");
+  print((int*)"This is Vivien Wallner's Selfie");
   println();
 
   if (numberOfRemainingArguments() == 0)
