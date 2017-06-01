@@ -340,6 +340,7 @@ int SYM_RBRACKET     = 34; //"]"
 int SYM_STRUCT       = 35; //"STRUCT"
 int SYM_STRUCT_POINTER = 36;//"->"
 
+
 int* SYMBOLS; // strings representing symbols
 
 int maxIdentifierLength = 64; // maximum number of characters in an identifier
@@ -471,7 +472,6 @@ struct symbol_table_t {
   int totalSize;                  //9
 };
 
-
 int* getNextEntry(int* entry)  { return (int*) *entry; }
 int* getString(int* entry)     { return (int*) *(entry + 1); }
 int  getLineNumber(int* entry) { return        *(entry + 2); }
@@ -523,7 +523,6 @@ struct dimension_t {
 int getSize(int* entry) { return *(entry + 1);}
 void setSize(int* entry, int size) { *(entry + 1) = size; }
 
-
 struct field_t {
   struct field_t * next;
   int* name;
@@ -539,11 +538,10 @@ void setFieldName(int* entry, int* name)   { *(entry + 1) = (int) name; }
 void setFieldType(int* entry, int* type)   { *(entry + 2) = (int) type; }
 void setFieldOffset(int* entry, int offset){ *(entry + 3) =       offset; }
 
-
 void resetSymbolTables();
 
 //Assignment7
-int* createSymbolTableEntry(int which, int* string, int* structTypeEntry, int line, int class, int type, int currentValue, int address);
+int* createSymbolTableEntry(int which, int* string, int line, int class, int type, int currentValue, int address);
 
 int* searchSymbolTable(int* entry, int* string, int class);
 int* getScopedSymbolTableEntry(int* string, int class);
@@ -623,7 +621,7 @@ void addDimension(int* entry, int size){
 // 2. word: pointer to element name
 // 3. word: type
 // 4. word: (optional) pointer to struct definition
-void addStructElement(int* entry, int* name, int* type, int* def, int offset){
+int* addStructElement(int* entry, int* name, int* typeName,int type, int* def, int offset){
   int* new;
   int* ptr;
 
@@ -632,34 +630,43 @@ void addStructElement(int* entry, int* name, int* type, int* def, int offset){
   entry = getTypeStruct(entry);
   ptr = getFields(entry);
 
-
   new = malloc(SIZEOFINT + 3*SIZEOFINTSTAR);
   setNextEntry(new, ptr);
-  setFieldName(new, name); 
+  setFieldName(new, name);
 
-  ptr = malloc(4 * SIZEOFINTSTAR + SIZEOFINT);
+  ptr = malloc(4 * SIZEOFINTSTAR + SIZEOFINT);//pointer to type
   setFieldType(new, ptr);
+  setType(ptr,type);
   setFieldOffset(new, offset);
-  setFields(entry, new);
 
-  setDefinition(ptr, def);
-  setStructName(ptr, type);
+
+  setFields(entry, new);//typeStruct gets  fields+newField
+
+  setDefinition(ptr, def);//type gets a definition if available
+  setStructName(ptr, typeName);//type gets a struct type name if available
+
+  return new;
 }
 
-int* searchStructField(int* entry, int* string) {
-  int* ptr;
-
-  //Assignment8
-  entry = getTypeStruct(entry); //get TypeStruct
-  ptr = getFields(entry);   //get struct of first dimension
-
-
-  while (ptr != (int*) 0) {
-    if (stringCompare(string, getFieldName(ptr)))
+int* searchField(int* entry, int* string) {
+  while (entry != (int*) 0) {
+    if (stringCompare(string, getFieldName(entry)))
         return entry;
 
     // keep looking
-    ptr = getFields(ptr);
+    entry = getNextEntry(entry);
+  }
+
+  return (int*) 0;
+}
+
+int* searchType(int* entry, int* string) {
+  while (entry != (int*) 0) {
+    if (stringCompare(string, getType(entry)))
+        return entry;
+
+    // keep looking
+    entry = getNextEntry(entry);
   }
 
   return (int*) 0;
@@ -687,7 +694,6 @@ int STRUCT_T  = 4;
 int GLOBAL_TABLE  = 1;
 int LOCAL_TABLE   = 2;
 int LIBRARY_TABLE = 3;
-
 
 // ------------------------ GLOBAL VARIABLES -----------------------
 
@@ -781,7 +787,8 @@ int gr_shiftExpression();
 //Assignment7
 int gr_selector(int selectorNum, int* entry);
 //Assignment8
-void gr_struct(int* structName,int isStructAccess);
+void gr_struct(int* structName);
+int gr_structAccess(int* structVariableName);
 
 // ------------------------ GLOBAL VARIABLES -----------------------
 
@@ -1008,8 +1015,8 @@ int OP_ADDIU   = 0x9;//hexadezimal representation of 9
 int OP_LW      = 0x23;//hexadezimal representation of 35
 int OP_SW      = 0x2B;//hexadezimal representation of 43
 //Assignment5
-int OP_ANDI    = 0b001100;//12
-int OP_ORI     = 0b001101;//13
+int OP_ANDI    = 0xC;//12
+int OP_ORI     = 0xD;//13
 
 int* OPCODES; // strings representing MIPS opcodes
 
@@ -1029,9 +1036,9 @@ int FCT_SRL     = 0x2;
 int FCT_SLLV    = 0x4;
 int FCT_SRLV    = 0x6;
 //Assignment5
-int FCT_AND     = 0b100100;//36
-int FCT_OR      = 0b100101;//37
-int FCT_NOR     = 0b100111;//39
+int FCT_AND     = 0x24;//36
+int FCT_OR      = 0x25;//37
+int FCT_NOR     = 0x27;//39
 
 int* FUNCTIONS; // strings representing MIPS functions
 
@@ -2555,8 +2562,7 @@ void getSymbol() {
         symbol = SYM_PLUS;
 
       } else if (character == CHAR_DASH) {
-        getCharacter();
-
+         getCharacter();
         if(character == CHAR_GT){
           getCharacter();
           symbol = SYM_STRUCT_POINTER;
@@ -2696,33 +2702,26 @@ void getSymbol() {
 // -----------------------------------------------------------------
 
 //Assignment7 int*
-int* createSymbolTableEntry(int whichTable, int* string, int* structTypeEntry, int line, int class, int type, int currentValue, int address) {
+int* createSymbolTableEntry(int whichTable, int* string, int line, int class, int type, int currentValue, int address) {
   int* newEntry;
   //Assignment8
   int* typeStruct;
-  int* fields;
   //Assignment7
   newEntry = malloc(3 * SIZEOFINTSTAR + 7 * SIZEOFINT);
 
   //Assignment8
   typeStruct = malloc(4 * SIZEOFINTSTAR + SIZEOFINT);
-
-  //fields = malloc(4 * SIZEOFINTSTAR + SIZEOFINT);
-
   setType(typeStruct, type);
   setDefinition(typeStruct, (int*) 0);
-
+  setStructName(typeStruct, (int*) 0);
   setDimensions(typeStruct, (int*) 0);
-
-  setStructName(typeStruct, (int*) 0);  //structName is the type of struct variable
-  setFields(typeStruct,(int*) 0);//set pointer to fields of the variable+allocated space
+  setFields(typeStruct, (int*) 0);
 
   setString(newEntry, string);
   setLineNumber(newEntry, line);
   setClass(newEntry, class);
   //Assignment8
   setTypeStruct(newEntry, typeStruct);
-
   setcurrentValue(newEntry, currentValue);
   setAddress(newEntry, address);
 
@@ -2756,12 +2755,10 @@ int* createSymbolTableEntry(int whichTable, int* string, int* structTypeEntry, i
     //Assignment8
     else if(class == STRUCT)
       numberOfStructDef = numberOfStructDef +1;
-
   } else if (whichTable == LOCAL_TABLE) {
     setScope(newEntry, REG_FP);
     setNextEntry(newEntry, local_symbol_table);
     local_symbol_table = newEntry;
-
   } else {
     // library procedures
     setScope(newEntry, REG_GP);
@@ -2869,6 +2866,8 @@ int isExpression() {
     return 1;
   else if (symbol == SYM_LPARENTHESIS)
     return 1;
+  else if (symbol == SYM_BITWISE_NOT)
+     return 1;
   else if (symbol == SYM_IDENTIFIER)
     return 1;
   else if (symbol == SYM_INTEGER)
@@ -2953,7 +2952,6 @@ int lookForFactor() {
     return 0;
   else if (symbol == SYM_IDENTIFIER)
     return 0;
-  //Assignment5
   else if (symbol == SYM_BITWISE_NOT)
     return 0;
   else if (symbol == SYM_INTEGER)
@@ -3215,7 +3213,7 @@ void load_string(int* string) {
 
   allocatedMemory = allocatedMemory + roundUp(length, WORDSIZE);
 
-  createSymbolTableEntry(GLOBAL_TABLE, string, (int*)0, lineNumber, STRING, INTSTAR_T, 0, -allocatedMemory);
+  createSymbolTableEntry(GLOBAL_TABLE, string, lineNumber, STRING, INTSTAR_T, 0, -allocatedMemory);
 
   talloc();
 
@@ -3231,7 +3229,7 @@ int help_call_codegen(int* entry, int* procedure) {
     // default return type is "int"
     type = INT_T;
 
-    createSymbolTableEntry(GLOBAL_TABLE, procedure,(int*)0, lineNumber, PROCEDURE, type, 0, binaryLength);
+    createSymbolTableEntry(GLOBAL_TABLE, procedure, lineNumber, PROCEDURE, type, 0, binaryLength);
 
     emitJFormat(OP_JAL, 0);
 
@@ -3379,6 +3377,12 @@ int gr_factor() {
 
   int* variableOrProcedureName;
 
+
+  int*stEntry;
+  int* fields;
+  int* fieldTypePointer;
+  int fieldType;
+  int* fieldsEntry;
   // assert: n = allocatedTemporaries
 
   hasCast = 0;
@@ -3408,8 +3412,7 @@ int gr_factor() {
         getSymbol();
       else
         syntaxErrorSymbol(SYM_RPARENTHESIS);
-
-    //cast: "(" struct structTypeName * "}"
+        //cast: "(" struct structTypeName * "}"
     }else if(symbol == SYM_STRUCT){
       getSymbol();
       hasCast = 1;
@@ -3419,7 +3422,6 @@ int gr_factor() {
         getSymbol();
       else
         syntaxErrorSymbol(SYM_RPARENTHESIS);
-
 
     // not a cast: "(" expression ")"
     } else {
@@ -3443,15 +3445,9 @@ int gr_factor() {
     // ["*"] identifier
     if (symbol == SYM_IDENTIFIER) {
       getSymbol();
-
-      //["*"] identifier "->"
-      if(symbol == SYM_STRUCT_POINTER){
-          gr_struct(identifier, 1);
-
       //["*"] identifier [ selector ]
-      }else if(symbol == SYM_LBRACKET){
+      if(symbol == SYM_LBRACKET){
         entry = global_symbol_table;
-
         entry = searchSymbolTable(entry, identifier, ARRAY);
 
         if((int) entry == 0){
@@ -3459,7 +3455,6 @@ int gr_factor() {
           print(variableOrProcedureName);
           print((int*) " undeclared");
           println();
-
           exit(-1);
         }
 
@@ -3472,9 +3467,7 @@ int gr_factor() {
         selectorNum = 1;
         while(symbol == SYM_LBRACKET){
           getSymbol();
-
           gr_selector(selectorNum, entry);
-
           selectorNum = selectorNum +1;
         }
 
@@ -3522,24 +3515,20 @@ int gr_factor() {
 
     type = INT_T;
 
-   }else if (symbol == SYM_BITWISE_NOT) {
+  }else if (symbol == SYM_BITWISE_NOT) {
     getSymbol();
 
     // ["~"] identifier
     if (symbol == SYM_IDENTIFIER) {
+      variableOrProcedureName = identifier;
+
       //Assignment7
       getSymbol();
-
-      //["~"] identifier "->"
-      if(symbol == SYM_STRUCT_POINTER){
-
-          gr_struct(identifier, 1);
-
       //["~"] identifier [ selector ]
-      }else if(symbol == SYM_LBRACKET){
+      if(symbol == SYM_LBRACKET){
         entry = global_symbol_table;
 
-        entry = searchSymbolTable(entry, identifier, ARRAY);
+        entry = searchSymbolTable(entry, variableOrProcedureName, ARRAY);
 
         if((int) entry == 0){
           printLineNumber((int*) "error", lineNumber);
@@ -3573,39 +3562,44 @@ int gr_factor() {
           emitIFormat(OP_LW, currentTemporary(), currentTemporary(), 0);
         }
 
+        //["~"] identifier "->"
+      }else if(symbol == SYM_STRUCT_POINTER){
+        getSymbol();
+        gr_structAccess(variableOrProcedureName);
+        emitIFormat(OP_LW, currentTemporary(), currentTemporary(), 0);
       }else
         type = load_variable(identifier);
 
 
-    // * "(" expression ")"
+    // ["~"] "(" expression ")"
     } else if (symbol == SYM_LPARENTHESIS) {
       getSymbol();
-
       type = gr_expression();
-
-      //Assignment6
       if(currentConstant){
         load_integer(currentValue);
         currentConstant=0;
       }
+        if (symbol == SYM_RPARENTHESIS)
+          getSymbol();
+        else
+          syntaxErrorSymbol(SYM_RPARENTHESIS);
 
-      if (symbol == SYM_RPARENTHESIS)
+      // ["~"] integer
+    } else if (symbol == SYM_INTEGER) {
+        load_integer(literal);
         getSymbol();
-      else
-        syntaxErrorSymbol(SYM_RPARENTHESIS);
+        type = INT_T;
+
     } else
       syntaxErrorUnexpected();
 
-    // nor
-    emitRFormat(OP_SPECIAL, currentTemporary(), 0 , currentTemporary(), 0, FCT_NOR);
+      //nor
+      emitRFormat(OP_SPECIAL, currentTemporary(), REG_ZR, currentTemporary(), 0, FCT_NOR);
 
   // identifier?
   } else if (symbol == SYM_IDENTIFIER) {
     variableOrProcedureName = identifier;
-
     getSymbol();
-
-    //identifier "("
     if (symbol == SYM_LPARENTHESIS) {
       getSymbol();
 
@@ -3621,13 +3615,15 @@ int gr_factor() {
       // for missing return expressions
       emitIFormat(OP_ADDIU, REG_ZR, REG_V0, 0);
 
-      //identifier "->"
+    //identifier  "->"
     }else if(symbol == SYM_STRUCT_POINTER){
+      getSymbol();
+      gr_structAccess(variableOrProcedureName);
+      emitIFormat(OP_LW, currentTemporary(), currentTemporary(), 0);
 
-      gr_struct(variableOrProcedureName, 1);
 
-      // identifier "["
-	   }else if(symbol == SYM_LBRACKET){
+	//identifier "["
+	}else if(symbol == SYM_LBRACKET){
       entry = global_symbol_table;
 
       entry = searchSymbolTable(entry, variableOrProcedureName, ARRAY);
@@ -4475,7 +4471,6 @@ void gr_statement() {
     // "*" identifier
     if (symbol == SYM_IDENTIFIER) {
 
-	  //Assignment7
 	  variableOrProcedureName = identifier;
 
 	  getSymbol();
@@ -4501,34 +4496,6 @@ void gr_statement() {
         tfree(2);
 
         numberOfAssignments = numberOfAssignments + 1;
-
-        //"*" identifier "->"
-      }else if(symbol == SYM_STRUCT_POINTER){
-          gr_struct(variableOrProcedureName, 1);
-
-        if(symbol != SYM_ASSIGN){
-          syntaxErrorSymbol(SYM_ASSIGN);
-        }
-        getSymbol();
-
-        rtype = gr_expression();
-
-        //gr_expression must return an int
-        if(rtype != INT_T){
-          typeWarning(INT_T, rtype);
-        }
-
-
-        //load pointer from specified array position
-        emitIFormat(OP_LW, previousTemporary(), previousTemporary(), 0);
-
-        //store value to pointed address
-        emitIFormat(OP_SW, previousTemporary(), currentTemporary(), 0);
-
-		tfree(2);
-
-        numberOfAssignments = numberOfAssignments + 1;
-
 
         //"*" identifier [ selector ] "="
       }else if(symbol == SYM_LBRACKET){
@@ -4662,6 +4629,35 @@ void gr_statement() {
       else
         syntaxErrorSymbol(SYM_SEMICOLON);
 
+        // identifier -> .... "=" expression
+    }else if(symbol == SYM_STRUCT_POINTER){
+
+      getSymbol();
+      ltype = gr_structAccess(variableOrProcedureName);
+
+
+      if(symbol == SYM_ASSIGN)
+        getSymbol();
+      else
+        syntaxErrorSymbol(SYM_ASSIGN);
+
+      rtype  = gr_expression();
+
+      if(ltype != rtype)
+        typeWarning(ltype, rtype);
+
+      emitIFormat(OP_SW, previousTemporary(), currentTemporary(),0);
+
+      tfree(2);
+
+      numberOfAssignments = numberOfAssignments + 1;
+
+      if (symbol == SYM_SEMICOLON)
+        getSymbol();
+      else
+        syntaxErrorSymbol(SYM_SEMICOLON);
+
+
     // identifier = expression
     } else if (symbol == SYM_ASSIGN) {
       entry = getVariable(variableOrProcedureName);
@@ -4687,37 +4683,8 @@ void gr_statement() {
       else
         syntaxErrorSymbol(SYM_SEMICOLON);
 
-      //identifier "->"
-    }else if(symbol == SYM_STRUCT_POINTER){
-      gr_struct(variableOrProcedureName,1);
-
-      //search for assignment
-      if(symbol != SYM_ASSIGN){
-        syntaxErrorSymbol(SYM_ASSIGN);
-      }
-      getSymbol();
-
-      rtype = gr_expression();
-
-      if(ltype != rtype){
-        typeWarning(ltype, rtype);
-      }
-
-
-      //store new value
-      emitIFormat(OP_SW, previousTemporary(), currentTemporary(), 0);
-      tfree(2);
-
-      numberOfAssignments = numberOfAssignments + 1;
-
-      if(symbol != SYM_SEMICOLON){
-        syntaxErrorSymbol(SYM_SEMICOLON);
-      }
-      getSymbol();
-
-
-
-    }else if(symbol == SYM_LBRACKET){
+  // identifier [... = expression
+  }else if(symbol == SYM_LBRACKET){
       entry = global_symbol_table;
 
       entry = searchSymbolTable(entry, variableOrProcedureName, ARRAY);
@@ -4842,13 +4809,16 @@ void gr_variable(int offset) {
 
   if (symbol == SYM_IDENTIFIER) {
     // TODO: check if identifier has already been declared
-    createSymbolTableEntry(LOCAL_TABLE, identifier,(int*)0, lineNumber, VARIABLE, type, 0, offset);
+    createSymbolTableEntry(LOCAL_TABLE, identifier, lineNumber, VARIABLE, type, 0, offset);
 
     getSymbol();
+    //identifier [ expression ][ expression ]...[ expression ]
+
+
+
   } else {
     syntaxErrorSymbol(SYM_IDENTIFIER);
-
-    createSymbolTableEntry(LOCAL_TABLE, (int*) "missing variable name",(int*)0, lineNumber, VARIABLE, type, 0, offset);
+    createSymbolTableEntry(LOCAL_TABLE, (int*) "missing variable name", lineNumber, VARIABLE, type, 0, offset);
   }
 }
 
@@ -4939,51 +4909,45 @@ void gr_procedure(int* procedure, int type) {
   numberOfParameters = 0;
 
   // try parsing formal parameters
-  if (symbol == SYM_LPARENTHESIS) {
+  if (symbol == SYM_LPARENTHESIS) { //...(
     getSymbol();
 
+    //...(...
     if (symbol != SYM_RPARENTHESIS) {
       gr_variable(0);
-
       numberOfParameters = 1;
 
+        //...(variable, variable,...)
       while (symbol == SYM_COMMA) {
         getSymbol();
-
         gr_variable(0);
-
         numberOfParameters = numberOfParameters + 1;
       }
-
       entry = local_symbol_table;
-
       parameters = 0;
-
       while (parameters < numberOfParameters) {
         // 8 bytes offset to skip frame pointer and link
         setAddress(entry, parameters * WORDSIZE + 2 * WORDSIZE);
-
         parameters = parameters + 1;
-
         entry = getNextEntry(entry);
       }
+        //...(variable, variable,...,variable)
+      if (symbol == SYM_RPARENTHESIS)   getSymbol();
+      else   syntaxErrorSymbol(SYM_RPARENTHESIS);
 
-      if (symbol == SYM_RPARENTHESIS)
-        getSymbol();
-      else
-        syntaxErrorSymbol(SYM_RPARENTHESIS);
-    } else
-      getSymbol();
-  } else
-    syntaxErrorSymbol(SYM_LPARENTHESIS);
+    } else   getSymbol();
+
+  } else syntaxErrorSymbol(SYM_LPARENTHESIS);
 
   entry = searchSymbolTable(global_symbol_table, procedure, PROCEDURE);
 
+
+//...(...);
   if (symbol == SYM_SEMICOLON) {
     // this is a procedure declaration
     if (entry == (int*) 0)
       // procedure never called nor declared nor defined
-      createSymbolTableEntry(GLOBAL_TABLE, procedure,(int*)0, lineNumber, PROCEDURE, type, 0, 0);
+      createSymbolTableEntry(GLOBAL_TABLE, procedure, lineNumber, PROCEDURE, type, 0, 0);
     else if (getVariableType(entry) != type)
       // procedure already called, declared, or even defined
       // check return type but otherwise ignore
@@ -4991,11 +4955,13 @@ void gr_procedure(int* procedure, int type) {
 
     getSymbol();
 
+
+//...(...){
   } else if (symbol == SYM_LBRACE) {
     // this is a procedure definition
     if (entry == (int*) 0)
       // procedure never called nor declared nor defined
-      createSymbolTableEntry(GLOBAL_TABLE, procedure,(int*)0, lineNumber, PROCEDURE, type, 0, binaryLength);
+      createSymbolTableEntry(GLOBAL_TABLE, procedure, lineNumber, PROCEDURE, type, 0, binaryLength);
     else {
       // procedure already called or declared or defined
       if (getAddress(entry) != 0) {
@@ -5016,8 +4982,7 @@ void gr_procedure(int* procedure, int type) {
         // procedure already called or declared but not defined
         setLineNumber(entry, lineNumber);
 
-        if (getVariableType(entry) != type)
-          typeWarning(getVariableType(entry), type);
+        if (getVariableType(entry) != type)  typeWarning(getVariableType(entry), type);
 
         setVariableType(entry, type);
         setAddress(entry, binaryLength);
@@ -5032,7 +4997,6 @@ void gr_procedure(int* procedure, int type) {
     }
 
     getSymbol();
-
     localVariables = 0;
 
     while (symbol == SYM_INT) {
@@ -5040,40 +5004,30 @@ void gr_procedure(int* procedure, int type) {
 
       gr_variable(-localVariables * WORDSIZE);
 
-      if (symbol == SYM_SEMICOLON)
-        getSymbol();
-      else
-        syntaxErrorSymbol(SYM_SEMICOLON);
+      if (symbol == SYM_SEMICOLON)  getSymbol();
+      else  syntaxErrorSymbol(SYM_SEMICOLON);
     }
 
     help_procedure_prologue(localVariables);
 
     // create a fixup chain for return statements
     returnBranches = 0;
-
     returnType = type;
 
-    while (isNotRbraceOrEOF())
-      gr_statement();
+//...(...){ statement; ....
+    while (isNotRbraceOrEOF())  gr_statement();
 
     returnType = 0;
 
-    if (symbol == SYM_RBRACE)
-      getSymbol();
-    else {
-      syntaxErrorSymbol(SYM_RBRACE);
-
-      exit(-1);
-    }
+//...(...){ statement; ....}
+    if (symbol == SYM_RBRACE)  getSymbol();
+    else {syntaxErrorSymbol(SYM_RBRACE);  exit(-1);  }
 
     fixlink_absolute(returnBranches, binaryLength);
-
     returnBranches = 0;
-
     help_procedure_epilogue(numberOfParameters);
 
-  } else
-    syntaxErrorUnexpected();
+  } else  syntaxErrorUnexpected();
 
   local_symbol_table = (int*) 0;
 
@@ -5086,7 +5040,6 @@ int gr_selector(int selectorNum, int* entry){
   int multiplier;
   int type;
   size = 0;
-
 
   if(arrayDeklaration){
     getSymbol();
@@ -5143,20 +5096,14 @@ int gr_selector(int selectorNum, int* entry){
 }
 
 //Assignment8
-void gr_struct(int* structName, int isStructAccess){
+void gr_struct(int* structName){
   int type;
   int* entry;
   int* variableName;
   int* structEntry;
-  int* typeStruct;
-
-  int* fieldsPtr;
-
-  int* fieldEntry;
   int offset;
-    int* name;
-
-  if(isStructAccess == 0){
+  int* stEntry;
+  int* newField;
 
     entry = searchSymbolTable(global_symbol_table, structName, STRUCT);
 
@@ -5170,129 +5117,119 @@ void gr_struct(int* structName, int isStructAccess){
       return;
     }
 
-    entry = createSymbolTableEntry(GLOBAL_TABLE, structName, (int*)0, lineNumber, STRUCT, 0, 0, 0);
+    entry = createSymbolTableEntry(GLOBAL_TABLE, structName, lineNumber, STRUCT, 0, 0, 0);
 
     if(symbol != SYM_LBRACE)
       syntaxErrorSymbol(SYM_LBRACE);
+
       getSymbol();
 
-      offset = 0;
-      while(lookForType() == 0){
-        if(symbol == SYM_STRUCT){
-          type = STRUCT_T;
+    offset = 0;
+    while(lookForType() == 0){
 
-          getSymbol();
+      if(symbol == SYM_STRUCT){
+        type = STRUCT_T;
 
-          if(symbol == SYM_IDENTIFIER){
-            structName = identifier;
-          }else{
-            syntaxErrorSymbol(SYM_IDENTIFIER);
-          }
-          structEntry = searchSymbolTable(global_symbol_table, structName, STRUCT);
+        getSymbol();
 
-          getSymbol();
-          if(symbol != SYM_ASTERISK)
-          syntaxErrorSymbol(SYM_ASTERISK);
-
-          getSymbol();
-          if(symbol == SYM_IDENTIFIER){
-            variableName = identifier;
-          }else{
-            syntaxErrorSymbol(SYM_IDENTIFIER);
-          }
-
-          addStructElement(entry, variableName, -1, structEntry, offset);
-
+        if(symbol == SYM_IDENTIFIER){
+          structName = identifier;
         }else{
-          type = gr_type();
-
-
-          if(symbol == SYM_IDENTIFIER){
-            variableName = identifier;
-          }else{
-            syntaxErrorSymbol(SYM_IDENTIFIER);
-          }
-
-          addStructElement(entry, variableName, type, (int*) 0, offset);
+          syntaxErrorSymbol(SYM_IDENTIFIER);
         }
 
-        getSymbol();
-        if(symbol != SYM_SEMICOLON)
-        syntaxErrorSymbol(SYM_SEMICOLON);
+        structEntry = searchSymbolTable(global_symbol_table, structName, STRUCT);
 
         getSymbol();
+        if(symbol != SYM_ASTERISK)
+          syntaxErrorSymbol(SYM_ASTERISK);
 
-        offset = offset + 1;
-      }
+        getSymbol();
+        if(symbol == SYM_IDENTIFIER){
+          variableName = identifier;
+        }else{
+          syntaxErrorSymbol(SYM_IDENTIFIER);
+        }
 
-      if(symbol != SYM_RBRACE)
-      syntaxErrorSymbol(SYM_RBRACE);
-      getSymbol();
-
-      if(symbol != SYM_SEMICOLON)
-      syntaxErrorSymbol(SYM_SEMICOLON);
-
-      getSymbol();
-
-
-      //isStructAccess == 1
-    }else{
-
-      structEntry = searchSymbolTable(global_symbol_table, structName, VARIABLE);
-
-
-
-      if(structEntry == (int*) 0){
-        // global struct variable not declared or defined
-        printLineNumber((int*) "error", lineNumber);
-        print((int*) "no struct name '");
-        print(structName);
-        print((int*) "' declared");
-        println();
-        exit(-1);
+        addStructElement(entry, variableName, structName, type, structEntry, offset);
 
       }else{
+        type = gr_type();
 
-        type = getVariableType(structEntry);
+        if(symbol == SYM_IDENTIFIER){
+          variableName = identifier;
+        }else{
+          syntaxErrorSymbol(SYM_IDENTIFIER);
+        }
 
-        //initialize address register with startaddress of struct
-        load_integer(getAddress(structEntry));
-        emitRFormat(OP_SPECIAL, getScope(structEntry), currentTemporary(), currentTemporary(), 0, FCT_ADDU);
-
-            getSymbol();
-
-            while(symbol == SYM_IDENTIFIER){
-              fieldEntry = searchStructField(structEntry, identifier);
-
-              if(fieldEntry != (int*) 0){
-                //load data from specified array position
-                emitIFormat(OP_LW, currentTemporary(), currentTemporary(), 0);
-
-              }else{
-                printLineNumber((int*) "error", lineNumber);
-                print((int*) "no field name ");
-                print(identifier);
-                print((int*) "of struct name ");
-                print(structName);
-                print((int*) " defined");
-                println();
-                exit(-1);
-              }
-
-
-
-              getSymbol();
-
-              if(symbol==SYM_STRUCT_POINTER){
-                getSymbol();
-              }else{
-                syntaxErrorSymbol(SYM_STRUCT_POINTER);
-              }
-
-            }
-
+        addStructElement(entry, variableName,structName, type, (int*) 0, offset);
       }
+
+      getSymbol();
+      if(symbol != SYM_SEMICOLON)
+        syntaxErrorSymbol(SYM_SEMICOLON);
+
+      getSymbol();
+
+      offset = offset + 1;
     }
+
+    if(symbol != SYM_RBRACE)
+      syntaxErrorSymbol(SYM_RBRACE);
+    getSymbol();
+
+    if(symbol != SYM_SEMICOLON)
+      syntaxErrorSymbol(SYM_SEMICOLON);
+
+    getSymbol();
+
+}
+
+int gr_structAccess(int* structVariableName){
+  int* fields;
+	int* entry;
+  int* fieldsEntry;
+  int* fieldName;
+
+  int fieldType;
+
+  int* returnField;
+  fieldsEntry = (int*) 0;
+
+  entry = searchSymbolTable(global_symbol_table, structVariableName, VARIABLE);
+  fields =  getFields(getTypeStruct(getDefinition(getTypeStruct(entry))));
+  load_variable(structVariableName);
+
+  while (symbol == SYM_IDENTIFIER){
+   getSymbol();
+
+   fieldName = identifier;
+      while(fields != (int*) 0){
+        if(stringCompare(fieldName, getFieldName(fields))){
+              fieldsEntry = fields;
+         }
+          fields = getNextEntry(fields);
+   }
+
+
+    if(fieldsEntry != (int*)0){
+
+         if(symbol == SYM_STRUCT_POINTER){
+           fields = getFields(getFieldType(fieldsEntry));
+           emitIFormat(OP_LW, currentTemporary(), currentTemporary(), getFieldOffset(fieldsEntry)*WORDSIZE);
+
+           getSymbol();
+
+         } else{
+            emitIFormat(OP_ADDIU, currentTemporary(), currentTemporary(),getFieldOffset(fieldsEntry)*WORDSIZE);
+            fieldType = getType(getFieldType(fieldsEntry));
+          }
+     }
+
+    fieldsEntry = (int*)0;
+}
+
+return fieldType;
 }
 
 void gr_cstar() {
@@ -5306,7 +5243,7 @@ void gr_cstar() {
   int totalSize;
   //Assignment8
   int* structName;
-  int* structEntry;
+  int* structVariableEntry;
 
   while (symbol != SYM_EOF) {
     while (lookForType()) {
@@ -5336,69 +5273,63 @@ void gr_cstar() {
         syntaxErrorSymbol(SYM_IDENTIFIER);
 
     //Assignment8
-    //struct
     } else if(symbol == SYM_STRUCT){
       getSymbol();
-      //struct identifier
+
       if(symbol == SYM_IDENTIFIER){
         structName = identifier;
-
-
       }else{
         syntaxErrorSymbol(SYM_IDENTIFIER);
       }
 
       getSymbol();
-        //struct structName *
+
       if(symbol == SYM_ASTERISK){
         getSymbol();
-          //struct structName * variable
+
         if(symbol == SYM_IDENTIFIER){
           variableOrProcedureName = identifier;
         }else
           syntaxErrorSymbol(SYM_IDENTIFIER);
 
-          structEntry = searchSymbolTable(global_symbol_table, structName, STRUCT);
+          entry = searchSymbolTable(global_symbol_table, structName, STRUCT);
 
-          if((int) structEntry == 0){
-            // global variable already declared or defined
-            printLineNumber((int*) "warning", lineNumber);
-            print((int*) "no definition of struct type ");
+          if(entry == (int*)0){
+            printLineNumber((int*) "warning", currentLineNumber);
+            print((int*) "struct type");
             print(structName);
+            print((int*) " not defined");
             println();
-            structEntry = createSymbolTableEntry(GLOBAL_TABLE, structName, (int*)0, lineNumber, STRUCT, 0, 0, 0);
-            return;
-          }
 
-        entry = searchSymbolTable(global_symbol_table, variableOrProcedureName, VARIABLE);
+          }else{
 
-        if (entry == (int*) 0) {
-          allocatedMemory = allocatedMemory + SIZEOFINTSTAR;
+            structVariableEntry = searchSymbolTable(global_symbol_table, variableOrProcedureName, VARIABLE);
 
-           createSymbolTableEntry(GLOBAL_TABLE, variableOrProcedureName,  structEntry, lineNumber, VARIABLE, STRUCT_T, 0, -allocatedMemory);
+            if (structVariableEntry == (int*) 0) {
+              allocatedMemory = allocatedMemory + SIZEOFINTSTAR;
 
+              structVariableEntry = createSymbolTableEntry(GLOBAL_TABLE, variableOrProcedureName, lineNumber, VARIABLE, STRUCT_T, 0, -allocatedMemory);
+              setDefinition(getTypeStruct(structVariableEntry),entry);
 
-        } else {
-          // global variable already declared or defined
-          printLineNumber((int*) "warning", currentLineNumber);
-          print((int*) "redefinition of global variable ");
-          print(variableOrProcedureName);
-          print((int*) " ignored");
-          println();
-        }
+            } else {
+              // global variable already declared or defined
+              printLineNumber((int*) "warning", currentLineNumber);
+              print((int*) "redefinition of global variable ");
+              print(variableOrProcedureName);
+              print((int*) " ignored");
+              println();
+            }
+
 
         getSymbol();
-          //struct structName * variable;
         if(symbol != SYM_SEMICOLON)
           syntaxErrorSymbol(SYM_SEMICOLON);
 
         getSymbol();
+      }
 
-      //struct structName {...};
       }else{
-
-        gr_struct(structName,0);
-
+        gr_struct(structName);
       }
 
     } else {
@@ -5421,7 +5352,7 @@ void gr_cstar() {
           dimSize = 0;
           arrayDeklaration = 1;
 
-          entry = createSymbolTableEntry(GLOBAL_TABLE, variableOrProcedureName, (int*)0, currentLineNumber, ARRAY, type, 0, 0);
+          entry = createSymbolTableEntry(GLOBAL_TABLE, variableOrProcedureName, currentLineNumber, ARRAY, type, 0, 0);
 
           while(symbol == SYM_LBRACKET){
             dimSize = gr_selector(0, entry);
@@ -5462,7 +5393,7 @@ void gr_cstar() {
           if (entry == (int*) 0) {
             allocatedMemory = allocatedMemory + WORDSIZE;
 
-            createSymbolTableEntry(GLOBAL_TABLE, variableOrProcedureName, (int*)0, currentLineNumber, VARIABLE, type, initialcurrentValue, -allocatedMemory);
+            createSymbolTableEntry(GLOBAL_TABLE, variableOrProcedureName, currentLineNumber, VARIABLE, type, initialcurrentValue, -allocatedMemory);
           } else {
             // global variable already declared or defined
             printLineNumber((int*) "warning", currentLineNumber);
@@ -5518,7 +5449,7 @@ void emitMainEntry() {
 
   mainJump = binaryLength;
 
-  createSymbolTableEntry(GLOBAL_TABLE, (int*) "main",(int*)0, 0, PROCEDURE, INT_T, 0, mainJump);
+  createSymbolTableEntry(GLOBAL_TABLE, (int*) "main", 0, PROCEDURE, INT_T, 0, mainJump);
 
   // jump and link to main, will return here only if there is no exit call
   emitJFormat(OP_JAL, 0);
@@ -6292,7 +6223,7 @@ void selfie_load() {
 // -----------------------------------------------------------------
 
 void emitExit() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "exit",(int*)0, 0, PROCEDURE, VOID_T, 0, binaryLength);
+  createSymbolTableEntry(LIBRARY_TABLE, (int*) "exit", 0, PROCEDURE, VOID_T, 0, binaryLength);
 
   // load argument for exit
   emitIFormat(OP_LW, REG_SP, REG_A0, 0); // exit code
@@ -6330,7 +6261,7 @@ void implementExit() {
 }
 
 void emitRead() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "read",(int*)0, 0, PROCEDURE, INT_T, 0, binaryLength);
+  createSymbolTableEntry(LIBRARY_TABLE, (int*) "read", 0, PROCEDURE, INT_T, 0, binaryLength);
 
   emitIFormat(OP_LW, REG_SP, REG_A2, 0); // size
   emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
@@ -6447,7 +6378,7 @@ void implementRead() {
 }
 
 void emitWrite() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "write",(int*)0, 0, PROCEDURE, INT_T, 0, binaryLength);
+  createSymbolTableEntry(LIBRARY_TABLE, (int*) "write", 0, PROCEDURE, INT_T, 0, binaryLength);
 
   emitIFormat(OP_LW, REG_SP, REG_A2, 0); // size
   emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
@@ -6563,7 +6494,7 @@ void implementWrite() {
 }
 
 void emitOpen() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "open",(int*)0, 0, PROCEDURE, INT_T, 0, binaryLength);
+  createSymbolTableEntry(LIBRARY_TABLE, (int*) "open", 0, PROCEDURE, INT_T, 0, binaryLength);
 
   emitIFormat(OP_LW, REG_SP, REG_A2, 0); // mode
   emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
@@ -6669,11 +6600,11 @@ void implementOpen() {
 }
 
 void emitMalloc() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "malloc", (int*)0, 0, PROCEDURE, INTSTAR_T, 0, binaryLength);
+  createSymbolTableEntry(LIBRARY_TABLE, (int*) "malloc", 0, PROCEDURE, INTSTAR_T, 0, binaryLength);
 
   // on boot levels higher than zero, zalloc falls back to malloc
   // assuming that page frames are zeroed on boot level zero
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "zalloc", (int*)0, 0, PROCEDURE, INTSTAR_T, 0, binaryLength);
+  createSymbolTableEntry(LIBRARY_TABLE, (int*) "zalloc", 0, PROCEDURE, INTSTAR_T, 0, binaryLength);
 
   emitIFormat(OP_LW, REG_SP, REG_A0, 0); // size
   emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
@@ -6723,7 +6654,7 @@ void implementMalloc() {
 // -----------------------------------------------------------------
 
 void emitID() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_ID",(int*)0,  0, PROCEDURE, INT_T, 0, binaryLength);
+  createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_ID", 0, PROCEDURE, INT_T, 0, binaryLength);
 
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_ID);
   emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
@@ -6748,7 +6679,7 @@ int selfie_ID() {
 }
 
 void emitCreate() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_create", (int*)0, 0, PROCEDURE, INT_T, 0, binaryLength);
+  createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_create", 0, PROCEDURE, INT_T, 0, binaryLength);
 
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_CREATE);
   emitRFormat(OP_SPECIAL, 0, 0, 0, 0, FCT_SYSCALL);
@@ -6799,7 +6730,7 @@ int selfie_create() {
 }
 
 void emitSwitch() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_switch",(int*)0,  0, PROCEDURE, INT_T, 0, binaryLength);
+  createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_switch", 0, PROCEDURE, INT_T, 0, binaryLength);
 
   emitIFormat(OP_LW, REG_SP, REG_A0, 0); // ID of context to which we switch
   emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
@@ -6888,7 +6819,7 @@ int selfie_switch(int toID) {
 }
 
 void emitStatus() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_status",(int*)0,  0, PROCEDURE, INT_T, 0, binaryLength);
+  createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_status", 0, PROCEDURE, INT_T, 0, binaryLength);
 
   emitIFormat(OP_ADDIU, REG_ZR, REG_V0, SYSCALL_STATUS);
   emitRFormat(OP_SPECIAL, 0, 0, 0,  0,FCT_SYSCALL);
@@ -6930,7 +6861,7 @@ int selfie_status() {
 }
 
 void emitDelete() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_delete",(int*)0,  0, PROCEDURE, VOID_T, 0, binaryLength);
+  createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_delete", 0, PROCEDURE, VOID_T, 0, binaryLength);
 
   emitIFormat(OP_LW, REG_SP, REG_A0, 0); // context ID
   emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
@@ -6981,7 +6912,7 @@ void selfie_delete(int ID) {
 }
 
 void emitMap() {
-  createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_map",(int*)0,  0, PROCEDURE, VOID_T, 0, binaryLength);
+  createSymbolTableEntry(LIBRARY_TABLE, (int*) "hypster_map", 0, PROCEDURE, VOID_T, 0, binaryLength);
 
   emitIFormat(OP_LW, REG_SP, REG_A2, 0); // frame
   emitIFormat(OP_ADDIU, REG_SP, REG_SP, WORDSIZE);
@@ -8136,7 +8067,7 @@ void fct_nor(){
   }
 
   if(interpret){
-    *(registers+rd) = ~(*(registers+rt) | *(registers+rs));
+    *(registers+rd) = ~(*(registers+rs) | *(registers+rt));
 
       pc = pc + WORDSIZE;
   }
@@ -8146,7 +8077,7 @@ void fct_nor(){
       print((int*) " -> ");
       printRegister(rd);
       print((int*) "=");
-      printBinary(*(registers+rd), 0);
+      printInteger(*(registers+rd));
     }
     println();
   }
@@ -8361,11 +8292,11 @@ void execute() {
 	//Assignment5
 	else if (function == FCT_AND)
       fct_and();
-    else if (function == FCT_OR)
+  else if (function == FCT_OR)
       fct_or();
-    else if (function == FCT_NOR)
+  else if (function == FCT_NOR)
       fct_nor();
-    else
+  else
       throwException(EXCEPTION_UNKNOWNINSTRUCTION, 0);
 
   }else if (opcode == OP_ADDIU)
@@ -9149,15 +9080,9 @@ void printUsage() {
 }
 
 
-int k = 10;
 
 int selfie() {
   int* option;
-
-
-  //k = symbol_table->line;
-
-
 
   print((int*)"This is Vivien Wallner's Selfie");
   println();
