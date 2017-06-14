@@ -126,6 +126,9 @@ void printBinary(int n, int a);
 
 int roundUp(int n, int m);
 
+//Assignment11
+int logical_and(int a, int b);
+int logical_or(int a, int b);
 int* zalloc(int size);
 
 // ------------------------ GLOBAL CONSTANTS -----------------------
@@ -160,6 +163,7 @@ int CHAR_NOT          = '~';
 //Assignment7
 int CHAR_LBRACKET     = '[';
 int CHAR_RBRACKET     = ']';
+
 
 int SIZEOFINT     = 4; // must be the same as WORDSIZE
 int SIZEOFINTSTAR = 4; // must be the same as WORDSIZE
@@ -297,48 +301,53 @@ void getSymbol();
 
 // ------------------------ GLOBAL CONSTANTS -----------------------
 
-int SYM_EOF          = -1; // end of file
-int SYM_IDENTIFIER   = 0;  // identifier
-int SYM_INTEGER      = 1;  // integer
-int SYM_VOID         = 2;  // VOID
-int SYM_INT          = 3;  // INT
-int SYM_SEMICOLON    = 4;  // ;
-int SYM_IF           = 5;  // IF
-int SYM_ELSE         = 6;  // ELSE
-int SYM_PLUS         = 7;  // +
-int SYM_MINUS        = 8;  // -
-int SYM_ASTERISK     = 9;  // *
-int SYM_DIV          = 10; // /
-int SYM_EQUALITY     = 11; // ==
-int SYM_ASSIGN       = 12; // =
-int SYM_LPARENTHESIS = 13; // (
-int SYM_RPARENTHESIS = 14; // )
-int SYM_LBRACE       = 15; // {
-int SYM_RBRACE       = 16; // }
-int SYM_WHILE        = 17; // WHILE
-int SYM_RETURN       = 18; // RETURN
-int SYM_COMMA        = 19; // ,
-int SYM_LT           = 20; // <
-int SYM_LEQ          = 21; // <=
-int SYM_GT           = 22; // >
-int SYM_GEQ          = 23; // >=
-int SYM_NOTEQ        = 24; // !=
-int SYM_MOD          = 25; // %
-int SYM_CHARACTER    = 26; // character
-int SYM_STRING       = 27; // string
+int SYM_EOF            = -1; // end of file
+int SYM_IDENTIFIER     = 0;  // identifier
+int SYM_INTEGER        = 1;  // integer
+int SYM_VOID           = 2;  // VOID
+int SYM_INT            = 3;  // INT
+int SYM_SEMICOLON      = 4;  // ;
+int SYM_IF             = 5;  // IF
+int SYM_ELSE           = 6;  // ELSE
+int SYM_PLUS           = 7;  // +
+int SYM_MINUS          = 8;  // -
+int SYM_ASTERISK       = 9;  // *
+int SYM_DIV            = 10; // /
+int SYM_EQUALITY       = 11; // ==
+int SYM_ASSIGN         = 12; // =
+int SYM_LPARENTHESIS   = 13; // (
+int SYM_RPARENTHESIS   = 14; // )
+int SYM_LBRACE         = 15; // {
+int SYM_RBRACE         = 16; // }
+int SYM_WHILE          = 17; // WHILE
+int SYM_RETURN         = 18; // RETURN
+int SYM_COMMA          = 19; // ,
+int SYM_LT             = 20; // <
+int SYM_LEQ            = 21; // <=
+int SYM_GT             = 22; // >
+int SYM_GEQ            = 23; // >=
+int SYM_NOTEQ          = 24; // !=
+int SYM_MOD            = 25; // %
+int SYM_CHARACTER      = 26; // character
+int SYM_STRING         = 27; // string
 //Assignment4
-int SYM_LEFTSHIFT    = 28; // <<
-int SYM_RIGHTSHIFT   = 29; // >>
+int SYM_LEFTSHIFT      = 28; // <<
+int SYM_RIGHTSHIFT     = 29; // >>
 //Assignment5
-int SYM_BITWISE_AND  = 30; //"&"
-int SYM_BITWISE_OR   = 31; //"|"
-int SYM_BITWISE_NOT  = 32; //"~"
+int SYM_BITWISE_AND    = 30; //"&"
+int SYM_BITWISE_OR     = 31; //"|"
+int SYM_BITWISE_NOT    = 32; //"~"
 //Assignment7
-int SYM_LBRACKET     = 33; //"["
-int SYM_RBRACKET     = 34; //"]"
+int SYM_LBRACKET       = 33; //"["
+int SYM_RBRACKET       = 34; //"]"
 //Assignment8
-int SYM_STRUCT       = 35; //"STRUCT"
-int SYM_STRUCT_POINTER = 36;//"->"
+int SYM_STRUCT         = 35; //"STRUCT"
+//Assignment9
+int SYM_STRUCT_POINTER = 36; //"->"
+//Assignment11
+int SYM_LOGICAL_AND    = 37; //"&&"
+int SYM_LOGICAL_OR     = 38; //"||"
+int SYM_LOGICAL_NOT    = 39; //"!"
 
 
 int* SYMBOLS; // strings representing symbols
@@ -376,51 +385,56 @@ int  sourceFD   = 0;        // file descriptor of open source file
 // ------------------------- INITIALIZATION ------------------------
 
 void initScanner () {
-  //Assignment 4 5 7 8
-  SYMBOLS = malloc(37 * SIZEOFINTSTAR);
+  //Assignment 4 5 7 8 9 11
+  SYMBOLS = malloc(40 * SIZEOFINTSTAR);
 
-  *(SYMBOLS + SYM_IDENTIFIER)   = (int) "identifier";
-  *(SYMBOLS + SYM_INTEGER)      = (int) "integer";
-  *(SYMBOLS + SYM_VOID)         = (int) "void";
-  *(SYMBOLS + SYM_INT)          = (int) "int";
-  *(SYMBOLS + SYM_SEMICOLON)    = (int) ";";
-  *(SYMBOLS + SYM_IF)           = (int) "if";
-  *(SYMBOLS + SYM_ELSE)         = (int) "else";
-  *(SYMBOLS + SYM_PLUS)         = (int) "+";
-  *(SYMBOLS + SYM_MINUS)        = (int) "-";
-  *(SYMBOLS + SYM_ASTERISK)     = (int) "*";
-  *(SYMBOLS + SYM_DIV)          = (int) "/";
-  *(SYMBOLS + SYM_EQUALITY)     = (int) "==";
-  *(SYMBOLS + SYM_ASSIGN)       = (int) "=";
-  *(SYMBOLS + SYM_LPARENTHESIS) = (int) "(";
-  *(SYMBOLS + SYM_RPARENTHESIS) = (int) ")";
-  *(SYMBOLS + SYM_LBRACE)       = (int) "{";
-  *(SYMBOLS + SYM_RBRACE)       = (int) "}";
-  *(SYMBOLS + SYM_WHILE)        = (int) "while";
-  *(SYMBOLS + SYM_RETURN)       = (int) "return";
-  *(SYMBOLS + SYM_COMMA)        = (int) ",";
-  *(SYMBOLS + SYM_LT)           = (int) "<";
-  *(SYMBOLS + SYM_LEQ)          = (int) "<=";
-  *(SYMBOLS + SYM_GT)           = (int) ">";
-  *(SYMBOLS + SYM_GEQ)          = (int) ">=";
-  *(SYMBOLS + SYM_NOTEQ)        = (int) "!=";
-  *(SYMBOLS + SYM_MOD)          = (int) "%";
-  *(SYMBOLS + SYM_CHARACTER)    = (int) "character";
-  *(SYMBOLS + SYM_STRING)       = (int) "string";
+  *(SYMBOLS + SYM_IDENTIFIER)     = (int) "identifier";
+  *(SYMBOLS + SYM_INTEGER)        = (int) "integer";
+  *(SYMBOLS + SYM_VOID)           = (int) "void";
+  *(SYMBOLS + SYM_INT)            = (int) "int";
+  *(SYMBOLS + SYM_SEMICOLON)      = (int) ";";
+  *(SYMBOLS + SYM_IF)             = (int) "if";
+  *(SYMBOLS + SYM_ELSE)           = (int) "else";
+  *(SYMBOLS + SYM_PLUS)           = (int) "+";
+  *(SYMBOLS + SYM_MINUS)          = (int) "-";
+  *(SYMBOLS + SYM_ASTERISK)       = (int) "*";
+  *(SYMBOLS + SYM_DIV)            = (int) "/";
+  *(SYMBOLS + SYM_EQUALITY)       = (int) "==";
+  *(SYMBOLS + SYM_ASSIGN)         = (int) "=";
+  *(SYMBOLS + SYM_LPARENTHESIS)   = (int) "(";
+  *(SYMBOLS + SYM_RPARENTHESIS)   = (int) ")";
+  *(SYMBOLS + SYM_LBRACE)         = (int) "{";
+  *(SYMBOLS + SYM_RBRACE)         = (int) "}";
+  *(SYMBOLS + SYM_WHILE)          = (int) "while";
+  *(SYMBOLS + SYM_RETURN)         = (int) "return";
+  *(SYMBOLS + SYM_COMMA)          = (int) ",";
+  *(SYMBOLS + SYM_LT)             = (int) "<";
+  *(SYMBOLS + SYM_LEQ)            = (int) "<=";
+  *(SYMBOLS + SYM_GT)             = (int) ">";
+  *(SYMBOLS + SYM_GEQ)            = (int) ">=";
+  *(SYMBOLS + SYM_NOTEQ)          = (int) "!=";
+  *(SYMBOLS + SYM_MOD)            = (int) "%";
+  *(SYMBOLS + SYM_CHARACTER)      = (int) "character";
+  *(SYMBOLS + SYM_STRING)         = (int) "string";
    //Assignment4
-  *(SYMBOLS + SYM_LEFTSHIFT)    = (int) "<<";
-  *(SYMBOLS + SYM_RIGHTSHIFT)   = (int) ">>";
+  *(SYMBOLS + SYM_LEFTSHIFT)      = (int) "<<";
+  *(SYMBOLS + SYM_RIGHTSHIFT)     = (int) ">>";
   //Assignment5
-  *(SYMBOLS + SYM_BITWISE_AND)  = (int) "&";
-  *(SYMBOLS + SYM_BITWISE_OR)   = (int) "|";
-  *(SYMBOLS + SYM_BITWISE_NOT)  = (int) "~";
+  *(SYMBOLS + SYM_BITWISE_AND)    = (int) "&";
+  *(SYMBOLS + SYM_BITWISE_OR)     = (int) "|";
+  *(SYMBOLS + SYM_BITWISE_NOT)    = (int) "~";
   //Assignment7
-  *(SYMBOLS + SYM_LBRACKET)     = (int) "[";
-  *(SYMBOLS + SYM_RBRACKET)     = (int) "]";
+  *(SYMBOLS + SYM_LBRACKET)       = (int) "[";
+  *(SYMBOLS + SYM_RBRACKET)       = (int) "]";
   //Assignment8
-  *(SYMBOLS + SYM_STRUCT)      = (int) "struct";
-  *(SYMBOLS + SYM_STRUCT_POINTER)      = (int) "->";
-
+  *(SYMBOLS + SYM_STRUCT)         = (int) "struct";
+  //Assignment9
+  *(SYMBOLS + SYM_STRUCT_POINTER) = (int) "->";
+  //Assignment11
+  *(SYMBOLS + SYM_LOGICAL_AND)    = (int) "&&";
+  *(SYMBOLS + SYM_LOGICAL_OR)     = (int) "||";
+  *(SYMBOLS + SYM_LOGICAL_NOT)    = (int) "!";
+  
   character = CHAR_EOF;
   symbol    = SYM_EOF;
 }
@@ -472,27 +486,27 @@ struct symbol_table_t {
   int totalSize;                  //9
 };
 
-int* getNextEntry(int* entry)  { return (int*) *entry; }
-int* getString(int* entry)     { return (int*) *(entry + 1); }
-int  getLineNumber(int* entry) { return        *(entry + 2); }
-int  getClass(int* entry)      { return        *(entry + 3); }
-int* getTypeStruct(int* entry) { return (int*) *(entry + 4); }
-int  getcurrentValue(int* entry)      { return        *(entry + 5); }
-int  getAddress(int* entry)    { return        *(entry + 6); }
-int  getScope(int* entry)      { return        *(entry + 7); }
-int  getDimNumb(int* entry)  { return        *(entry + 8); }
-int  getTotalSize(int* entry)  { return        *(entry + 9); }
+int* getNextEntry(int* entry)   { return (int*) *entry;       }
+int* getString(int* entry)      { return (int*) *(entry + 1); }
+int  getLineNumber(int* entry)  { return        *(entry + 2); }
+int  getClass(int* entry)       { return        *(entry + 3); }
+int* getTypeStruct(int* entry)  { return (int*) *(entry + 4); }
+int  getcurrentValue(int* entry){ return        *(entry + 5); }
+int  getAddress(int* entry)     { return        *(entry + 6); }
+int  getScope(int* entry)       { return        *(entry + 7); }
+int  getDimNumb(int* entry)     { return        *(entry + 8); }
+int  getTotalSize(int* entry)   { return        *(entry + 9); }
 
-void setNextEntry(int* entry, int* next)    { *entry       = (int) next; }
-void setString(int* entry, int* identifier) { *(entry + 1) = (int) identifier; }
-void setLineNumber(int* entry, int line)    { *(entry + 2) = line; }
-void setClass(int* entry, int class)        { *(entry + 3) = class; }
-void setTypeStruct(int* entry, int type)    { *(entry + 4) = type; }
-void setcurrentValue(int* entry, int currentValue)        { *(entry + 5) = currentValue; }
-void setAddress(int* entry, int address)    { *(entry + 6) = address; }
-void setScope(int* entry, int scope)        { *(entry + 7) = scope; }
-void setDimNumb(int* entry, int dim)      { *(entry + 8)  = dim; }
-void setTotalSize(int* entry, int size)     { *(entry + 9) = size; }
+void setNextEntry(int* entry, int* next)           { *entry       = (int) next;       }
+void setString(int* entry, int* identifier)        { *(entry + 1) = (int) identifier; }
+void setLineNumber(int* entry, int line)           { *(entry + 2) = line;             }
+void setClass(int* entry, int class)               { *(entry + 3) = class;            }
+void setTypeStruct(int* entry, int type)           { *(entry + 4) = type;             }
+void setcurrentValue(int* entry, int currentValue) { *(entry + 5) = currentValue;     }
+void setAddress(int* entry, int address)           { *(entry + 6) = address;          }
+void setScope(int* entry, int scope)               { *(entry + 7) = scope;            }
+void setDimNumb(int* entry, int dim)               { *(entry + 8)  = dim;             }
+void setTotalSize(int* entry, int size)            { *(entry + 9) = size;             }
 
 
 struct type_t {
@@ -503,16 +517,16 @@ struct type_t {
   struct field_t * fields;
 };
 
-int  getType(int* entry)        { return        *entry; }
-int* getDefinition(int* entry)   { return (int*) *(entry + 1); }
+int  getType(int* entry)        { return        *entry;       }
+int* getDefinition(int* entry)  { return (int*) *(entry + 1); }
 int* getStructName(int* entry)  { return (int*) *(entry + 2); }
 int* getDimensions(int* entry)  { return (int*) *(entry + 3); }
 int* getFields(int* entry)      { return (int*) *(entry + 4); }
 
-void setType(int* entry, int type)           { *entry       = type; }
-void setDefinition(int* entry, int* def)      { *(entry + 1) = (int) def; }
-void setStructName(int* entry, int* name)    { *(entry + 2) = (int) name; }
-void setDimensions(int* entry, int* dim)     { *(entry + 3) = (int) dim; }
+void setType(int* entry, int type)           { *entry       = type;         }
+void setDefinition(int* entry, int* def)     { *(entry + 1) = (int) def;    }
+void setStructName(int* entry, int* name)    { *(entry + 2) = (int) name;   }
+void setDimensions(int* entry, int* dim)     { *(entry + 3) = (int) dim;    }
 void setFields(int* entry, int* fields)      { *(entry + 4) = (int) fields; }
 
 struct dimension_t {
@@ -536,11 +550,11 @@ int  getFieldOffset(int* entry) { return        *(entry + 3); }
 
 void setFieldName(int* entry, int* name)   { *(entry + 1) = (int) name; }
 void setFieldType(int* entry, int* type)   { *(entry + 2) = (int) type; }
-void setFieldOffset(int* entry, int offset){ *(entry + 3) =       offset; }
+void setFieldOffset(int* entry, int offset){ *(entry + 3) =     offset; }
 
 void resetSymbolTables();
 
-//Assignment7
+//Assignment7 int*
 int* createSymbolTableEntry(int which, int* string, int line, int class, int type, int currentValue, int address);
 
 int* searchSymbolTable(int* entry, int* string, int class);
@@ -621,7 +635,8 @@ void addDimension(int* entry, int size){
 // 2. word: pointer to element name
 // 3. word: type
 // 4. word: (optional) pointer to struct definition
-int* addStructElement(int* entry, int* name, int* typeName,int type, int* def, int offset){
+//Assignment9 typeName, return int*
+int* addStructElement(int* entry, int* name, int* typeName, int* type, int* def, int offset){
   int* new;
   int* ptr;
 
@@ -634,17 +649,15 @@ int* addStructElement(int* entry, int* name, int* typeName,int type, int* def, i
   setNextEntry(new, ptr);
   setFieldName(new, name);
 
-  ptr = malloc(4 * SIZEOFINTSTAR + SIZEOFINT);//pointer to type
+  ptr = malloc(4 * SIZEOFINTSTAR + SIZEOFINT); //pointer to type
   setFieldType(new, ptr);
+  //Assignment9
   setType(ptr,type);
   setFieldOffset(new, offset);
+  setFields(entry, new); //typeStruct gets fields + newField
 
-
-  setFields(entry, new);//typeStruct gets  fields+newField
-
-  setDefinition(ptr, def);//type gets a definition if available
-  setStructName(ptr, typeName);//type gets a struct type name if available
-
+  setDefinition(ptr, def); //type gets definition if available 
+  setStructName(ptr, type); //type gets a struct tpe name if available
   return new;
 }
 
@@ -660,18 +673,18 @@ int* searchField(int* entry, int* string) {
   return (int*) 0;
 }
 
-int* searchType(int* entry, int* string) {
-  while (entry != (int*) 0) {
-    if (stringCompare(string, getType(entry)))
-        return entry;
+//Assignment9 
+//int* searchType(int* entry, int* string) {
+  //while (entry != (int*) 0) {
+    //if (stringCompare(string, getType(entry)))
+      //  return entry;
 
     // keep looking
-    entry = getNextEntry(entry);
-  }
+    //entry = getNextEntry(entry);
+  //}
 
-  return (int*) 0;
-}
-
+  //return (int*) 0;
+//}
 // ------------------------ GLOBAL CONSTANTS -----------------------
 
 // classes
@@ -770,7 +783,10 @@ int  gr_call(int* procedure);
 int  gr_factor();
 int  gr_term();
 int  gr_simpleExpression();
+//Assignment11: 2 new expression grammatics
 int  gr_expression();
+int  gr_logicalAndExpression();
+int  gr_bitwiseExpression();
 //Assignment5
 int  gr_comparisonExpression();
 void gr_while();
@@ -788,6 +804,7 @@ int gr_shiftExpression();
 int gr_selector(int selectorNum, int* entry);
 //Assignment8
 void gr_struct(int* structName);
+//Assignment9
 int gr_structAccess(int* structVariableName);
 
 // ------------------------ GLOBAL VARIABLES -----------------------
@@ -813,6 +830,8 @@ int numberOfIf          = 0;
 int numberOfReturn      = 0;
 //Assignment7
 int arrayDeklaration    = 0;
+//Assignment11
+int suppressCodegen     = 0;
 
 // ------------------------- INITIALIZATION ------------------------
 
@@ -1015,8 +1034,8 @@ int OP_ADDIU   = 0x9;//hexadezimal representation of 9
 int OP_LW      = 0x23;//hexadezimal representation of 35
 int OP_SW      = 0x2B;//hexadezimal representation of 43
 //Assignment5
-int OP_ANDI    = 0xC;//12
-int OP_ORI     = 0xD;//13
+int OP_ANDI    = 0b001100;//12
+int OP_ORI     = 0b001101;//13
 
 int* OPCODES; // strings representing MIPS opcodes
 
@@ -1036,9 +1055,9 @@ int FCT_SRL     = 0x2;
 int FCT_SLLV    = 0x4;
 int FCT_SRLV    = 0x6;
 //Assignment5
-int FCT_AND     = 0x24;//36
-int FCT_OR      = 0x25;//37
-int FCT_NOR     = 0x27;//39
+int FCT_AND     = 0b100100;//36
+int FCT_OR      = 0b100101;//37
+int FCT_NOR     = 0b100111;//39
 
 int* FUNCTIONS; // strings representing MIPS functions
 
@@ -1106,6 +1125,8 @@ void emitIFormat(int opcode, int rs, int rt, int immediate);
 void emitJFormat(int opcode, int instr_index);
 
 void fixup_relative(int fromAddress);
+//Assignment11
+void fixup_chain(int startAddress);
 void fixup_absolute(int fromAddress, int toAddress);
 void fixlink_absolute(int fromAddress, int toAddress);
 
@@ -2094,6 +2115,23 @@ int roundUp(int n, int m) {
     return n - n % m;
 }
 
+//Assignment11
+int logical_and(int a, int b) {
+  if (a) {
+    if(b)
+      return 1;
+    else return 0;
+  }else return 0;
+}
+
+int logical_or(int a, int b) {
+  if (a)  
+    return 1;
+  if (b)  
+    return 1;
+  else return 0;
+}
+
 int* zalloc(int size) {
   // this procedure is only executed at boot level zero
   // zalloc allocates size bytes rounded up to word size
@@ -2276,27 +2314,35 @@ int findNextCharacter() {
 
 int isCharacterLetter() {
   // ASCII codes for lower- and uppercase letters are in contiguous intervals
-  if (character >= 'a')
-    if (character <= 'z')
-      return 1;
-    else
-      return 0;
-  else if (character >= 'A')
-    if (character <= 'Z')
-      return 1;
-    else
-      return 0;
+  //if (character >= 'a')
+    //if (character <= 'z')
+      //return 1;
+    //else
+      //return 0;
+  //else if (character >= 'A')
+    //if (character <= 'Z')
+      //return 1;
+    //else
+      //return 0;
+
+  //Assignment11
+  if (character >= 'a' && character <= 'z' || character >= 'A' && character <= 'Z')
+    return 1;
+
   else
     return 0;
 }
 
 int isCharacterDigit() {
   // ASCII codes for digits are in a contiguous interval
-  if (character >= '0')
-    if (character <= '9')
-      return 1;
-    else
-      return 0;
+  //if (character >= '0')
+    //if (character <= '9')
+      //return 1;
+    //else
+      //return 0;
+  //Assignment11
+  if (character >= '0' && character <= '9')
+    return 1;
   else
     return 0;
 }
@@ -2315,22 +2361,26 @@ int isHexadecimalDigit(){
 }
 
 int isCharacterLetterOrDigitOrUnderscore() {
-  if (isCharacterLetter())
-    return 1;
-  else if (isCharacterDigit())
-    return 1;
-  else if (character == CHAR_UNDERSCORE)
+  //if (isCharacterLetter())
+    //return 1;
+  //else if (isCharacterDigit())
+    //return 1;
+  //else if (character == CHAR_UNDERSCORE)
+  //Assignment11
+  if (isCharacterLetter() || character >= '0' && character <= '9' || character == CHAR_UNDERSCORE)
     return 1;
   else
     return 0;
 }
 
 int isCharacterNotDoubleQuoteOrNewLineOrEOF() {
-  if (character == CHAR_DOUBLEQUOTE)
-    return 0;
-  else if (isCharacterNewLine())
-    return 0;
-  else if (character == CHAR_EOF)
+  //if (character == CHAR_DOUBLEQUOTE)
+    //return 0;
+  //else if (isCharacterNewLine())
+    //return 0;
+  //else if (character == CHAR_EOF)
+  //Assignment11
+  if (character == CHAR_DOUBLEQUOTE || character == CHAR_LF || character == CHAR_CR || character == CHAR_EOF)
     return 0;
   else
     return 1;
@@ -2562,7 +2612,8 @@ void getSymbol() {
         symbol = SYM_PLUS;
 
       } else if (character == CHAR_DASH) {
-         getCharacter();
+        getCharacter();
+	    //Assignment9	
         if(character == CHAR_GT){
           getCharacter();
           symbol = SYM_STRUCT_POINTER;
@@ -2656,12 +2707,12 @@ void getSymbol() {
       } else if (character == CHAR_EXCLAMATION) {
         getCharacter();
 
-        if (character == CHAR_EQUAL)
+        if (character == CHAR_EQUAL){
           getCharacter();
-        else
-          syntaxErrorCharacter(CHAR_EQUAL);
-
-        symbol = SYM_NOTEQ;
+          //Assignment11
+          symbol = SYM_NOTEQ; //!=
+        }else
+          symbol = SYM_LOGICAL_NOT; //!
 
       } else if (character == CHAR_PERCENTAGE) {
         getCharacter();
@@ -2670,17 +2721,25 @@ void getSymbol() {
 	//Assignment5
 	  } else if (character == CHAR_AND){
 		getCharacter();
-
-		symbol = SYM_BITWISE_AND;
+        //Assignment11
+        if(character == CHAR_AND){
+          getCharacter();
+          symbol = SYM_LOGICAL_AND;//&&
+        }else
+          symbol = SYM_BITWISE_AND;//&
+        
 	  } else if (character == CHAR_NOT){
 		getCharacter();
 
 		symbol = SYM_BITWISE_NOT;
 	  } else if (character == CHAR_OR){
 		getCharacter();
-
-		symbol = SYM_BITWISE_OR;
-
+        //Assignment11
+		if(character == CHAR_OR){
+          getCharacter();
+          symbol = SYM_LOGICAL_OR;// ||
+        }else
+          symbol = SYM_BITWISE_OR; //|
 
       } else {
         printLineNumber((int*) "error", lineNumber);
@@ -2866,8 +2925,12 @@ int isExpression() {
     return 1;
   else if (symbol == SYM_LPARENTHESIS)
     return 1;
+  //Assignment5
   else if (symbol == SYM_BITWISE_NOT)
      return 1;
+  //Assignment11
+  else if (symbol == SYM_LOGICAL_NOT)
+    return 1;
   else if (symbol == SYM_IDENTIFIER)
     return 1;
   else if (symbol == SYM_INTEGER)
@@ -2921,6 +2984,16 @@ int isAndOrOr(){
     return 0;
 }
 
+//Assignment11
+int isLogicalAndOrOr(){
+  if (symbol == SYM_LOGICAL_AND)
+    return 1;
+  else if (symbol == SYM_LOGICAL_OR)
+    return 1;
+  else
+    return 0;
+}
+
 int isComparison() {
   if (symbol == SYM_EQUALITY)
     return 1;
@@ -2952,7 +3025,11 @@ int lookForFactor() {
     return 0;
   else if (symbol == SYM_IDENTIFIER)
     return 0;
+  //Assignment5
   else if (symbol == SYM_BITWISE_NOT)
+    return 0;
+ //Assignment11
+  else if (symbol == SYM_LOGICAL_NOT)
     return 0;
   else if (symbol == SYM_INTEGER)
     return 0;
@@ -3009,20 +3086,24 @@ void talloc() {
 }
 
 int currentTemporary() {
+  //Assignment11
+  if (suppressCodegen) return 0;
   if (allocatedTemporaries > 0)
     return allocatedTemporaries + REG_A3;
   else {
-    syntaxErrorMessage((int*) "illegal register access");
+    syntaxErrorMessage((int*) "illegal register access current");
 
     exit(-1);
   }
 }
 
 int previousTemporary() {
+  //Assignment11
+  if (suppressCodegen) return 0;
   if (allocatedTemporaries > 1)
     return currentTemporary() - 1;
   else {
-    syntaxErrorMessage((int*) "illegal register access");
+    syntaxErrorMessage((int*) "illegal register access previous");
 
     exit(-1);
   }
@@ -3030,6 +3111,7 @@ int previousTemporary() {
 
 
 int nextTemporary() {
+  if(suppressCodegen) return 0;
   if (allocatedTemporaries < REG_T7 - REG_A3)
     return currentTemporary() + 1;
   else {
@@ -3050,6 +3132,8 @@ void tfree(int numberOfTemporaries) {
 }
 
 void save_temporaries() {
+  //Assignment11
+  if(suppressCodegen) return;
   while (allocatedTemporaries > 0) {
     // push temporary onto stack
     emitIFormat(OP_ADDIU, REG_SP, REG_SP, -WORDSIZE);
@@ -3060,6 +3144,8 @@ void save_temporaries() {
 }
 
 void restore_temporaries(int numberOfTemporaries) {
+  //Assignment11
+  if (suppressCodegen) return;
   while (allocatedTemporaries < numberOfTemporaries) {
     talloc();
 
@@ -3139,6 +3225,7 @@ int load_variable(int* variable) {
   int* entry;
 
   entry = getVariable(variable);
+
 
   talloc();
 
@@ -3226,6 +3313,8 @@ int help_call_codegen(int* entry, int* procedure) {
   if (entry == (int*) 0) {
     // procedure never called nor declared nor defined
 
+    //Assignment11
+    if (suppressCodegen) return INT_T;  
     // default return type is "int"
     type = INT_T;
 
@@ -3236,6 +3325,8 @@ int help_call_codegen(int* entry, int* procedure) {
   } else {
     type = getVariableType(entry);
 
+    //Assignment11
+    if(suppressCodegen) return type;
     if (getAddress(entry) == 0) {
       // procedure declared but never called nor defined
       setAddress(entry, binaryLength);
@@ -3312,6 +3403,7 @@ int gr_call(int* procedure) {
   // assert: allocatedTemporaries == 0
 
   if (isExpression()) {
+    //Assignment 11 expression instead of bitwexpr
     gr_expression();
 
     // TODO: check if types/number of parameters is correct
@@ -3326,6 +3418,7 @@ int gr_call(int* procedure) {
     while (symbol == SYM_COMMA) {
       getSymbol();
 
+      //Assignment11 expression 
       gr_expression();
 
 
@@ -3379,13 +3472,21 @@ int gr_factor() {
 
 
   int*stEntry;
+  //Assignment9
   int* fields;
   int* fieldTypePointer;
   int fieldType;
   int* fieldsEntry;
   // assert: n = allocatedTemporaries
+  //Assignment11 
+  int hasNotLogical;
+  int constant;
+  int valueFound;
 
   hasCast = 0;
+  //Assignment11
+  valueFound = 0;
+  hasNotLogical = 0;
 
   type = INT_T;
 
@@ -3413,7 +3514,8 @@ int gr_factor() {
       else
         syntaxErrorSymbol(SYM_RPARENTHESIS);
         //cast: "(" struct structTypeName * "}"
-    }else if(symbol == SYM_STRUCT){
+    //Assignment8
+	}else if(symbol == SYM_STRUCT){
       getSymbol();
       hasCast = 1;
       cast = gr_type();
@@ -3425,6 +3527,7 @@ int gr_factor() {
 
     // not a cast: "(" expression ")"
     } else {
+      //Assignment 11 expression
       type = gr_expression();
 
       if (symbol == SYM_RPARENTHESIS)
@@ -3436,7 +3539,12 @@ int gr_factor() {
 
       return type;
     }
+  //Assignment11
+  }else if( symbol == SYM_LOGICAL_NOT){
+    hasNotLogical = 1;
+    getSymbol();
   }
+  
 
   // dereference?
   if (symbol == SYM_ASTERISK) {
@@ -3445,9 +3553,11 @@ int gr_factor() {
     // ["*"] identifier
     if (symbol == SYM_IDENTIFIER) {
       getSymbol();
+	  //Assignment7
       //["*"] identifier [ selector ]
       if(symbol == SYM_LBRACKET){
         entry = global_symbol_table;
+
         entry = searchSymbolTable(entry, identifier, ARRAY);
 
         if((int) entry == 0){
@@ -3455,6 +3565,7 @@ int gr_factor() {
           print(variableOrProcedureName);
           print((int*) " undeclared");
           println();
+
           exit(-1);
         }
 
@@ -3467,7 +3578,9 @@ int gr_factor() {
         selectorNum = 1;
         while(symbol == SYM_LBRACKET){
           getSymbol();
+
           gr_selector(selectorNum, entry);
+
           selectorNum = selectorNum +1;
         }
 
@@ -3492,7 +3605,8 @@ int gr_factor() {
     // * "(" expression ")"
     } else if (symbol == SYM_LPARENTHESIS) {
       getSymbol();
-
+      
+      //Assignment11 expression
       type = gr_expression();
 
 	  if(currentConstant){
@@ -3515,13 +3629,14 @@ int gr_factor() {
 
     type = INT_T;
 
+  //Assignment5
   }else if (symbol == SYM_BITWISE_NOT) {
     getSymbol();
 
     // ["~"] identifier
     if (symbol == SYM_IDENTIFIER) {
+      //Assignment9
       variableOrProcedureName = identifier;
-
       //Assignment7
       getSymbol();
       //["~"] identifier [ selector ]
@@ -3562,7 +3677,9 @@ int gr_factor() {
           emitIFormat(OP_LW, currentTemporary(), currentTemporary(), 0);
         }
 
-        //["~"] identifier "->"
+
+      //["~"] identifier "->"
+      //Assignment9
       }else if(symbol == SYM_STRUCT_POINTER){
         getSymbol();
         gr_structAccess(variableOrProcedureName);
@@ -3571,35 +3688,46 @@ int gr_factor() {
         type = load_variable(identifier);
 
 
+
     // ["~"] "(" expression ")"
     } else if (symbol == SYM_LPARENTHESIS) {
       getSymbol();
-      type = gr_expression();
-      if(currentConstant){
-        load_integer(currentValue);
-        currentConstant=0;
-      }
-        if (symbol == SYM_RPARENTHESIS)
-          getSymbol();
-        else
-          syntaxErrorSymbol(SYM_RPARENTHESIS);
 
-      // ["~"] integer
-    } else if (symbol == SYM_INTEGER) {
-        load_integer(literal);
+      //Assignment11
+      type = gr_expression();
+
+      //Assignment6
+      if(currentConstant){
+        //load_integer(currentValue);
+        currentConstant=0;
+        //Assignment11
+        constant = currentValue;
+        valueFound = 1;
+      }
+      if (symbol == SYM_RPARENTHESIS)
         getSymbol();
-        type = INT_T;
+      else
+        syntaxErrorSymbol(SYM_RPARENTHESIS);
+    
+    // ["~"] integer
+    //Assignment9
+    } else if (symbol == SYM_INTEGER) {
+      load_integer(literal);
+      getSymbol();
+      type = INT_T;
 
     } else
       syntaxErrorUnexpected();
 
-      //nor
-      emitRFormat(OP_SPECIAL, currentTemporary(), REG_ZR, currentTemporary(), 0, FCT_NOR);
+    // nor
+    emitRFormat(OP_SPECIAL, currentTemporary(), 0 , currentTemporary(), 0, FCT_NOR);
 
   // identifier?
   } else if (symbol == SYM_IDENTIFIER) {
     variableOrProcedureName = identifier;
+
     getSymbol();
+
     if (symbol == SYM_LPARENTHESIS) {
       getSymbol();
 
@@ -3615,12 +3743,13 @@ int gr_factor() {
       // for missing return expressions
       emitIFormat(OP_ADDIU, REG_ZR, REG_V0, 0);
 
-    //identifier  "->"
-    }else if(symbol == SYM_STRUCT_POINTER){
+  //Assignment9
+  //identifier  "->"
+  }else if(symbol == SYM_STRUCT_POINTER){
+
       getSymbol();
       gr_structAccess(variableOrProcedureName);
       emitIFormat(OP_LW, currentTemporary(), currentTemporary(), 0);
-
 
 	//identifier "["
 	}else if(symbol == SYM_LBRACKET){
@@ -3666,9 +3795,12 @@ int gr_factor() {
       type = load_variable(variableOrProcedureName);
 
   // integer?
+  //Assignment6
   } else if (symbol == SYM_INTEGER) {
-	currentValue = literal;
+	//Assignment6 11 costant instead of currentValue
+	constant = literal;
 	currentConstant = 1;
+    valueFound = 1;
 
     getSymbol();
 
@@ -3676,9 +3808,13 @@ int gr_factor() {
 
   // character?
   } else if (symbol == SYM_CHARACTER) {
-    talloc();
+    //talloc();
+    
+    //Assignment11
+    constant = literal;
+    valueFound = 1;
 
-    emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), literal);
+    //emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), literal);
 
     getSymbol();
 
@@ -3695,8 +3831,10 @@ int gr_factor() {
   //  "(" expression ")"
   } else if (symbol == SYM_LPARENTHESIS) {
     getSymbol();
-
+ 
+    //Assignment 11 expression
     type = gr_expression();
+
 
     if (symbol == SYM_RPARENTHESIS)
       getSymbol();
@@ -3707,6 +3845,27 @@ int gr_factor() {
 
   // assert: allocatedTemporaries == n + 1
 
+  //Assignment11 
+  if(hasNotLogical){
+    if(valueFound){
+      printInteger(constant);
+      println();
+      currentValue = !constant;
+      printInteger(currentValue);
+      println();
+      currentConstant = 1;
+    }else{
+      emitIFormat(OP_BNE, REG_ZR, currentTemporary(), 4);
+      emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 1);
+      emitIFormat(OP_BNE, REG_ZR, currentTemporary(), 2);
+      emitRFormat(OP_SPECIAL, REG_ZR, REG_ZR, currentTemporary(), 0,FCT_ADDU);
+    }
+  }else{
+    if(valueFound){
+      currentValue = constant;
+      currentConstant = 1;
+    }
+  }
   if (hasCast)
     return cast;
   else
@@ -4109,8 +4268,223 @@ int gr_simpleExpression() {
   return ltype;
 }
 
+//Assignment11
+//expression  = boolExpression {[ "||" boolExpression ]} .
+int gr_expression(){
 
-int gr_expression() {
+  int ltype;
+  //int operatorSymbol;
+  //int rtype;
+
+  //Assignment11
+  int singleOperand;
+  int constant;
+  int constantFound;
+  int fixupChainStart; //last member in the fixup chain
+  int suppressionStart; //indicates whether the codegen suppression was started here or not....the suppression must be stopped in the same nonterminal
+
+  singleOperand = 1;
+  constantFound = 0;
+  fixupChainStart = 0;
+  suppressionStart = 0;
+
+  ltype = gr_logicalAndExpression();
+ 
+  //Assigment11
+
+  if(currentConstant){
+    constant = currentValue;
+    currentConstant = 0;
+    constantFound = 1;
+  }
+
+  while(symbol == SYM_LOGICAL_OR){
+    //indicates that an ||-expression is present
+    singleOperand = 0;
+
+    if(constantFound){
+      //when a constant unequal 0 is found, continue parsing the rest of the expression without codegeneration
+      //constant 0 will be ignored
+      if(constant != 0){
+        //mark start of codegen suppression
+        if(!suppressCodegen) suppressionStart = 1;
+        suppressCodegen = 1;
+      }else{
+        constantFound = 0;
+      }
+    }else{
+      //no constant unequal 0 found, so codegen
+      //new start for fixup chain....only for codegen
+      if(logical_and(fixupChainStart == 0, !suppressCodegen)) fixupChainStart = binaryLength;
+
+      //fixup chain with offset in bytes
+      emitIFormat(OP_BNE, REG_ZR, currentTemporary(), binaryLength - fixupChainStart);
+      tfree(1);
+
+      if(!suppressCodegen) fixupChainStart = binaryLength - 2 * WORDSIZE;
+    }
+
+    getSymbol();
+
+    gr_logicalAndExpression();
+    if(currentConstant){
+      //do not override constant unequal 0
+      if(!(logical_and(constantFound, constant) != 0)){
+        constant = currentValue;
+        constantFound = 1;
+      }
+      currentConstant = 0;
+    }
+  }
+
+  if(singleOperand){
+    //no ||-expression
+    if(constantFound){
+      currentValue = constant;
+      currentConstant = 1;
+    }
+    return ltype;
+  }else{
+    if(constantFound){
+      //if constant unequal 0 found, pass it to caller
+      if(constant != 0){
+        currentConstant = 1;
+        currentValue = 1;
+        //fixup to next instruction after ||-expression
+        if(fixupChainStart != 0) fixup_chain(fixupChainStart);
+        //possible end of codegen suppression
+        if(suppressionStart) suppressCodegen = 0;
+        return INT_T;
+      }
+
+      talloc();
+    }else{
+      //emit last non-constant operands code
+      if(logical_and(fixupChainStart == 0, !suppressCodegen)) fixupChainStart = binaryLength;
+      emitIFormat(OP_BNE, REG_ZR, currentTemporary(), binaryLength - fixupChainStart);
+      if(!suppressCodegen) fixupChainStart = binaryLength - 2 * WORDSIZE;
+    }
+    //emit endcode of ||-expression
+    emitRFormat(OP_SPECIAL, REG_ZR, REG_ZR, currentTemporary(),0, FCT_ADDU);
+    emitIFormat(OP_BEQ, REG_ZR, REG_ZR, 2);
+
+    //fixup to logical true
+    if(fixupChainStart != 0) fixup_chain(fixupChainStart);
+    emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 1);
+    //possible end of codegen suppression
+    if(suppressionStart) suppressCodegen = 0;
+    return INT_T;
+  }
+
+}
+
+
+//Assignment11
+//boolExpression    = bitwiseExpression {[ "&&" bitwiseExpression ]} .
+int  gr_logicalAndExpression(){
+  int ltype;
+  //int operatorSymbol;
+  //int rtype;
+ 
+  //Assignment11
+  int singleOperand;
+  int constant;
+  int constantFound;
+  int fixupChainStart; //last member in the fixup chain
+  int suppressionStart; //indicates whether the codegen suppression was started here or not....the suppression must be stopped in the same nonterminal
+
+  singleOperand = 1;
+  constantFound = 0;
+  fixupChainStart = 0;
+  suppressionStart = 0;
+
+  ltype = gr_bitwiseExpression();
+
+  //Assignment11
+  while(symbol == SYM_LOGICAL_AND){
+    //indicates that an &&-expression is present
+    singleOperand = 0;
+
+    if(constantFound){
+      //when a constant 0 is found, continue parsing the rest of the expression without codegeneration
+      //constants unequal 0 will be ignored
+      if(constant == 0){
+        //mark start of codegen suppression
+        if(!suppressCodegen) suppressionStart = 1;
+        suppressCodegen = 1;
+      }else{
+        constantFound = 0;
+      }
+    }else{
+      //no constant 0 found, so codegen
+      //new start for fixup chain....only for codegen
+      if(logical_and(fixupChainStart == 0, !suppressCodegen)) fixupChainStart = binaryLength;
+
+      //fixup chain with offset in bytes
+      emitIFormat(OP_BEQ, REG_ZR, currentTemporary(), binaryLength - fixupChainStart);
+      tfree(1);
+      fixupChainStart = binaryLength;
+     
+      if(!suppressCodegen) fixupChainStart = binaryLength - 2 * WORDSIZE;
+    }
+
+
+    getSymbol();
+
+    gr_bitwiseExpression();
+
+    if(currentConstant){
+      //do not override constant 0
+      if(!(logical_and(constantFound, constant) == 0)){
+        constant = currentValue;
+        constantFound = 1;
+      }
+      currentConstant = 0;
+    }
+  }
+
+  if(singleOperand){
+    //no &&-expression
+    if(constantFound){
+      currentValue = constant;
+      currentConstant = 1;
+    }
+    return ltype;
+  }else{
+    if(constantFound){
+      //if constant 0 found, pass it to caller
+      if(constant == 0){
+        currentConstant = 1;
+        currentValue = 0;
+        //fixup to next instruction after &&-expression
+        if(fixupChainStart != 0) fixup_chain(fixupChainStart);
+        //possible end of codegen suppression
+        if(suppressionStart) suppressCodegen = 0;
+        return INT_T;
+      }
+      talloc();
+    }else{
+      //emit last non-constant operands code
+      if(fixupChainStart == 0 && !suppressCodegen) fixupChainStart = binaryLength;
+      emitIFormat(OP_BEQ, REG_ZR, currentTemporary(), binaryLength - fixupChainStart);
+      if(!suppressCodegen) fixupChainStart = binaryLength - 2 * WORDSIZE;
+    }
+    //emit endcode of &&-expression
+    emitIFormat(OP_ADDIU, REG_ZR, currentTemporary(), 1);
+    emitIFormat(OP_BEQ, REG_ZR, REG_ZR, 2);
+    //fixup to logical true
+    if(fixupChainStart != 0) fixup_chain(fixupChainStart);
+    emitRFormat(OP_SPECIAL, REG_ZR, REG_ZR, currentTemporary(),0, FCT_ADDU);
+    //possible end of codegen suppression
+    if(suppressionStart) suppressCodegen = 0;
+    return INT_T;
+  }
+}
+	
+
+//Assignment11 gr_expression before
+//bitwiseExpression   = comparisonExpression [ ( "&" | "|" ) comparisonExpression ] .
+int gr_bitwiseExpression() {
   int ltype;
   int operatorSymbol;
   int rtype;
@@ -4265,6 +4639,7 @@ void gr_while() {
     if (symbol == SYM_LPARENTHESIS) {
       getSymbol();
 
+      //Assignment11 expression instead of bitwExpr
       gr_expression();
 
 
@@ -4329,6 +4704,7 @@ void gr_if() {
     if (symbol == SYM_LPARENTHESIS) {
       getSymbol();
 
+      //Assignment11 expression
       gr_expression();
 
 
@@ -4420,6 +4796,7 @@ void gr_return() {
 
   // optional: expression
   if (symbol != SYM_SEMICOLON) {
+    //Assignment11 (bitw)expression
     type = gr_expression();
 
 
@@ -4471,6 +4848,7 @@ void gr_statement() {
     // "*" identifier
     if (symbol == SYM_IDENTIFIER) {
 
+	  //Assignment7
 	  variableOrProcedureName = identifier;
 
 	  getSymbol();
@@ -4484,6 +4862,7 @@ void gr_statement() {
 
         getSymbol();
 
+        //Assignment 11 (bitw)expression
         rtype = gr_expression();
 
 
@@ -4535,7 +4914,8 @@ void gr_statement() {
           syntaxErrorSymbol(SYM_ASSIGN);
         }
         getSymbol();
-
+     
+        //Assignment 11 (bitw)expression
         rtype = gr_expression();
 
         //gr_expression must return an int
@@ -4569,6 +4949,7 @@ void gr_statement() {
     } else if (symbol == SYM_LPARENTHESIS) {
       getSymbol();
 
+      //Assignment 11
       ltype = gr_expression();
 
 
@@ -4582,6 +4963,7 @@ void gr_statement() {
         if (symbol == SYM_ASSIGN) {
           getSymbol();
 
+          //Assignment11
           rtype = gr_expression();
 
 
@@ -4629,7 +5011,9 @@ void gr_statement() {
       else
         syntaxErrorSymbol(SYM_SEMICOLON);
 
-        // identifier -> .... "=" expression
+
+    // identifier -> .... "=" expression
+    //Assignment9
     }else if(symbol == SYM_STRUCT_POINTER){
 
       getSymbol();
@@ -4640,7 +5024,8 @@ void gr_statement() {
         getSymbol();
       else
         syntaxErrorSymbol(SYM_ASSIGN);
-
+ 
+      //Assignment11 (bitw)expr
       rtype  = gr_expression();
 
       if(ltype != rtype)
@@ -4657,7 +5042,6 @@ void gr_statement() {
       else
         syntaxErrorSymbol(SYM_SEMICOLON);
 
-
     // identifier = expression
     } else if (symbol == SYM_ASSIGN) {
       entry = getVariable(variableOrProcedureName);
@@ -4666,6 +5050,7 @@ void gr_statement() {
 
       getSymbol();
 
+      //Assignment 11 (bitw)Expr
       rtype = gr_expression();
 
 
@@ -4683,6 +5068,7 @@ void gr_statement() {
       else
         syntaxErrorSymbol(SYM_SEMICOLON);
 
+  //Assignment7
   // identifier [... = expression
   }else if(symbol == SYM_LBRACKET){
       entry = global_symbol_table;
@@ -4720,6 +5106,7 @@ void gr_statement() {
       }
       getSymbol();
 
+      //Assignment11 (bitw)Expr
       rtype = gr_expression();
 
       if(ltype != rtype){
@@ -4777,6 +5164,7 @@ int gr_type() {
       getSymbol();
     }
 
+	
   }else if(symbol == SYM_IDENTIFIER){
     getSymbol();
     if(symbol == SYM_ASTERISK){
@@ -4801,23 +5189,45 @@ int gr_type() {
 
   return type;
 }
+	
+  //Assignment8
+  //STRUCT name *
+  //}else if(symbol == SYM_STRUCT){
+	//getSymbol();
+	
+	//if(symbol != SYM_IDENTIFIER)
+	//  syntaxErrorSymbol(SYM_IDENTIFIER);
+  
+   // getSymbol();
+  
+   // if(symbol != SYM_ASTERISK)
+	//  syntaxErrorSymbol(SYM_ASTERISK);
+	
+	
+   // type = STRUCT_T;
+      
+   // getSymbol();
+
+ // } else
+ //   syntaxErrorSymbol(SYM_INT);
+
+ // return type;
+//}
 
 void gr_variable(int offset) {
   int type;
-
+  
   type = gr_type();
 
   if (symbol == SYM_IDENTIFIER) {
     // TODO: check if identifier has already been declared
-    createSymbolTableEntry(LOCAL_TABLE, identifier, lineNumber, VARIABLE, type, 0, offset);
-
-    getSymbol();
-    //identifier [ expression ][ expression ]...[ expression ]
-
-
+	
+	createSymbolTableEntry(LOCAL_TABLE, identifier, lineNumber, VARIABLE, type, 0, offset);
+	getSymbol();
 
   } else {
     syntaxErrorSymbol(SYM_IDENTIFIER);
+	
     createSymbolTableEntry(LOCAL_TABLE, (int*) "missing variable name", lineNumber, VARIABLE, type, 0, offset);
   }
 }
@@ -4909,40 +5319,47 @@ void gr_procedure(int* procedure, int type) {
   numberOfParameters = 0;
 
   // try parsing formal parameters
-  if (symbol == SYM_LPARENTHESIS) { //...(
+  if (symbol == SYM_LPARENTHESIS) {
     getSymbol();
 
-    //...(...
+	//variablen in prozedur, nicht ()
     if (symbol != SYM_RPARENTHESIS) {
       gr_variable(0);
+
       numberOfParameters = 1;
 
-        //...(variable, variable,...)
       while (symbol == SYM_COMMA) {
         getSymbol();
+
         gr_variable(0);
+
         numberOfParameters = numberOfParameters + 1;
       }
+
       entry = local_symbol_table;
+
       parameters = 0;
+
       while (parameters < numberOfParameters) {
         // 8 bytes offset to skip frame pointer and link
         setAddress(entry, parameters * WORDSIZE + 2 * WORDSIZE);
+
         parameters = parameters + 1;
+
         entry = getNextEntry(entry);
       }
-        //...(variable, variable,...,variable)
-      if (symbol == SYM_RPARENTHESIS)   getSymbol();
-      else   syntaxErrorSymbol(SYM_RPARENTHESIS);
 
-    } else   getSymbol();
-
-  } else syntaxErrorSymbol(SYM_LPARENTHESIS);
+      if (symbol == SYM_RPARENTHESIS)
+        getSymbol();
+      else
+        syntaxErrorSymbol(SYM_RPARENTHESIS);
+    } else
+      getSymbol();
+  } else
+    syntaxErrorSymbol(SYM_LPARENTHESIS);
 
   entry = searchSymbolTable(global_symbol_table, procedure, PROCEDURE);
 
-
-//...(...);
   if (symbol == SYM_SEMICOLON) {
     // this is a procedure declaration
     if (entry == (int*) 0)
@@ -4955,8 +5372,6 @@ void gr_procedure(int* procedure, int type) {
 
     getSymbol();
 
-
-//...(...){
   } else if (symbol == SYM_LBRACE) {
     // this is a procedure definition
     if (entry == (int*) 0)
@@ -4982,7 +5397,8 @@ void gr_procedure(int* procedure, int type) {
         // procedure already called or declared but not defined
         setLineNumber(entry, lineNumber);
 
-        if (getVariableType(entry) != type)  typeWarning(getVariableType(entry), type);
+        if (getVariableType(entry) != type)
+          typeWarning(getVariableType(entry), type);
 
         setVariableType(entry, type);
         setAddress(entry, binaryLength);
@@ -4997,6 +5413,7 @@ void gr_procedure(int* procedure, int type) {
     }
 
     getSymbol();
+
     localVariables = 0;
 
     while (symbol == SYM_INT) {
@@ -5004,30 +5421,40 @@ void gr_procedure(int* procedure, int type) {
 
       gr_variable(-localVariables * WORDSIZE);
 
-      if (symbol == SYM_SEMICOLON)  getSymbol();
-      else  syntaxErrorSymbol(SYM_SEMICOLON);
+      if (symbol == SYM_SEMICOLON)
+        getSymbol();
+      else
+        syntaxErrorSymbol(SYM_SEMICOLON);
     }
 
     help_procedure_prologue(localVariables);
 
     // create a fixup chain for return statements
     returnBranches = 0;
+
     returnType = type;
 
-//...(...){ statement; ....
-    while (isNotRbraceOrEOF())  gr_statement();
+    while (isNotRbraceOrEOF())
+      gr_statement();
 
     returnType = 0;
 
-//...(...){ statement; ....}
-    if (symbol == SYM_RBRACE)  getSymbol();
-    else {syntaxErrorSymbol(SYM_RBRACE);  exit(-1);  }
+    if (symbol == SYM_RBRACE)
+      getSymbol();
+    else {
+      syntaxErrorSymbol(SYM_RBRACE);
+
+      exit(-1);
+    }
 
     fixlink_absolute(returnBranches, binaryLength);
+
     returnBranches = 0;
+
     help_procedure_epilogue(numberOfParameters);
 
-  } else  syntaxErrorUnexpected();
+  } else
+    syntaxErrorUnexpected();
 
   local_symbol_table = (int*) 0;
 
@@ -5040,6 +5467,7 @@ int gr_selector(int selectorNum, int* entry){
   int multiplier;
   int type;
   size = 0;
+
 
   if(arrayDeklaration){
     getSymbol();
@@ -5105,86 +5533,85 @@ void gr_struct(int* structName){
   int* stEntry;
   int* newField;
 
-    entry = searchSymbolTable(global_symbol_table, structName, STRUCT);
+  entry = searchSymbolTable(global_symbol_table, structName, STRUCT);
 
-    if((int) entry != 0){
-      // global variable already declared or defined
-      printLineNumber((int*) "warning", lineNumber);
-      print((int*) "redefinition of struct ");
-      print(structName);
-      print((int*) " ignored");
-      println();
-      return;
-    }
+  if((int) entry != 0){
+    // global variable already declared or defined
+    printLineNumber((int*) "warning", lineNumber);
+    print((int*) "redefinition of struct ");
+    print(structName);
+    print((int*) " ignored");
+    println();
+    return;
+  }
 
-    entry = createSymbolTableEntry(GLOBAL_TABLE, structName, lineNumber, STRUCT, 0, 0, 0);
+  entry = createSymbolTableEntry(GLOBAL_TABLE, structName, lineNumber, STRUCT, 0, 0, 0);
 
-    if(symbol != SYM_LBRACE)
-      syntaxErrorSymbol(SYM_LBRACE);
+  if(symbol != SYM_LBRACE)
+    syntaxErrorSymbol(SYM_LBRACE);
+  
+  getSymbol();
+
+  offset = 0;
+  while(lookForType() == 0){
+    if(symbol == SYM_STRUCT){
+      type = STRUCT_T;
+
+       getSymbol();
+
+      if(symbol == SYM_IDENTIFIER){
+        structName = identifier;
+      }else{
+        syntaxErrorSymbol(SYM_IDENTIFIER);
+      }
+      structEntry = searchSymbolTable(global_symbol_table, structName, STRUCT);
 
       getSymbol();
+      if(symbol != SYM_ASTERISK)
+        syntaxErrorSymbol(SYM_ASTERISK);
 
-    offset = 0;
-    while(lookForType() == 0){
-
-      if(symbol == SYM_STRUCT){
-        type = STRUCT_T;
-
-        getSymbol();
-
-        if(symbol == SYM_IDENTIFIER){
-          structName = identifier;
-        }else{
-          syntaxErrorSymbol(SYM_IDENTIFIER);
-        }
-
-        structEntry = searchSymbolTable(global_symbol_table, structName, STRUCT);
-
-        getSymbol();
-        if(symbol != SYM_ASTERISK)
-          syntaxErrorSymbol(SYM_ASTERISK);
-
-        getSymbol();
-        if(symbol == SYM_IDENTIFIER){
-          variableName = identifier;
-        }else{
-          syntaxErrorSymbol(SYM_IDENTIFIER);
-        }
-
-        addStructElement(entry, variableName, structName, type, structEntry, offset);
-
+      getSymbol();
+      if(symbol == SYM_IDENTIFIER){
+        variableName = identifier;
       }else{
-        type = gr_type();
-
-        if(symbol == SYM_IDENTIFIER){
-          variableName = identifier;
-        }else{
-          syntaxErrorSymbol(SYM_IDENTIFIER);
-        }
-
-        addStructElement(entry, variableName,structName, type, (int*) 0, offset);
+        syntaxErrorSymbol(SYM_IDENTIFIER);
       }
 
-      getSymbol();
-      if(symbol != SYM_SEMICOLON)
-        syntaxErrorSymbol(SYM_SEMICOLON);
+      addStructElement(entry, variableName, structName, type, structEntry, offset);
 
-      getSymbol();
+    }else{
+      type = gr_type();
 
-      offset = offset + 1;
+      if(symbol == SYM_IDENTIFIER){
+        variableName = identifier;
+      }else{
+        syntaxErrorSymbol(SYM_IDENTIFIER);
+      }
+
+      addStructElement(entry, variableName,structName, type, (int*) 0, offset);
     }
 
-    if(symbol != SYM_RBRACE)
-      syntaxErrorSymbol(SYM_RBRACE);
     getSymbol();
-
     if(symbol != SYM_SEMICOLON)
       syntaxErrorSymbol(SYM_SEMICOLON);
 
     getSymbol();
 
+    offset = offset + 1;
+  }
+
+  if(symbol != SYM_RBRACE)
+    syntaxErrorSymbol(SYM_RBRACE);
+  getSymbol();
+
+  if(symbol != SYM_SEMICOLON)
+    syntaxErrorSymbol(SYM_SEMICOLON);
+
+  getSymbol();
+
 }
 
+//Assignment9
 int gr_structAccess(int* structVariableName){
   int* fields;
 	int* entry;
@@ -5231,6 +5658,7 @@ int gr_structAccess(int* structVariableName){
 
 return fieldType;
 }
+
 
 void gr_cstar() {
   int type;
@@ -5293,7 +5721,6 @@ void gr_cstar() {
           syntaxErrorSymbol(SYM_IDENTIFIER);
 
           entry = searchSymbolTable(global_symbol_table, structName, STRUCT);
-
           if(entry == (int*)0){
             printLineNumber((int*) "warning", currentLineNumber);
             print((int*) "struct type");
@@ -5303,22 +5730,24 @@ void gr_cstar() {
 
           }else{
 
-            structVariableEntry = searchSymbolTable(global_symbol_table, variableOrProcedureName, VARIABLE);
+        structVariableEntry = searchSymbolTable(global_symbol_table, variableOrProcedureName, VARIABLE);
 
-            if (structVariableEntry == (int*) 0) {
-              allocatedMemory = allocatedMemory + SIZEOFINTSTAR;
+        if (structVariableEntry == (int*) 0) {
+          allocatedMemory = allocatedMemory + SIZEOFINTSTAR;
 
-              structVariableEntry = createSymbolTableEntry(GLOBAL_TABLE, variableOrProcedureName, lineNumber, VARIABLE, STRUCT_T, 0, -allocatedMemory);
-              setDefinition(getTypeStruct(structVariableEntry),entry);
+          structVariableEntry = createSymbolTableEntry(GLOBAL_TABLE, variableOrProcedureName, lineNumber, VARIABLE, STRUCT_T, 0, -allocatedMemory);
+          //setStructName(getTypeStruct(structVariableEntry),structName );
+          //setFields(getTypeStruct(structVariableEntry),getFields(getTypeStruct(entry)));
+          setDefinition(getTypeStruct(structVariableEntry),entry);
 
-            } else {
-              // global variable already declared or defined
-              printLineNumber((int*) "warning", currentLineNumber);
-              print((int*) "redefinition of global variable ");
-              print(variableOrProcedureName);
-              print((int*) " ignored");
-              println();
-            }
+        } else {
+          // global variable already declared or defined
+          printLineNumber((int*) "warning", currentLineNumber);
+          print((int*) "redefinition of global variable ");
+          print(variableOrProcedureName);
+          print((int*) " ignored");
+          println();
+        }
 
 
         getSymbol();
@@ -5329,7 +5758,9 @@ void gr_cstar() {
       }
 
       }else{
+
         gr_struct(structName);
+
       }
 
     } else {
@@ -5552,9 +5983,12 @@ void selfie_compile() {
   emitMap();
 
   while (link) {
-    if (numberOfRemainingArguments() == 0)
-      link = 0;
-    else if (loadCharacter(peekArgument(), 0) == '-')
+    //if (numberOfRemainingArguments() == 0)
+      //link = 0;
+    //else if (loadCharacter(peekArgument(), 0) == '-')
+    //Assignment11
+    if (!numberOfRemainingArguments() || loadCharacter(peekArgument(), 0) == '-')
+
       link = 0;
     else {
       sourceName = getArgument();
@@ -5880,7 +6314,9 @@ void decodeJFormat() {
 void decode() {
   opcode = getOpcode(ir);
 
-  if (opcode == 0)
+  //if (opcode == 0)
+  //Assignment11  
+  if (!opcode)
     decodeRFormat();
   else if (opcode == OP_JAL)
     decodeJFormat();
@@ -5911,17 +6347,20 @@ void storeBinary(int baddr, int instruction) {
 }
 
 void emitInstruction(int instruction) {
-  if (binaryLength >= maxBinaryLength) {
-    syntaxErrorMessage((int*) "exceeded maximum binary length");
+  //Assignment11 suppressCodegen
+  if(!suppressCodegen){
+    if (binaryLength >= maxBinaryLength) {
+      syntaxErrorMessage((int*) "exceeded maximum binary length");
 
-    exit(-1);
-  } else {
-    if (*(sourceLineNumber + binaryLength / WORDSIZE) == 0)
-      *(sourceLineNumber + binaryLength / WORDSIZE) = lineNumber;
+      exit(-1);
+    } else {
+      if (*(sourceLineNumber + binaryLength / WORDSIZE) == 0)
+        *(sourceLineNumber + binaryLength / WORDSIZE) = lineNumber;
 
-    storeBinary(binaryLength, instruction);
+      storeBinary(binaryLength, instruction);
 
-    binaryLength = binaryLength + WORDSIZE;
+      binaryLength = binaryLength + WORDSIZE;
+    }
   }
 }
 
@@ -5971,6 +6410,21 @@ void fixup_relative(int fromAddress) {
       (binaryLength - fromAddress - WORDSIZE) / WORDSIZE));
 }
 
+//Assignment11
+void fixup_chain(int startAddress){
+  int instruction;
+  int offset;
+
+  offset = 1;
+  while(offset != 0){
+    instruction = loadBinary(startAddress);
+    offset = getImmediate(instruction);
+
+    storeBinary(startAddress, encodeIFormat(getOpcode(instruction), getRS(instruction), getRT(instruction), (binaryLength - startAddress - WORDSIZE) / WORDSIZE));
+
+    startAddress = startAddress - offset;
+  }
+}
 void fixup_absolute(int fromAddress, int toAddress) {
   storeBinary(fromAddress,
     encodeJFormat(getOpcode(loadBinary(fromAddress)), toAddress / WORDSIZE));
@@ -6524,13 +6978,16 @@ int down_loadString(int* table, int vaddr, int* s) {
 
         *(s + i) = loadPhysicalMemory(paddr);
 
-        if (loadCharacter(paddr, 0) == 0)
-          return 1;
-        else if (loadCharacter(paddr, 1) == 0)
-          return 1;
-        else if (loadCharacter(paddr, 2) == 0)
-          return 1;
-        else if (loadCharacter(paddr, 3) == 0)
+        //if (loadCharacter(paddr, 0) == 0)
+          //return 1;
+        //else if (loadCharacter(paddr, 1) == 0)
+          //return 1;
+        //else if (loadCharacter(paddr, 2) == 0)
+          //return 1;
+        //else if (loadCharacter(paddr, 3) == 0)
+        //Assignment11
+        if (!loadCharacter(paddr, 0) || !loadCharacter(paddr, 1) || !loadCharacter(paddr, 2) || !loadCharacter(paddr, 3))
+
           return 1;
 
         vaddr = vaddr + WORDSIZE;
@@ -6538,7 +6995,7 @@ int down_loadString(int* table, int vaddr, int* s) {
         i = i + 1;
       } else {
         if (debug_open) {
-          print(binaryName);
+          print(selfieName);
           print((int*) ": opening file with name at virtual address ");
           printHexadecimal(vaddr, 8);
           print((int*) " failed because the address is unmapped");
@@ -8067,7 +8524,7 @@ void fct_nor(){
   }
 
   if(interpret){
-    *(registers+rd) = ~(*(registers+rs) | *(registers+rt));
+    *(registers+rd) = ~(*(registers+rt) | *(registers+rs));
 
       pc = pc + WORDSIZE;
   }
@@ -8077,7 +8534,7 @@ void fct_nor(){
       print((int*) " -> ");
       printRegister(rd);
       print((int*) "=");
-      printInteger(*(registers+rd));
+      printBinary(*(registers+rd), 0);
     }
     println();
   }
@@ -8292,11 +8749,11 @@ void execute() {
 	//Assignment5
 	else if (function == FCT_AND)
       fct_and();
-  else if (function == FCT_OR)
+    else if (function == FCT_OR)
       fct_or();
-  else if (function == FCT_NOR)
+    else if (function == FCT_NOR)
       fct_nor();
-  else
+    else
       throwException(EXCEPTION_UNKNOWNINSTRUCTION, 0);
 
   }else if (opcode == OP_ADDIU)
@@ -9080,10 +9537,10 @@ void printUsage() {
 }
 
 
-
 int selfie() {
   int* option;
 
+  
   print((int*)"This is Vivien Wallner's Selfie");
   println();
 

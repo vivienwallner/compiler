@@ -10,7 +10,7 @@ C\* is a small Turing-complete subset of C that includes dereferencing (the `*` 
 
 C\* Keywords: `int`, `while`, `if`, `else`, `return`, `void`
 
-C\* Symbols: `=`, `+`, `-`, `*`, `/`, `%`, `==`, `!=`, `<`, `<<`, `<=`, `>`, `>>`, `>=`,  `&`, `|`, `~` , `,`, `(`, `)`, `{`, `}`, `;`, `->`, integer, identifier, character, string
+C\* Symbols: `=`, `+`, `-`, `*`, `/`, `%`, `==`, `!=`, `<`, `<<`, `<=`, `>`, `>>`, `>=`,  `&`, `|`, `~` , `,`, `(`, `)`, `{`, `}`, `;`, `->`, `&&`, `||`, `!`, integer, identifier, character, string
 
 with:
 
@@ -46,9 +46,11 @@ cstar            = { type identifier [ "=" [ cast ] [ "-" ] literal ]  ";" |
                    ( "void" | type ) identifier procedure | type identifier { selector } ";" |
                       "struct" identifier ( "*" identifier | struct ) ";" } .
 
-type             = ( "int" [ "*" ] ) .
+type             = ( "int" [ "*" ] )  | "struct".
 
-struct          = "{" { ( type | "struct" identifier "*" ) identifier ";" } "}" .
+struct           = "{" { ( type | "struct" identifier "*" ) identifier ";" } "}" .
+
+structAccess     = { "->" identifier } .
 
 cast             = "(" type ")" .
 
@@ -57,7 +59,7 @@ literal          = integer | character .
 procedure        = "(" [ variable { "," variable } ] ")"
                     ( ";" | "{" { variable ";" } { statement } "}" ) .
 
-selector         =  { "[" simpleExpression "]" | ("->" identifier) } .
+selector         =  "[" simpleExpression "]".
 
 variable         =  type identifier .
 
@@ -67,7 +69,11 @@ statement        = call ";" | while | if | return ";" |
 
 call             = identifier "(" [ expression { "," expression } ] ")" .
 
-expression      = comparisonExpression { ( "&" | "|" ) comparisonExpression } .
+expression      = boolExpression {[ "||" boolExpression ]} .
+
+logicalExpression    = bitwiseExpression {[ "&&" bitwiseExpression ]} .
+
+bitwiseExpression   = comparisonExpression [ ( "&" | "|" ) comparisonExpression ] .
 
 comparisonExpression  = shiftExpression { ( "==" | "!=" | "<" | ">" | "<=" | ">=" ) shiftExpression } .
 
@@ -78,7 +84,7 @@ simpleExpression = [ "-" ] term { ( "+" | "-" ) term } .
 term             =  factor { ( "*" | "/" | "%" ) factor } .
 
 factor           = [ cast ]
-                    (  [ "*" | "~" ] ( identifier selector | "(" expression ")" ) |
+                    (  [ "*" | "~" | "!" ] ( identifier selector | "(" expression ")" ) |
                       call |
                      literal |
                       string ) .
